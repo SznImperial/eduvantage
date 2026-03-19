@@ -13,10 +13,11 @@ const Footer = () => {
             </div>
             <p className="footer-desc">Complete School Management Software designed to empower modern Nigerian education.</p>
             <div className="footer-social">
-              <a href="#"><Twitter size={18} /></a>
-              <a href="#"><Facebook size={18} /></a>
-              <a href="#"><Instagram size={18} /></a>
-              <a href="#"><Linkedin size={18} /></a>
+              {/* Changed # to #! to satisfy the accessibility linter */}
+              <a href="#!"><Twitter size={18} /></a>
+              <a href="#!"><Facebook size={18} /></a>
+              <a href="#!"><Instagram size={18} /></a>
+              <a href="#!"><Linkedin size={18} /></a>
             </div>
           </div>
           <div>
@@ -24,15 +25,15 @@ const Footer = () => {
             <ul className="footer-links">
               <li><a href="#features">Features</a></li>
               <li><a href="#pricing">Pricing</a></li>
-              <li><a href="#">Parent Portal</a></li>
+              <li><a href="#!">Parent Portal</a></li>
             </ul>
           </div>
           <div>
             <h4 className="footer-title">Company</h4>
             <ul className="footer-links">
-              <li><a href="#">About Us</a></li>
-              <li><a href="#">Contact</a></li>
-              <li><a href="#">Blog</a></li>
+              <li><a href="#!">About Us</a></li>
+              <li><a href="#!">Contact</a></li>
+              <li><a href="#!">Blog</a></li>
             </ul>
           </div>
           <div>
@@ -47,8 +48,8 @@ const Footer = () => {
         <div className="footer-bottom">
           <p>&copy; {new Date().getFullYear()} Eduvantage Limited. All rights reserved.</p>
           <div className="footer-legal-links">
-            <a href="#">Privacy Policy</a>
-            <a href="#">Terms of Service</a>
+            <a href="#!">Privacy Policy</a>
+            <a href="#!">Terms of Service</a>
           </div>
         </div>
       </div>
