@@ -27,17 +27,23 @@ WORKDIR /var/www/html
 COPY . /var/www/html/
 
 # Install composer dependencies
-# Using --no-dev for production, and optimize the autoloader.
 ENV COMPOSER_ALLOW_SUPERUSER=1
 RUN if [ -f "composer.json" ]; then composer install --no-interaction --no-dev --optimize-autoloader; fi
 
 # Set Apache document root to Laravel's public folder
 RUN sed -i 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/000-default.conf
 
-# Use production PHP settings (disables display_errors completely so warnings don't break JSON)
+# ✅ CRITICAL FIX: Allow .htaccess to work (enables Laravel routing)
+RUN echo '<Directory /var/www/html/public>\n\
+    Options Indexes FollowSymLinks\n\
+    AllowOverride All\n\
+    Require all granted\n\
+</Directory>' >> /etc/apache2/sites-available/000-default.conf
+
+# Use production PHP settings
 RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 
-# Explicitly disable deprecation warnings and display_errors to protect JSON payloads
+# Disable deprecation warnings to protect JSON payloads
 RUN echo "display_errors = Off" >> $PHP_INI_DIR/conf.d/disable_warnings.ini \
     && echo "error_reporting = E_ALL & ~E_DEPRECATED & ~E_STRICT" >> $PHP_INI_DIR/conf.d/disable_warnings.ini
 
@@ -45,8 +51,4 @@ RUN echo "display_errors = Off" >> $PHP_INI_DIR/conf.d/disable_warnings.ini \
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Cache configuration for performance
-# Note: In production, config caching is recommended, but when using Render environment variables, 
-# you should only cache if the environment variables are available during build, which they often aren't.
-# We will just expose the port, and let Laravel route on the fly or you can cache on a post-deploy script.
 EXPOSE 80
