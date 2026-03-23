@@ -50,5 +50,6 @@ RUN echo "display_errors = Off" >> $PHP_INI_DIR/conf.d/disable_warnings.ini \
 # Set permissions for Laravel
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
-
-EXPOSE 80
+    COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+CMD ["docker-entrypoint.sh"]
