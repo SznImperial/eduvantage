@@ -12,14 +12,25 @@ function getFriendlyError(error) {
   
   const msg = typeof error === 'string' ? error : (error.message || '');
   
-  // Keep clean client validation and login auth feedback intact
+  // Let standard user-facing auth, verification, and validation messages pass through directly
   if (
     msg.includes('required') || 
     msg.includes('Unauthorized') || 
     msg.includes('credentials') || 
-    msg.includes('invalid login') ||
-    msg.includes('Invalid login') ||
-    msg.includes('Email and password') ||
+    msg.includes('login') || 
+    msg.includes('Email') || 
+    msg.includes('email') || 
+    msg.includes('password') || 
+    msg.includes('Password') || 
+    msg.includes('confirm') || 
+    msg.includes('Confirm') || 
+    msg.includes('verify') || 
+    msg.includes('Verify') || 
+    msg.includes('registered') || 
+    msg.includes('rate') || 
+    msg.includes('request') || 
+    msg.includes('valid') || 
+    msg.includes('short') ||
     msg.includes('Session') ||
     msg.includes('profile context')
   ) {
