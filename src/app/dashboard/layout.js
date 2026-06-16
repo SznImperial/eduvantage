@@ -11,7 +11,9 @@ import {
   Calendar, 
   FileSpreadsheet, 
   Megaphone, 
-  LogOut 
+  LogOut,
+  CreditCard,
+  Layers
 } from 'lucide-react';
 
 export default async function DashboardLayout({ children }) {
@@ -34,8 +36,8 @@ export default async function DashboardLayout({ children }) {
     redirect('/login');
   }
 
-  const schoolName = profile.schools?.name || 'EduVantage';
   const role = profile.role;
+  const schoolName = role === 'super_admin' ? 'Global SaaS Admin' : (profile.schools?.name || 'EduVantage');
   const userName = `${profile.first_name} ${profile.last_name}`;
 
   return (
@@ -73,6 +75,15 @@ export default async function DashboardLayout({ children }) {
             Dashboard Home
           </Link>
 
+          {role === 'super_admin' && (
+            <>
+              <Link href="/dashboard/super-admin" className="sidebar-link">
+                <Layers size={18} />
+                SaaS Control Plane
+              </Link>
+            </>
+          )}
+
           {role === 'admin' && (
             <>
               <Link href="/dashboard/admin/users" className="sidebar-link">
@@ -87,6 +98,10 @@ export default async function DashboardLayout({ children }) {
                 <Megaphone size={18} />
                 Announcements
               </Link>
+              <Link href="/dashboard/admin/billing" className="sidebar-link">
+                <CreditCard size={18} />
+                Billing & Limits
+              </Link>
             </>
           )}
 
@@ -99,6 +114,15 @@ export default async function DashboardLayout({ children }) {
               <Link href="/dashboard/teacher/grades" className="sidebar-link">
                 <FileSpreadsheet size={18} />
                 Academic Grades
+              </Link>
+            </>
+          )}
+
+          {role === 'parent' && (
+            <>
+              <Link href="/dashboard/parent" className="sidebar-link">
+                <FileSpreadsheet size={18} />
+                Child Report Card
               </Link>
             </>
           )}

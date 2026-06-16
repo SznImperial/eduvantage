@@ -2,12 +2,18 @@
 
 import React, { useState, useEffect, useTransition } from 'react';
 import { createClient } from '@/lib/supabaseClient';
-import { createUserAccount, deleteUserAction } from '@/app/actions';
+import { 
+  createUserAccount, 
+  deleteUserAction, 
+  linkParentStudentAction, 
+  unlinkParentStudentAction 
+} from '@/app/actions';
 import { Users, UserPlus, ShieldAlert, CheckCircle2, Loader2, Mail, BadgeCheck, Trash2 } from 'lucide-react';
 
 export default function AdminUsersPage() {
   const supabase = createClient();
   const [users, setUsers] = useState([]);
+  const [parentLinks, setParentLinks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [roleFilter, setRoleFilter] = useState('all');
   
@@ -16,17 +22,25 @@ export default function AdminUsersPage() {
   const [success, setSuccess] = useState('');
   const [isPending, startTransition] = useTransition();
 
-  // Fetch users
+  // Fetch users & parent relations
   const fetchUsers = async () => {
     setLoading(true);
-    const { data, error } = await supabase
+    const { data: usersData, error: uErr } = await supabase
       .from('profiles')
       .select('*')
       .order('role', { ascending: true })
       .order('first_name', { ascending: true });
 
-    if (!error) {
-      setUsers(data);
+    if (!uErr && usersData) {
+      setUsers(usersData);
+    }
+
+    const { data: linksData, error: lErr } = await supabase
+      .from('parent_student')
+      .select('*');
+
+    if (!lErr && linksData) {
+      setParentLinks(linksData);
     }
     setLoading(false);
   };
@@ -68,6 +82,31 @@ export default function AdminUsersPage() {
     }
   };
 
+  const handleLink = async (parentId, studentId) => {
+    setError('');
+    setSuccess('');
+    const result = await linkParentStudentAction(parentId, studentId);
+    if (result?.error) {
+      setError(result.error);
+    } else {
+      setSuccess('Linked parent to student successfully.');
+      fetchUsers();
+    }
+  };
+
+  const handleUnlink = async (linkId) => {
+    setError('');
+    setSuccess('');
+    if (!confirm('Are you sure you want to unlink this student?')) return;
+    const result = await unlinkParentStudentAction(linkId);
+    if (result?.error) {
+      setError(result.error);
+    } else {
+      setSuccess('Unlinked student.');
+      fetchUsers();
+    }
+  };
+
   const filteredUsers = users.filter(user => {
     if (roleFilter === 'all') return true;
     return user.role === roleFilter;
@@ -77,14 +116,14 @@ export default function AdminUsersPage() {
     <div className="animate-fade-in">
       <div className="page-header">
         <h1>User Accounts Directory</h1>
-        <p>Manage credentials, roles, and schools assignments.</p>
+        <p>Manage credentials, roles, and school assignments.</p>
       </div>
 
       <div className="responsive-grid-3-2">
         {/* Users Directory */}
         <div>
           {/* Filters */}
-          <div className="filter-group">
+          <div className="filter-group" style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1.5rem' }}>
             <button 
               className={`filter-pill ${roleFilter === 'all' ? 'active' : ''}`}
               onClick={() => setRoleFilter('all')}
@@ -102,6 +141,12 @@ export default function AdminUsersPage() {
               onClick={() => setRoleFilter('student')}
             >
               Students ({users.filter(u => u.role === 'student').length})
+            </button>
+            <button 
+              className={`filter-pill ${roleFilter === 'parent' ? 'active' : ''}`}
+              onClick={() => setRoleFilter('parent')}
+            >
+              Parents ({users.filter(u => u.role === 'parent').length})
             </button>
           </div>
 
@@ -123,38 +168,99 @@ export default function AdminUsersPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredUsers.map((user) => (
-                    <tr key={user.id}>
-                      <td style={{ fontWeight: 600 }}>
-                        {user.first_name} {user.last_name}
-                      </td>
-                      <td>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', color: 'hsl(var(--muted-foreground))' }}>
-                          <Mail size={14} /> {user.email}
-                        </div>
-                      </td>
-                      <td>
-                        <span className={`badge ${
-                          user.role === 'admin' ? 'badge-danger' : 
-                          user.role === 'teacher' ? 'badge-primary' : 'badge-secondary'
-                        }`} style={{ textTransform: 'capitalize' }}>
-                          {user.role}
-                        </span>
-                      </td>
-                      <td>
-                        {user.role !== 'admin' && (
-                          <button 
-                            className="btn btn-ghost" 
-                            style={{ color: 'hsl(var(--destructive))', padding: '0.375rem' }}
-                            onClick={() => handleDelete(user.id, `${user.first_name} ${user.last_name}`, user.role)}
-                            title="Delete User Account"
-                          >
-                            <Trash2 size={15} />
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
+                  {filteredUsers.map((user) => {
+                    // Calculate linked student profiles for parent users
+                    const studentOptions = users.filter(u => u.role === 'student');
+                    const linkedIds = parentLinks.filter(l => l.parent_id === user.id);
+                    const linkedChildren = linkedIds.map(link => {
+                      const studentProfile = users.find(u => u.id === link.student_id);
+                      return {
+                        linkId: link.id,
+                        name: studentProfile ? `${studentProfile.first_name} ${studentProfile.last_name}` : 'Unknown Student'
+                      };
+                    });
+
+                    return (
+                      <tr key={user.id}>
+                        <td style={{ verticalAlign: 'top' }}>
+                          <div style={{ fontWeight: 600 }}>
+                            {user.first_name} {user.last_name}
+                          </div>
+                          
+                          {/* Parent relation link interface */}
+                          {user.role === 'parent' && (
+                            <div style={{ marginTop: '0.5rem', padding: '0.5rem', backgroundColor: 'hsl(var(--muted) / 0.3)', borderRadius: 'var(--radius-sm)', maxWidth: '240px' }}>
+                              <div style={{ fontSize: '0.7rem', fontWeight: 650, color: 'hsl(var(--muted-foreground))', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Linked Children</div>
+                              
+                              {linkedChildren.length > 0 ? (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', marginBottom: '0.35rem' }}>
+                                  {linkedChildren.map(child => (
+                                    <div key={child.linkId} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.75rem', backgroundColor: 'hsl(var(--card))', padding: '0.15rem 0.4rem', borderRadius: 'var(--radius-xs)', border: '1px solid hsl(var(--border) / 0.5)' }}>
+                                      <span>{child.name}</span>
+                                      <button 
+                                        onClick={() => handleUnlink(child.linkId)}
+                                        style={{ border: 'none', background: 'none', color: 'hsl(var(--destructive))', cursor: 'pointer', fontWeight: 'bold', padding: '0 0.15rem' }}
+                                        title="Remove student relation"
+                                      >
+                                        ×
+                                      </button>
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <div style={{ fontSize: '0.75rem', color: 'hsl(var(--muted-foreground))', marginBottom: '0.35rem', fontStyle: 'italic' }}>No kids linked.</div>
+                              )}
+
+                              <form onSubmit={(e) => {
+                                e.preventDefault();
+                                const sId = e.target.studentSelect.value;
+                                if (sId) {
+                                  handleLink(user.id, sId);
+                                  e.target.reset();
+                                }
+                              }} style={{ display: 'flex', gap: '0.25rem' }}>
+                                <select name="studentSelect" className="input" style={{ margin: 0, height: '24px', fontSize: '0.75rem', padding: '0 0.25rem', flex: 1 }}>
+                                  <option value="">Select Child...</option>
+                                  {studentOptions.map(st => (
+                                    <option key={st.id} value={st.id}>{st.first_name} {st.last_name}</option>
+                                  ))}
+                                </select>
+                                <button type="submit" className="btn btn-primary" style={{ padding: '0 0.4rem', height: '24px', fontSize: '0.7rem' }}>
+                                  Link
+                                </button>
+                              </form>
+                            </div>
+                          )}
+                        </td>
+                        <td style={{ verticalAlign: 'top' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', color: 'hsl(var(--muted-foreground))' }}>
+                            <Mail size={14} /> {user.email}
+                          </div>
+                        </td>
+                        <td style={{ verticalAlign: 'top' }}>
+                          <span className={`badge ${
+                            user.role === 'admin' ? 'badge-danger' : 
+                            user.role === 'teacher' ? 'badge-primary' : 
+                            user.role === 'parent' ? 'badge-indigo' : 'badge-secondary'
+                          }`} style={{ textTransform: 'capitalize' }}>
+                            {user.role}
+                          </span>
+                        </td>
+                        <td style={{ verticalAlign: 'top' }}>
+                          {user.role !== 'admin' && (
+                            <button 
+                              className="btn btn-ghost" 
+                              style={{ color: 'hsl(var(--destructive))', padding: '0.375rem' }}
+                              onClick={() => handleDelete(user.id, `${user.first_name} ${user.last_name}`, user.role)}
+                              title="Delete User Account"
+                            >
+                              <Trash2 size={15} />
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             ) : (
@@ -219,6 +325,7 @@ export default function AdminUsersPage() {
                 <select className="input" id="role" name="role" required disabled={isPending}>
                   <option value="teacher">Teacher (Class & Grades access)</option>
                   <option value="student">Student (Grades & Attendance viewing)</option>
+                  <option value="parent">Parent (View child reports)</option>
                 </select>
               </div>
 

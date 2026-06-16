@@ -24,11 +24,15 @@ export default async function DashboardPage() {
   }
 
   // Redirect based on role
-  if (profile.role === 'admin') {
+  if (profile.role === 'super_admin') {
+    redirect('/dashboard/super-admin');
+  } else if (profile.role === 'admin') {
     redirect('/dashboard/admin');
   } else if (profile.role === 'teacher') {
     redirect('/dashboard/teacher');
-  } else if (profile.role === 'student' || profile.role === 'parent') {
+  } else if (profile.role === 'parent') {
+    redirect('/dashboard/parent');
+  } else if (profile.role === 'student') {
     redirect('/dashboard/student');
   } else {
     redirect('/login');

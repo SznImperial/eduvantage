@@ -187,7 +187,7 @@ export async function createUserAccount(formData) {
   const lastName = formData.get('lastName');
   const email = formData.get('email');
   const password = formData.get('password');
-  const role = formData.get('role'); // 'teacher' or 'student'
+  const role = formData.get('role'); // 'teacher', 'student', or 'parent'
 
   if (!firstName || !lastName || !email || !password || !role) {
     return { error: 'All fields are required.' };
@@ -195,12 +195,38 @@ export async function createUserAccount(formData) {
 
   try {
     const { schoolId, role: currentRole } = await getAuthContext();
-    if (currentRole !== 'admin') {
+    if (currentRole !== 'admin' && currentRole !== 'super_admin') {
       return { error: 'Unauthorized: Only school administrators can create accounts.' };
     }
 
-    // Use admin client to create the authentication account for the new user
     const adminClient = createAdminClient();
+
+    // Enforce SaaS Subscription limits on student creations
+    if (role === 'student') {
+      const { count: studentCount, error: countErr } = await adminClient
+        .from('profiles')
+        .select('*', { count: 'exact', head: true })
+        .eq('school_id', schoolId)
+        .eq('role', 'student');
+
+      if (countErr) return { error: getFriendlyError(countErr) };
+
+      const { data: school, error: schoolErr } = await adminClient
+        .from('schools')
+        .select('max_student_limit')
+        .eq('id', schoolId)
+        .single();
+
+      if (schoolErr) return { error: getFriendlyError(schoolErr) };
+
+      if (studentCount >= school.max_student_limit) {
+        return { 
+          error: `Limit Reached: Your current plan allows up to ${school.max_student_limit} students. You currently have ${studentCount}. Please upgrade your plan in the Billing dashboard.` 
+        };
+      }
+    }
+
+    // Use admin client to create the authentication account for the new user
     const { data: newAuthData, error: createAuthError } = await adminClient.auth.admin.createUser({
       email,
       password,
@@ -292,7 +318,29 @@ export async function createAcademicYearAction(name, startDate, endDate) {
 export async function createClassAction(name, gradeLevel, academicYearId) {
   try {
     const { supabase, schoolId, role } = await getAuthContext();
-    if (role !== 'admin') return { error: 'Unauthorized.' };
+    if (role !== 'admin' && role !== 'super_admin') return { error: 'Unauthorized.' };
+
+    // Enforce SaaS Subscription limits on class creations
+    const { count: classCount, error: countErr } = await supabase
+      .from('classes')
+      .select('*', { count: 'exact', head: true })
+      .eq('school_id', schoolId);
+
+    if (countErr) return { error: getFriendlyError(countErr) };
+
+    const { data: school, error: schoolErr } = await supabase
+      .from('schools')
+      .select('max_class_limit')
+      .eq('id', schoolId)
+      .single();
+
+    if (schoolErr) return { error: getFriendlyError(schoolErr) };
+
+    if (classCount >= school.max_class_limit) {
+      return { 
+        error: `Limit Reached: Your current plan allows up to ${school.max_class_limit} classes. You currently have ${classCount}. Please upgrade your plan in the Billing dashboard.` 
+      };
+    }
 
     const { error } = await supabase.from('classes').insert([{
       school_id: schoolId,
@@ -471,6 +519,93 @@ export async function saveGradesAction(classSubjectId, studentIds, upserts) {
       if (insertError) return { error: getFriendlyError(insertError) };
     }
 
+    return { success: true };
+  } catch (err) {
+    return { error: getFriendlyError(err) };
+  }
+}
+
+/**
+ * Updates the subscription tier for a School (Tenant).
+ * Triggers changes in student and class limits.
+ */
+export async function updateSubscriptionAction(schoolId, tier) {
+  try {
+    const { supabase, role } = await getAuthContext();
+    if (role !== 'admin' && role !== 'super_admin') {
+      return { error: 'Unauthorized.' };
+    }
+
+    let maxStudentLimit = 10;
+    let maxClassLimit = 3;
+
+    if (tier === 'starter') {
+      maxStudentLimit = 50;
+      maxClassLimit = 10;
+    } else if (tier === 'growth') {
+      maxStudentLimit = 250;
+      maxClassLimit = 30;
+    } else if (tier === 'enterprise') {
+      maxStudentLimit = 9999;
+      maxClassLimit = 99;
+    }
+
+    const { error } = await supabase
+      .from('schools')
+      .update({
+        subscription_tier: tier,
+        max_student_limit: maxStudentLimit,
+        max_class_limit: maxClassLimit,
+        subscription_status: 'active'
+      })
+      .eq('id', schoolId);
+
+    if (error) return { error: getFriendlyError(error) };
+    return { success: true };
+  } catch (err) {
+    return { error: getFriendlyError(err) };
+  }
+}
+
+/**
+ * Links a parent profile to a student profile. Admin only.
+ */
+export async function linkParentStudentAction(parentId, studentId) {
+  try {
+    const { schoolId, role } = await getAuthContext();
+    if (role !== 'admin' && role !== 'super_admin') return { error: 'Unauthorized.' };
+
+    const adminClient = createAdminClient();
+    const { error } = await adminClient
+      .from('parent_student')
+      .insert([{
+        school_id: schoolId,
+        parent_id: parentId,
+        student_id: studentId
+      }]);
+
+    if (error) return { error: getFriendlyError(error) };
+    return { success: true };
+  } catch (err) {
+    return { error: getFriendlyError(err) };
+  }
+}
+
+/**
+ * Unlinks a parent profile from a student profile. Admin only.
+ */
+export async function unlinkParentStudentAction(id) {
+  try {
+    const { role } = await getAuthContext();
+    if (role !== 'admin' && role !== 'super_admin') return { error: 'Unauthorized.' };
+
+    const adminClient = createAdminClient();
+    const { error } = await adminClient
+      .from('parent_student')
+      .delete()
+      .eq('id', id);
+
+    if (error) return { error: getFriendlyError(error) };
     return { success: true };
   } catch (err) {
     return { error: getFriendlyError(err) };
