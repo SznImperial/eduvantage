@@ -105,7 +105,8 @@ export default function AdminBillingPage() {
     {
       id: 'free',
       name: 'Free Trial',
-      price: '$0',
+      price: '₦0',
+      period: '',
       description: 'Ideal for evaluating features or small pilot programs.',
       features: ['Up to 10 students', 'Up to 3 classes', 'Standard academic grades', 'Daily attendance logs', 'Announcements billboard'],
       limitText: '10 Students / 3 Classes limit'
@@ -113,7 +114,8 @@ export default function AdminBillingPage() {
     {
       id: 'starter',
       name: 'Starter Plan',
-      price: '$49',
+      price: '₦150,000',
+      period: '/ year',
       description: 'Perfect for small tutorial centers and micro-schools.',
       features: ['Up to 50 students', 'Up to 10 classes', 'Prioritized database performance', 'All features included', 'Email support'],
       limitText: '50 Students / 10 Classes limit'
@@ -121,16 +123,18 @@ export default function AdminBillingPage() {
     {
       id: 'growth',
       name: 'Growth Plan',
-      price: '$149',
+      price: '₦450,000',
+      period: '/ year',
       description: 'Best fit for established primary & secondary schools.',
-      features: ['Up to 250 students', 'Up to 30 classes', 'High resource allocation', 'SSO & Multi-roles support', '24/7 Priority assistance'],
-      limitText: '250 Students / 30 Classes limit',
+      features: ['Up to 500 students', 'Up to 40 classes', 'High resource allocation', 'SSO & Multi-roles support', '24/7 Priority assistance'],
+      limitText: '500 Students / 40 Classes limit',
       popular: true
     },
     {
       id: 'enterprise',
       name: 'Enterprise Plan',
-      price: '$499',
+      price: '₦1,200,000',
+      period: '/ year',
       description: 'Designed for school districts & large academies.',
       features: ['Unlimited students', 'Unlimited classes', 'Dedicated support manager', 'API access integrations', '99.99% SLA guarantee'],
       limitText: 'Unlimited student capacity'
@@ -271,7 +275,7 @@ export default function AdminBillingPage() {
                 <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'hsl(var(--foreground))' }}>{plan.name}</h3>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.25rem', margin: '0.75rem 0 0.5rem' }}>
                   <span style={{ fontSize: '2rem', fontWeight: 800 }}>{plan.price}</span>
-                  <span style={{ fontSize: '0.85rem', color: 'hsl(var(--muted-foreground))' }}>/ month</span>
+                  <span style={{ fontSize: '0.85rem', color: 'hsl(var(--muted-foreground))' }}>{plan.period}</span>
                 </div>
                 <p style={{ fontSize: '0.8rem', color: 'hsl(var(--muted-foreground))', lineHeight: 1.45 }}>{plan.description}</p>
               </div>

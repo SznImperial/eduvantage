@@ -543,8 +543,8 @@ export async function updateSubscriptionAction(schoolId, tier) {
       maxStudentLimit = 50;
       maxClassLimit = 10;
     } else if (tier === 'growth') {
-      maxStudentLimit = 250;
-      maxClassLimit = 30;
+      maxStudentLimit = 500;
+      maxClassLimit = 40;
     } else if (tier === 'enterprise') {
       maxStudentLimit = 9999;
       maxClassLimit = 99;

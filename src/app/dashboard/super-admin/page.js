@@ -69,13 +69,14 @@ export default function SuperAdminDashboard() {
 
   const activeSubscriptions = schools.filter(s => s.subscription_tier !== 'free').length;
 
-  // Calculate MRR
-  const mrr = schools.reduce((acc, school) => {
-    if (school.subscription_tier === 'starter') return acc + 49;
-    if (school.subscription_tier === 'growth') return acc + 149;
-    if (school.subscription_tier === 'enterprise') return acc + 499;
+  // Calculate ARR and MRR
+  const arr = schools.reduce((acc, school) => {
+    if (school.subscription_tier === 'starter') return acc + 150000;
+    if (school.subscription_tier === 'growth') return acc + 450000;
+    if (school.subscription_tier === 'enterprise') return acc + 1200000;
     return acc;
   }, 0);
+  const mrr = Math.round(arr / 12);
 
   const filteredSchools = schools.filter(s => 
     s.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -127,12 +128,12 @@ export default function SuperAdminDashboard() {
             </div>
             <div style={{ flex: 1 }}>
               <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'hsl(var(--muted-foreground))', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Monthly Recurring Revenue</span>
-              <div style={{ fontSize: '2rem', fontWeight: 800, marginTop: '0.125rem' }}>${mrr.toLocaleString()}</div>
+              <div style={{ fontSize: '2rem', fontWeight: 800, marginTop: '0.125rem' }}>₦{mrr.toLocaleString()}</div>
             </div>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1rem', fontSize: '0.75rem', color: 'hsl(var(--muted-foreground))' }}>
             <span>Projected Annual ARR</span>
-            <span style={{ fontWeight: 600, color: 'hsl(var(--foreground))' }}>${(mrr * 12).toLocaleString()}</span>
+            <span style={{ fontWeight: 600, color: 'hsl(var(--foreground))' }}>₦{arr.toLocaleString()}</span>
           </div>
         </div>
 
@@ -329,21 +330,21 @@ export default function SuperAdminDashboard() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8125rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#111827' }} />
-                <span>Enterprise ($499/mo)</span>
+                <span>Enterprise (₦1,200,000/yr)</span>
               </div>
               <span style={{ fontWeight: 600 }}>{enterpriseCount} schools</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8125rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#4f46e5' }} />
-                <span>Growth ($149/mo)</span>
+                <span>Growth (₦450,000/yr)</span>
               </div>
               <span style={{ fontWeight: 600 }}>{growthCount} schools</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8125rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#6b7280' }} />
-                <span>Starter ($49/mo)</span>
+                <span>Starter (₦150,000/yr)</span>
               </div>
               <span style={{ fontWeight: 600 }}>{starterCount} schools</span>
             </div>
@@ -386,7 +387,7 @@ export default function SuperAdminDashboard() {
               >
                 <option value="free">Free Tier (10 students limit, 3 classes)</option>
                 <option value="starter">Starter Plan (50 students limit, 10 classes)</option>
-                <option value="growth">Growth Plan (250 students limit, 30 classes)</option>
+                <option value="growth">Growth Plan (500 students limit, 40 classes)</option>
                 <option value="enterprise">Enterprise Plan (Unlimited students/classes)</option>
               </select>
             </div>
