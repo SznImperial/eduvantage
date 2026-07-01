@@ -8,145 +8,144 @@
 /* ---- Core System Tokens ---- */
 :root {
   /* System Typography */
-  --font-system: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-system: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-display: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 
-  /* Color Palette (Apple Monochrome Light) */
-  --background: 0 0% 98%;              /* Pure clean off-white #fafafa */
-  --foreground: 0 0% 11.4%;            /* Apple signature text color #1d1d1f */
-  --card: 0 0% 100%;                   /* Pure white card #ffffff */
-  --card-foreground: 0 0% 11.4%;
+  /* Color Palette (Forest Green Light) */
+  --background: 132 15% 98.2%;          /* Soft clean green-tinted light background #f8fbf8 */
+  --foreground: 132 40% 9.8%;           /* Slate forest text #0e1a0e */
+  --card: 0 0% 100%;                    /* Pure white card #ffffff */
+  --card-foreground: 132 40% 9.8%;
 
   --popover: 0 0% 100%;
-  --popover-foreground: 0 0% 11.4%;
+  --popover-foreground: 132 40% 9.8%;
 
-  /* Monochrome Primary */
-  --primary: 0 0% 11.4%;               /* Off-black #1d1d1f */
-  --primary-foreground: 0 0% 100%;     /* White text on primary buttons */
+  /* Brand Primary */
+  --primary: 135 56% 23%;               /* Forest Green #1a5c2a */
+  --primary-foreground: 132 20% 99%;    /* Off-white text on primary */
 
-  --secondary: 0 0% 94.9%;             /* System Light Gray #f2f2f7 */
-  --secondary-foreground: 0 0% 11.4%;
+  --secondary: 132 23% 95%;             /* Soft Sage-tinted grey #f0f7f1 */
+  --secondary-foreground: 135 56% 23%;
 
-  --muted: 0 0% 96%;                   /* Clean secondary light gray */
-  --muted-foreground: 0 0% 53.3%;      /* Gray text #86868b */
+  --muted: 132 20% 93%;                 /* Sage grey */
+  --muted-foreground: 135 15% 45%;
 
-  --accent: 0 0% 94.9%;
-  --accent-foreground: 0 0% 11.4%;
+  --accent: 132 23% 92%;
+  --accent-foreground: 135 56% 23%;
 
-  --destructive: 0 84.3% 60.2%;        /* Clean red #e53e3e */
+  --destructive: 0 84.3% 60.2%;
   --destructive-foreground: 0 0% 100%;
 
-  --success: 142 40% 45%;              /* Forest green #2d7a4c */
+  --success: 135 56% 23%;
   --success-foreground: 0 0% 100%;
 
-  --warning: 35 30% 45%;               /* Warm amber */
+  --warning: 35 30% 45%;
   --warning-foreground: 0 0% 100%;
 
   /* Borders & Focus */
-  --border: 0 0% 91%;                  /* Subtle borders #e8e8e8 */
-  --input: 0 0% 91%;
-  --ring: 0 0% 11.4%;
+  --border: 132 20% 90%;                /* Soft sage border */
+  --input: 132 20% 90%;
+  --ring: 135 56% 23%;
 
   /* Squircle border-radius */
   --radius: 12px;
   --radius-sm: 8px;
   --radius-xs: 5px;
 
-  /* Monochrome Accent Palette (Apple System Grays) */
-  --accent-indigo: 0 0% 95%;           /* Apple System Gray 6 */
-  --accent-indigo-text: 0 0% 30%;
-  --accent-violet: 0 0% 92%;           /* Apple System Gray 5 */
-  --accent-violet-text: 0 0% 25%;
-  --accent-emerald: 0 0% 90%;          /* Apple System Gray 4 */
-  --accent-emerald-text: 0 0% 20%;
-  --accent-amber: 0 0% 96%;            /* Soft Off-white Gray */
-  --accent-amber-text: 0 0% 35%;
-  --accent-rose: 0 0% 93%;
-  --accent-rose-text: 0 0% 28%;
+  /* Accent Palette Tones */
+  --accent-indigo: 135 56% 94%;          /* Soft Green Tint */
+  --accent-indigo-text: 135 56% 23%;
+  --accent-violet: 260 50% 95%;          /* Soft Violet Tint */
+  --accent-violet-text: 260 50% 30%;
+  --accent-emerald: 142 40% 94%;         /* Soft Emerald Tint */
+  --accent-emerald-text: 142 40% 25%;
+  --accent-amber: 35 60% 95%;            /* Soft Amber Tint */
+  --accent-amber-text: 35 60% 30%;
+  --accent-rose: 0 60% 95%;              /* Soft Red/Rose Tint */
+  --accent-rose-text: 0 60% 35%;
 
-  /* Glassmorphism Light (macOS Desktop Translucency) */
+  /* Glassmorphism Light */
   --glass-bg: rgba(255, 255, 255, 0.7);
-  --glass-border: rgba(0, 0, 0, 0.05);
+  --glass-border: rgba(26, 92, 42, 0.06);
   --glass-blur: 24px;
 
-  /* Apple Soft Multi-layered Shadow System */
-  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.02);
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.03), 0 1px 2px rgba(0, 0, 0, 0.01);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.03), 0 2px 4px rgba(0, 0, 0, 0.01);
-  --shadow-lg: 0 12px 30px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.02);
-  --shadow-xl: 0 20px 48px rgba(0, 0, 0, 0.05), 0 8px 20px rgba(0, 0, 0, 0.03);
-  --shadow-glow: 0 0 24px rgba(0, 0, 0, 0.03);
+  /* Shadows System */
+  --shadow-xs: 0 1px 2px rgba(26, 92, 42, 0.02);
+  --shadow-sm: 0 1px 3px rgba(26, 92, 42, 0.04);
+  --shadow-md: 0 4px 12px rgba(26, 92, 42, 0.05);
+  --shadow-lg: 0 12px 30px rgba(26, 92, 42, 0.06);
+  --shadow-xl: 0 20px 48px rgba(26, 92, 42, 0.08);
+  --shadow-glow: 0 0 24px rgba(26, 92, 42, 0.05);
 
   /* Sidebar configuration */
   --sidebar-width: 256px;
-  --sidebar-bg: 0 0% 96.5%;            /* Light gray sidebar */
-  --primary-gradient: linear-gradient(180deg, #1d1d1f, #111112);
-  --avatar-gradient: linear-gradient(135deg, #e5e5ea, #d1d1d6);
+  --sidebar-bg: 132 15% 95%;             /* Light sage sidebar */
+  --primary-gradient: linear-gradient(180deg, #1a5c2a, #0d2b14);
+  --avatar-gradient: linear-gradient(135deg, #e2efe4, #c9decb);
 }
 
 [data-theme="dark"] {
-  /* Color Palette (Apple Monochrome Dark) */
-  --background: 0 0% 7%;               /* Clean dark slate background #121212 */
-  --foreground: 0 0% 96.1%;            /* Light grey text #f5f5f7 */
-  --card: 0 0% 11%;                    /* Carbon card #1c1c1e */
-  --card-foreground: 0 0% 96.1%;
+  /* Color Palette (Forest Green Dark) */
+  --background: 135 30% 6%;             /* Deep forest charcoal background #080f0a */
+  --foreground: 120 15% 95%;            /* Light grey text #f1f7f2 */
+  --card: 135 25% 10%;                  /* Carbon card #0f1c12 */
+  --card-foreground: 120 15% 95%;
 
-  --popover: 0 0% 11%;
-  --popover-foreground: 0 0% 96.1%;
+  --popover: 135 25% 10%;
+  --popover-foreground: 120 15% 95%;
 
-  /* Dark mode accent adjustments */
-  --primary: 0 0% 100%;                /* White for primary accents */
-  --primary-foreground: 0 0% 0%;       /* Black text on primary buttons */
+  --primary: 132 50% 36%;               /* Rich green accent */
+  --primary-foreground: 135 30% 6%;
 
-  --secondary: 0 0% 18%;               /* Secondary dark grey #2e2e30 */
-  --secondary-foreground: 0 0% 96.1%;
+  --secondary: 135 20% 15%;             /* Secondary dark tint */
+  --secondary-foreground: 120 15% 95%;
 
-  --muted: 0 0% 15%;                   /* Muted dark grey #262628 */
-  --muted-foreground: 0 0% 60%;        /* Apple secondary grey #98989d */
+  --muted: 135 18% 13%;
+  --muted-foreground: 120 12% 65%;
 
-  --accent: 0 0% 18%;
-  --accent-foreground: 0 0% 96.1%;
+  --accent: 135 20% 15%;
+  --accent-foreground: 120 15% 95%;
 
   --destructive: 0 84.3% 65%;
   --destructive-foreground: 0 0% 100%;
 
-  --success: 142 40% 55%;
-  --success-foreground: 0 0% 0%;
+  --success: 132 50% 36%;
+  --success-foreground: 0 0% 100%;
 
   --warning: 35 30% 55%;
   --warning-foreground: 0 0% 0%;
 
-  --border: 0 0% 18%;                  /* Thin border #2c2c2e */
-  --input: 0 0% 18%;
-  --ring: 0 0% 100%;
+  --border: 135 20% 15%;
+  --input: 135 20% 15%;
+  --ring: 132 50% 36%;
 
-  /* Custom Apple Dark System Pastel Palette (Grayscale Tones) */
-  --accent-indigo: 0 0% 16%;
-  --accent-indigo-text: 0 0% 85%;
-  --accent-violet: 0 0% 20%;
-  --accent-violet-text: 0 0% 90%;
-  --accent-emerald: 0 0% 24%;
-  --accent-emerald-text: 0 0% 95%;
-  --accent-amber: 0 0% 14%;
-  --accent-amber-text: 0 0% 80%;
-  --accent-rose: 0 0% 18%;
-  --accent-rose-text: 0 0% 88%;
+  /* Custom Accent Pastel Palette (Dark Mode) */
+  --accent-indigo: 135 35% 14%;
+  --accent-indigo-text: 120 15% 90%;
+  --accent-violet: 260 30% 16%;
+  --accent-violet-text: 260 30% 92%;
+  --accent-emerald: 142 35% 14%;
+  --accent-emerald-text: 142 35% 92%;
+  --accent-amber: 35 35% 14%;
+  --accent-amber-text: 35 35% 90%;
+  --accent-rose: 0 35% 15%;
+  --accent-rose-text: 0 35% 92%;
 
   /* Glassmorphism Dark */
-  --glass-bg: rgba(28, 28, 30, 0.7);
+  --glass-bg: rgba(15, 28, 18, 0.7);
   --glass-border: rgba(255, 255, 255, 0.05);
 
   /* Shadows Dark */
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.5), 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.55), 0 2px 4px rgba(0, 0, 0, 0.35);
-  --shadow-lg: 0 12px 30px rgba(0, 0, 0, 0.6), 0 4px 12px rgba(0, 0, 0, 0.4);
-  --shadow-xl: 0 20px 48px rgba(0, 0, 0, 0.7), 0 8px 20px rgba(0, 0, 0, 0.5);
-  --shadow-glow: 0 0 24px rgba(255, 255, 255, 0.03);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.55);
+  --shadow-lg: 0 12px 30px rgba(0, 0, 0, 0.6);
+  --shadow-xl: 0 20px 48px rgba(0, 0, 0, 0.7);
+  --shadow-glow: 0 0 24px rgba(255, 255, 255, 0.02);
 
-  --sidebar-bg: 0 0% 9%;               /* Deep charcoal sidebar in dark mode */
-  --primary-gradient: linear-gradient(180deg, #ffffff, #e5e5ea);
-  --avatar-gradient: linear-gradient(135deg, #2c2c2e, #1c1c1e);
+  --sidebar-bg: 135 30% 7%;
+  --primary-gradient: linear-gradient(180deg, #2e8b3e, #1a5c2a);
+  --avatar-gradient: linear-gradient(135deg, #1b2f1f, #142217);
 }
 
 /* ---- Base Resets ---- */
