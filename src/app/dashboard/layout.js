@@ -13,7 +13,10 @@ import {
   Megaphone, 
   LogOut,
   CreditCard,
-  Layers
+  Layers,
+  Clock,
+  Award,
+  CheckSquare
 } from 'lucide-react';
 
 export default async function DashboardLayout({ children }) {
@@ -94,6 +97,22 @@ export default async function DashboardLayout({ children }) {
                 <BookOpen size={18} />
                 Classes & Subjects
               </Link>
+              <Link href="/dashboard/admin/timetable" className="sidebar-link">
+                <Clock size={18} />
+                Timetable Builder
+              </Link>
+              <Link href="/dashboard/admin/fees" className="sidebar-link">
+                <CreditCard size={18} />
+                Student Fees
+              </Link>
+              <Link href="/dashboard/admin/cbt" className="sidebar-link">
+                <Award size={18} />
+                CBT Audits
+              </Link>
+              <Link href="/dashboard/admin/broadsheet" className="sidebar-link">
+                <FileSpreadsheet size={18} />
+                Academic Broadsheet
+              </Link>
               <Link href="/dashboard/admin/announcements" className="sidebar-link">
                 <Megaphone size={18} />
                 Announcements
@@ -111,9 +130,21 @@ export default async function DashboardLayout({ children }) {
                 <Calendar size={18} />
                 Daily Attendance
               </Link>
+              <Link href="/dashboard/teacher/assignments" className="sidebar-link">
+                <CheckSquare size={18} />
+                Assignments Desk
+              </Link>
               <Link href="/dashboard/teacher/grades" className="sidebar-link">
                 <FileSpreadsheet size={18} />
                 Academic Grades
+              </Link>
+              <Link href="/dashboard/teacher/cbt" className="sidebar-link">
+                <Award size={18} />
+                CBT Exams
+              </Link>
+              <Link href="/dashboard/teacher/timetable" className="sidebar-link">
+                <Clock size={18} />
+                My Timetable
               </Link>
             </>
           )}
@@ -122,7 +153,7 @@ export default async function DashboardLayout({ children }) {
             <>
               <Link href="/dashboard/parent" className="sidebar-link">
                 <FileSpreadsheet size={18} />
-                Child Report Card
+                Child Portal
               </Link>
             </>
           )}
@@ -133,9 +164,25 @@ export default async function DashboardLayout({ children }) {
                 <FileSpreadsheet size={18} />
                 My Report Card
               </Link>
+              <Link href="/dashboard/student/assignments" className="sidebar-link">
+                <CheckSquare size={18} />
+                My Assignments
+              </Link>
+              <Link href="/dashboard/student/cbt" className="sidebar-link">
+                <Award size={18} />
+                CBT Lobby
+              </Link>
+              <Link href="/dashboard/student/timetable" className="sidebar-link">
+                <Clock size={18} />
+                My Timetable
+              </Link>
               <Link href="/dashboard/student/attendance" className="sidebar-link">
                 <Calendar size={18} />
                 My Attendance
+              </Link>
+              <Link href="/dashboard/student/fees" className="sidebar-link">
+                <CreditCard size={18} />
+                My Fees
               </Link>
             </>
           )}

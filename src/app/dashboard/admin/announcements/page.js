@@ -8,6 +8,10 @@ import { createAnnouncementAction, deleteAnnouncementAction } from '@/app/action
 export default function AdminAnnouncementsPage() {
   const supabase = createClient();
   const [announcements, setAnnouncements] = useState([]);
+  const [classes, setClasses] = useState([]);
+  const [students, setStudents] = useState([]);
+  const [audienceType, setAudienceType] = useState('all');
+  const [audienceId, setAudienceId] = useState('');
   const [loading, setLoading] = useState(true);
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
@@ -25,8 +29,17 @@ export default function AdminAnnouncementsPage() {
     setLoading(false);
   };
 
+  const fetchMetadata = async () => {
+    const { data: cls } = await supabase.from('classes').select('*').order('name');
+    if (cls) setClasses(cls);
+
+    const { data: std } = await supabase.from('profiles').select('*').eq('role', 'student').order('first_name');
+    if (std) setStudents(std);
+  };
+
   useEffect(() => {
     fetchAnnouncements();
+    fetchMetadata();
   }, []);
 
   const handlePost = async (e) => {
@@ -36,13 +49,15 @@ export default function AdminAnnouncementsPage() {
     const title = formData.get('title');
     const content = formData.get('content');
 
-    const result = await createAnnouncementAction(title, content);
+    const result = await createAnnouncementAction(title, content, audienceType, audienceId || null);
 
     if (result?.error) {
       setError(result.error);
     } else {
       setSuccess('Announcement published to billboard!');
       e.target.reset();
+      setAudienceType('all');
+      setAudienceId('');
       fetchAnnouncements();
     }
   };
@@ -147,6 +162,39 @@ export default function AdminAnnouncementsPage() {
                 <label className="form-label">Announcement Title</label>
                 <input className="input" name="title" placeholder="e.g. Mid-term Exam Schedule Published" required />
               </div>
+
+              <div className="form-group">
+                <label className="form-label">Audience Type</label>
+                <select className="input" value={audienceType} onChange={(e) => { setAudienceType(e.target.value); setAudienceId(''); }}>
+                  <option value="all">All Users</option>
+                  <option value="class">Specific Class</option>
+                  <option value="student">Specific Student</option>
+                </select>
+              </div>
+
+              {audienceType === 'class' && (
+                <div className="form-group">
+                  <label className="form-label">Target Class</label>
+                  <select className="input" value={audienceId} onChange={(e) => setAudienceId(e.target.value)} required>
+                    <option value="">Select class section...</option>
+                    {classes.map(c => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {audienceType === 'student' && (
+                <div className="form-group">
+                  <label className="form-label">Target Student</label>
+                  <select className="input" value={audienceId} onChange={(e) => setAudienceId(e.target.value)} required>
+                    <option value="">Select student profile...</option>
+                    {students.map(s => (
+                      <option key={s.id} value={s.id}>{s.first_name} {s.last_name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
               <div className="form-group" style={{ marginBottom: '1.5rem' }}>
                 <label className="form-label">Content / Message Body</label>

@@ -8,7 +8,8 @@ import {
   createClassAction, 
   createSubjectAction, 
   allocateCourseAction, 
-  enrollStudentAction 
+  enrollStudentAction,
+  toggleStudentSubjectAction
 } from '@/app/actions';
 
 export default function AdminClassesPage() {
@@ -24,6 +25,11 @@ export default function AdminClassesPage() {
   
   // Tabs: 'classes' or 'assign' or 'enroll'
   const [activeTab, setActiveTab] = useState('classes');
+
+  // Electives manager states
+  const [electiveClassId, setElectiveClassId] = useState('');
+  const [electiveStudentId, setElectiveStudentId] = useState('');
+  const [electiveSubjects, setElectiveSubjects] = useState([]);
   
   // Status states
   const [success, setSuccess] = useState('');
@@ -59,6 +65,27 @@ export default function AdminClassesPage() {
   useEffect(() => {
     fetchData();
   }, []);
+
+  const fetchElectiveSubjects = async () => {
+    if (!electiveStudentId) return;
+    const { data } = await supabase.from('student_subjects').select('*').eq('student_id', electiveStudentId);
+    if (data) setElectiveSubjects(data);
+  };
+
+  useEffect(() => {
+    fetchElectiveSubjects();
+  }, [electiveStudentId]);
+
+  const handleToggleElective = async (classSubjectId, isChecked) => {
+    setError(''); setSuccess('');
+    const res = await toggleStudentSubjectAction(electiveStudentId, classSubjectId, isChecked);
+    if (res.error) {
+      setError(res.error);
+    } else {
+      setSuccess(isChecked ? 'Subject mapped successfully!' : 'Subject removed from student roster.');
+      fetchElectiveSubjects();
+    }
+  };
 
   // Form Submissions
   // A. Create Academic Year
@@ -185,6 +212,12 @@ export default function AdminClassesPage() {
           className={`tab-btn ${activeTab === 'enroll' ? 'active' : ''}`}
         >
           <Users size={16} /> Student Enrollment
+        </button>
+        <button 
+          onClick={() => { setActiveTab('electives'); setError(''); setSuccess(''); }} 
+          className={`tab-btn ${activeTab === 'electives' ? 'active' : ''}`}
+        >
+          <Award size={16} /> Class Electives
         </button>
       </div>
 
@@ -494,6 +527,80 @@ export default function AdminClassesPage() {
                 <Plus size={16} /> Enroll in Class
               </button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'electives' && (
+        <div className="responsive-grid-15-1">
+          {/* Left panel: select class and student */}
+          <div className="card">
+            <h3 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '1.25rem' }}>
+              Select Student
+            </h3>
+            <div className="form-group">
+              <label className="form-label">Class Section</label>
+              <select className="input" value={electiveClassId} onChange={(e) => {
+                setElectiveClassId(e.target.value);
+                setElectiveStudentId('');
+                setElectiveSubjects([]);
+              }}>
+                <option value="">Select class...</option>
+                {classes.map(c => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+            </div>
+
+            {electiveClassId && (
+              <div className="form-group" style={{ marginTop: '1rem' }}>
+                <label className="form-label">Student</label>
+                <select className="input" value={electiveStudentId} onChange={(e) => setElectiveStudentId(e.target.value)}>
+                  <option value="">Select student...</option>
+                  {enrollments.filter(en => en.class_id === electiveClassId).map(en => {
+                    const std = students.find(s => s.id === en.student_id);
+                    return std ? (
+                      <option key={std.id} value={std.id}>{std.first_name} {std.last_name}</option>
+                    ) : null;
+                  })}
+                </select>
+              </div>
+            )}
+          </div>
+
+          {/* Right panel: Active subjects checklist */}
+          <div className="card">
+            <h3 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '1.25rem' }}>
+              Subject Registrations
+            </h3>
+            {!electiveStudentId ? (
+              <div className="empty-state">
+                <p>Select a student to manage their elective subject enrollments.</p>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <p style={{ fontSize: '0.85rem', color: 'hsl(var(--muted-foreground))' }}>
+                  Toggle the subjects below to customize this student's academic registry.
+                </p>
+                {classSubjects.filter(cs => cs.class_id === electiveClassId).map(cs => {
+                  const sub = subjects.find(s => s.id === cs.subject_id);
+                  const isEnrolled = electiveSubjects.some(es => es.class_subject_id === cs.id);
+                  return (
+                    <label key={cs.id} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', cursor: 'pointer', backgroundColor: isEnrolled ? 'hsl(var(--muted) / 0.1)' : 'transparent' }}>
+                      <input 
+                        type="checkbox" 
+                        checked={isEnrolled}
+                        onChange={(e) => handleToggleElective(cs.id, e.target.checked)}
+                      />
+                      <div>
+                        <strong style={{ fontSize: '0.9rem' }}>{sub ? sub.name : 'Unknown'}</strong>
+                        <span style={{ fontSize: '0.75rem', color: 'hsl(var(--muted-foreground))', marginLeft: '0.5rem' }}>({sub?.code})</span>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
       )}
