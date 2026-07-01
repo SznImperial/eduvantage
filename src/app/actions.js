@@ -179,8 +179,8 @@ export async function logoutUser() {
 }
 
 /**
- * Creates a new user (Teacher/Student) within the Admin's school.
- * Requires the calling user to be an admin of their school.
+ * Creates a new user (Teacher/Student/Parent) within the Admin's school.
+ * Syncs teacher metadata to teachers table, and links students to class enrollments/parents.
  */
 export async function createUserAccount(formData) {
   const firstName = formData.get('firstName');
@@ -226,35 +226,145 @@ export async function createUserAccount(formData) {
       }
     }
 
-    // Use admin client to create the authentication account for the new user
+    // 1. Create the main authentication account
     const { data: newAuthData, error: createAuthError } = await adminClient.auth.admin.createUser({
-      email,
+      email: email.trim().toLowerCase(),
       password,
-      email_confirm: true, // Auto-confirm emails to bypass SMTP configuration in development
+      email_confirm: true,
     });
 
     if (createAuthError) {
       return { error: getFriendlyError(createAuthError) };
     }
 
-    // Create the profile for the new user
+    const userId = newAuthData.user.id;
+
+    // 2. Create profile
+    const profilePayload = {
+      id: userId,
+      school_id: schoolId,
+      first_name: firstName,
+      last_name: lastName,
+      role: role,
+      email: email.trim().toLowerCase(),
+    };
+
+    if (role === 'student') {
+      profilePayload.admission_no = formData.get('admissionNo') || null;
+    } else if (role === 'teacher') {
+      profilePayload.phone = formData.get('phone') || null;
+    }
+
     const { error: newProfileError } = await adminClient
       .from('profiles')
-      .insert([
-        {
-          id: newAuthData.user.id,
-          school_id: schoolId,
-          first_name: firstName,
-          last_name: lastName,
-          role: role,
-          email: email,
-        }
-      ]);
+      .insert([profilePayload]);
 
     if (newProfileError) {
-      // Rollback auth creation
-      await adminClient.auth.admin.deleteUser(newAuthData.user.id);
+      await adminClient.auth.admin.deleteUser(userId);
       return { error: getFriendlyError(newProfileError) };
+    }
+
+    // 3. Role-specific additional sync
+    if (role === 'teacher') {
+      const { error: tMetaErr } = await adminClient
+        .from('teachers')
+        .insert([{
+          id: userId,
+          school_id: schoolId,
+          phone: formData.get('phone') || null,
+          specialization: formData.get('specialization') || null,
+          qualification: formData.get('qualification') || null,
+          joined_date: new Date().toISOString().split('T')[0]
+        }]);
+
+      if (tMetaErr) {
+        // Rollback
+        await adminClient.from('profiles').delete().eq('id', userId);
+        await adminClient.auth.admin.deleteUser(userId);
+        return { error: getFriendlyError(tMetaErr) };
+      }
+    } else if (role === 'student') {
+      const classId = formData.get('classId');
+      if (classId) {
+        const { error: enrollErr } = await adminClient
+          .from('enrollments')
+          .insert([{
+            school_id: schoolId,
+            student_id: userId,
+            class_id: classId
+          }]);
+        if (enrollErr) {
+          console.warn('Student enrollment mapping failed:', enrollErr.message);
+        }
+      }
+
+      // Parent linkage
+      const parentType = formData.get('parentType');
+      if (parentType === 'existing') {
+        const parentId = formData.get('parentId');
+        if (parentId) {
+          await adminClient
+            .from('parent_student')
+            .insert([{
+              school_id: schoolId,
+              parent_id: parentId,
+              student_id: userId
+            }]);
+        }
+      } else if (parentType === 'new') {
+        const parentName = formData.get('parentName');
+        const parentEmail = formData.get('parentEmail');
+        const parentPassword = formData.get('parentPassword');
+        const parentPhone = formData.get('parentPhone');
+
+        if (parentName && parentEmail && parentPassword) {
+          // Check if parent email already exists
+          const { data: existingParent } = await adminClient
+            .from('profiles')
+            .select('id')
+            .eq('email', parentEmail.trim().toLowerCase())
+            .maybeSingle();
+
+          let resolvedParentId = existingParent?.id;
+
+          if (!resolvedParentId) {
+            const { data: parentAuth, error: pAuthErr } = await adminClient.auth.admin.createUser({
+              email: parentEmail.trim().toLowerCase(),
+              password: parentPassword,
+              email_confirm: true,
+            });
+
+            if (!pAuthErr && parentAuth?.user) {
+              resolvedParentId = parentAuth.user.id;
+              const nameParts = parentName.trim().split(' ');
+              const pFirst = nameParts[0] || 'Parent';
+              const pLast = nameParts.slice(1).join(' ') || 'User';
+
+              await adminClient
+                .from('profiles')
+                .insert([{
+                  id: resolvedParentId,
+                  school_id: schoolId,
+                  first_name: pFirst,
+                  last_name: pLast,
+                  role: 'parent',
+                  email: parentEmail.trim().toLowerCase(),
+                  phone: parentPhone || null
+                }]);
+            }
+          }
+
+          if (resolvedParentId) {
+            await adminClient
+              .from('parent_student')
+              .insert([{
+                school_id: schoolId,
+                parent_id: resolvedParentId,
+                student_id: userId
+              }]);
+          }
+        }
+      }
     }
 
     return { success: true };
@@ -279,7 +389,6 @@ export async function deleteUserAction(id) {
     // Delete authentication credential user
     const { error: aError } = await adminClient.auth.admin.deleteUser(id);
     if (aError) {
-      // Note: If profile was deleted but auth deletion failed, we log it but proceed
       console.warn(`Auth deletion failed for ${id}: ${aError.message}`);
     }
 
@@ -315,7 +424,7 @@ export async function createAcademicYearAction(name, startDate, endDate) {
 /**
  * Creates a Class section. Admin only.
  */
-export async function createClassAction(name, gradeLevel, academicYearId) {
+export async function createClassAction(name, gradeLevel) {
   try {
     const { supabase, schoolId, role } = await getAuthContext();
     if (role !== 'admin' && role !== 'super_admin') return { error: 'Unauthorized.' };
@@ -345,11 +454,169 @@ export async function createClassAction(name, gradeLevel, academicYearId) {
     const { error } = await supabase.from('classes').insert([{
       school_id: schoolId,
       name,
-      grade_level: gradeLevel,
-      academic_year_id: academicYearId
+      grade_level: gradeLevel
     }]);
 
     if (error) return { error: getFriendlyError(error) };
+    return { success: true };
+  } catch (err) {
+    return { error: getFriendlyError(err) };
+  }
+}
+
+/**
+ * Toggles an academic year's active state for a school.
+ */
+export async function toggleAcademicYearActiveAction(yearId) {
+  try {
+    const { supabase, schoolId, role } = await getAuthContext();
+    if (role !== 'admin') return { error: 'Unauthorized.' };
+
+    // 1. Deactivate all sessions
+    const { error: error1 } = await supabase
+      .from('academic_years')
+      .update({ is_active: false })
+      .eq('school_id', schoolId);
+
+    if (error1) return { error: getFriendlyError(error1) };
+
+    // 2. Activate the target session
+    const { error: error2 } = await supabase
+      .from('academic_years')
+      .update({ is_active: true })
+      .eq('school_id', schoolId)
+      .eq('id', yearId);
+
+    if (error2) return { error: getFriendlyError(error2) };
+    return { success: true };
+  } catch (err) {
+    return { error: getFriendlyError(err) };
+  }
+}
+
+/**
+ * Promotes a list of students to a target class. Decouples enrollment if targetClassId is 'graduate' or null.
+ */
+export async function promoteStudentsAction(studentIds, targetClassId) {
+  try {
+    const { supabase, schoolId, role } = await getAuthContext();
+    if (role !== 'admin') return { error: 'Unauthorized.' };
+
+    if (!targetClassId || targetClassId === 'graduate') {
+      const { error } = await supabase
+        .from('enrollments')
+        .delete()
+        .in('student_id', studentIds)
+        .eq('school_id', schoolId);
+      if (error) return { error: getFriendlyError(error) };
+    } else {
+      for (const studentId of studentIds) {
+        // Delete existing mapping
+        await supabase
+          .from('enrollments')
+          .delete()
+          .eq('student_id', studentId)
+          .eq('school_id', schoolId);
+
+        // Insert new enrollment mapping
+        const { error } = await supabase
+          .from('enrollments')
+          .insert([{
+            school_id: schoolId,
+            student_id: studentId,
+            class_id: targetClassId
+          }]);
+
+        if (error) return { error: getFriendlyError(error) };
+      }
+    }
+
+    return { success: true };
+  } catch (err) {
+    return { error: getFriendlyError(err) };
+  }
+}
+
+/**
+ * Creates a password reset request. Publicly accessible.
+ */
+export async function createPasswordResetRequestAction(email, fullName) {
+  try {
+    const adminClient = createAdminClient();
+    
+    // Resolve school_id from email profile
+    const { data: profile, error: pError } = await adminClient
+      .from('profiles')
+      .select('school_id')
+      .eq('email', email.trim().toLowerCase())
+      .limit(1)
+      .maybeSingle();
+
+    if (pError || !profile) {
+      return { error: 'No profile found matching this email address.' };
+    }
+
+    const { error } = await adminClient
+      .from('password_reset_requests')
+      .insert([{
+        school_id: profile.school_id,
+        email: email.trim().toLowerCase(),
+        full_name: fullName,
+        status: 'pending'
+      }]);
+
+    if (error) return { error: getFriendlyError(error) };
+    return { success: true };
+  } catch (err) {
+    return { error: getFriendlyError(err) };
+  }
+}
+
+/**
+ * Resolves a password reset request and updates auth user. Admin only.
+ */
+export async function resolvePasswordResetRequestAction(requestId, tempPassword) {
+  try {
+    const { role } = await getAuthContext();
+    if (role !== 'admin') return { error: 'Unauthorized.' };
+
+    const adminClient = createAdminClient();
+
+    const { data: req, error: rError } = await adminClient
+      .from('password_reset_requests')
+      .select('*')
+      .eq('id', requestId)
+      .single();
+
+    if (rError || !req) return { error: 'Request not found.' };
+
+    const { data: profile, error: pError } = await adminClient
+      .from('profiles')
+      .select('id')
+      .eq('email', req.email)
+      .single();
+
+    if (pError || !profile) return { error: 'User profile not found.' };
+
+    // Update password in auth.users
+    const { error: aError } = await adminClient.auth.admin.updateUserById(
+      profile.id,
+      { password: tempPassword }
+    );
+
+    if (aError) return { error: getFriendlyError(aError) };
+
+    // Mark as resolved
+    const { error: uError } = await adminClient
+      .from('password_reset_requests')
+      .update({
+        status: 'resolved',
+        temp_password: tempPassword
+      })
+      .eq('id', requestId);
+
+    if (uError) return { error: getFriendlyError(uError) };
+
     return { success: true };
   } catch (err) {
     return { error: getFriendlyError(err) };
@@ -491,16 +758,18 @@ export async function saveAttendanceAction(classId, date, records) {
 /**
  * Saves or updates Student Grades/Marks. Teachers/Admins only.
  */
-export async function saveGradesAction(classSubjectId, studentIds, upserts) {
+export async function saveGradesAction(classSubjectId, studentIds, upserts, academicYearId, term) {
   try {
     const { supabase, schoolId, role, user } = await getAuthContext();
     if (role !== 'admin' && role !== 'teacher') return { error: 'Unauthorized.' };
 
-    // 1. Delete existing marks for these students under this course
+    // 1. Delete existing marks for these students under this course, year, and term
     const { error: delError } = await supabase
       .from('grades')
       .delete()
       .eq('class_subject_id', classSubjectId)
+      .eq('academic_year_id', academicYearId)
+      .eq('term', term)
       .in('student_id', studentIds);
 
     if (delError) return { error: getFriendlyError(delError) };
@@ -510,6 +779,8 @@ export async function saveGradesAction(classSubjectId, studentIds, upserts) {
       school_id: schoolId,
       student_id: u.student_id,
       class_subject_id: classSubjectId,
+      academic_year_id: academicYearId,
+      term: term,
       grade_value: u.grade_value,
       remarks: u.remarks || null,
       graded_by: user.id

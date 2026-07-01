@@ -9,7 +9,8 @@ import {
   createSubjectAction, 
   allocateCourseAction, 
   enrollStudentAction,
-  toggleStudentSubjectAction
+  toggleStudentSubjectAction,
+  toggleAcademicYearActiveAction
 } from '@/app/actions';
 
 export default function AdminClassesPage() {
@@ -42,7 +43,7 @@ export default function AdminClassesPage() {
     if (years) setAcademicYears(years);
 
     // 2. Classes
-    const { data: cls } = await supabase.from('classes').select('*, academic_years(name)').order('name');
+    const { data: cls } = await supabase.from('classes').select('*').order('name');
     if (cls) setClasses(cls);
 
     // 3. Subjects
@@ -115,9 +116,8 @@ export default function AdminClassesPage() {
     const formData = new FormData(e.target);
     const name = formData.get('name');
     const grade_level = formData.get('grade_level');
-    const academic_year_id = formData.get('academic_year_id');
 
-    const result = await createClassAction(name, grade_level, academic_year_id);
+    const result = await createClassAction(name, grade_level);
 
     if (result?.error) {
       setError(result.error);
@@ -239,12 +239,76 @@ export default function AdminClassesPage() {
       {/* RENDER ACTIVE TAB */}
       {activeTab === 'classes' && (
         <div className="responsive-grid-15-1">
-          {/* Left panel: List classes & academic terms */}
+          {/* Left panel: List sessions, classes & academic terms */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             <div className="card">
               <h3 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <div className="stat-icon stat-icon-indigo" style={{ width: '32px', height: '32px', borderRadius: '8px' }}>
+                <div className="stat-icon stat-icon-violet" style={{ width: '32px', height: '32px', borderRadius: '8px' }}>
                   <Calendar size={16} />
+                </div>
+                Academic Terms & Sessions
+              </h3>
+              <div className="table-container">
+                {academicYears.length > 0 ? (
+                  <table className="table">
+                    <thead>
+                      <tr>
+                        <th>Term Name</th>
+                        <th>Dates</th>
+                        <th>Status</th>
+                        <th style={{ textAlign: 'right' }}>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {academicYears.map((year) => (
+                        <tr key={year.id}>
+                          <td style={{ fontWeight: 650 }}>{year.name}</td>
+                          <td style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                            {new Date(year.start_date).toLocaleDateString()} - {new Date(year.end_date).toLocaleDateString()}
+                          </td>
+                          <td>
+                            {year.is_active ? (
+                              <span className="badge badge-success">Active Session</span>
+                            ) : (
+                              <span className="badge badge-secondary">Inactive</span>
+                            )}
+                          </td>
+                          <td style={{ textAlign: 'right' }}>
+                            {!year.is_active && (
+                              <button
+                                onClick={async () => {
+                                  setError(''); setSuccess('');
+                                  const res = await toggleAcademicYearActiveAction(year.id);
+                                  if (res?.error) {
+                                    setError(res.error);
+                                  } else {
+                                    setSuccess(`Successfully activated session: ${year.name}!`);
+                                    fetchData();
+                                  }
+                                }}
+                                className="btn btn-primary"
+                                style={{ padding: '0.2rem 0.5rem', fontSize: '0.7rem', height: 'auto' }}
+                              >
+                                Activate
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                ) : (
+                  <div className="empty-state">
+                    <p>No academic years registered yet. Add one on the right.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="card">
+              <h3 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <div className="stat-icon stat-icon-indigo" style={{ width: '32px', height: '32px', borderRadius: '8px' }}>
+                  <BookOpen size={16} />
                 </div>
                 Active Classes
               </h3>
@@ -255,7 +319,6 @@ export default function AdminClassesPage() {
                       <tr>
                         <th>Class Name</th>
                         <th>Grade Level</th>
-                        <th>Term Period</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -263,7 +326,6 @@ export default function AdminClassesPage() {
                         <tr key={cls.id}>
                           <td style={{ fontWeight: 600 }}>{cls.name}</td>
                           <td>Grade {cls.grade_level}</td>
-                          <td>{cls.academic_years?.name}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -342,20 +404,9 @@ export default function AdminClassesPage() {
                   <label className="form-label">Class Name</label>
                   <input className="input" name="name" placeholder="e.g. Grade 10 - Blue" required />
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                  <div className="form-group">
-                    <label className="form-label">Grade Level</label>
-                    <input className="input" name="grade_level" type="text" placeholder="e.g. 10" required />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Academic Year</label>
-                    <select className="input" name="academic_year_id" required>
-                      <option value="">Select term...</option>
-                      {academicYears.map(y => (
-                        <option key={y.id} value={y.id}>{y.name}</option>
-                      ))}
-                    </select>
-                  </div>
+                <div className="form-group">
+                  <label className="form-label">Grade Level</label>
+                  <input className="input" name="grade_level" type="text" placeholder="e.g. 10" required />
                 </div>
                 <button className="btn btn-primary" type="submit" style={{ width: '100%', marginTop: '0.25rem' }}>
                   <Plus size={16} /> Create Class

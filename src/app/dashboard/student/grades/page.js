@@ -1,28 +1,81 @@
-import React from 'react';
-import { createClient } from '@/lib/supabaseServer';
-import { Award, FileSpreadsheet, Calendar, UserCheck } from 'lucide-react';
+'use client';
 
-export default async function StudentGradesPage() {
-  const supabase = await createClient();
+import React, { useState, useEffect } from 'react';
+import { createClient } from '@/lib/supabaseClient';
+import { Award, FileSpreadsheet, Calendar, UserCheck, Loader2 } from 'lucide-react';
 
-  const { data: { user } } = await supabase.auth.getUser();
+export default function StudentGradesPage() {
+  const supabase = createClient();
+  
+  // Data states
+  const [academicYears, setAcademicYears] = useState([]);
+  const [selectedYearId, setSelectedYearId] = useState('');
+  const [selectedTerm, setSelectedTerm] = useState('1st Term');
+  const [grades, setGrades] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [loadingGrades, setLoadingGrades] = useState(false);
+  const [error, setError] = useState('');
 
-  // Fetch grades for this student
-  // We query grades and join subjects (via class_subjects) and teachers
-  const { data: grades, error } = await supabase
-    .from('grades')
-    .select(`
-      id,
-      grade_value,
-      remarks,
-      created_at,
-      class_subjects(
-        subjects(name, code)
-      ),
-      graded_by_profile: profiles!grades_graded_by_fkey(first_name, last_name)
-    `)
-    .eq('student_id', user.id)
-    .order('created_at', { ascending: false });
+  // Fetch initial academic years
+  useEffect(() => {
+    const fetchYears = async () => {
+      setLoading(true);
+      const { data: years, error: yErr } = await supabase
+        .from('academic_years')
+        .select('*')
+        .order('name', { ascending: false });
+
+      if (!yErr && years) {
+        setAcademicYears(years);
+        const active = years.find(y => y.is_active);
+        if (active) {
+          setSelectedYearId(active.id);
+        } else if (years.length > 0) {
+          setSelectedYearId(years[0].id);
+        }
+      }
+      setLoading(false);
+    };
+
+    fetchYears();
+  }, [supabase]);
+
+  // Fetch grades when selected year or term changes
+  useEffect(() => {
+    if (!selectedYearId || !selectedTerm) return;
+
+    const fetchGrades = async () => {
+      setLoadingGrades(true);
+      setError('');
+      const { data: { user } } = await supabase.auth.getUser();
+
+      const { data, error: gErr } = await supabase
+        .from('grades')
+        .select(`
+          id,
+          grade_value,
+          remarks,
+          created_at,
+          class_subjects(
+            subjects(name, code)
+          ),
+          graded_by_profile: profiles!grades_graded_by_fkey(first_name, last_name)
+        `)
+        .eq('student_id', user.id)
+        .eq('academic_year_id', selectedYearId)
+        .eq('term', selectedTerm)
+        .order('created_at', { ascending: false });
+
+      if (gErr) {
+        setError(gErr.message);
+      } else {
+        setGrades(data || []);
+      }
+      setLoadingGrades(false);
+    };
+
+    fetchGrades();
+  }, [selectedYearId, selectedTerm, supabase]);
 
   // Calculate Average GPA/Score
   let averageGrade = 'N/A';
@@ -32,7 +85,7 @@ export default async function StudentGradesPage() {
   }
 
   return (
-    <div className="animate-fade-in" style={{ maxWidth: '960px' }}>
+    <div className="animate-fade-in" style={{ maxWidth: '960px', paddingBottom: '3rem' }}>
       {/* Header with GPA badge */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div className="page-header" style={{ marginBottom: 0 }}>
@@ -40,13 +93,51 @@ export default async function StudentGradesPage() {
           <p>Verify your scores, average performance stats, and tutor remarks.</p>
         </div>
 
-        <div className="card animate-slide-up stagger-1" style={{ padding: '0.75rem 1.5rem', display: 'flex', alignItems: 'center', gap: '0.875rem', backgroundColor: 'hsl(var(--accent-indigo))', borderColor: 'hsl(var(--accent-indigo-text) / 0.12)' }}>
+        <div className="card animate-slide-up stagger-1" style={{ margin: 0, padding: '0.75rem 1.5rem', display: 'flex', alignItems: 'center', gap: '0.875rem', backgroundColor: 'hsl(var(--accent-indigo))', borderColor: 'hsl(var(--accent-indigo-text) / 0.12)' }}>
           <div className="stat-icon stat-icon-indigo" style={{ width: '40px', height: '40px' }}>
             <Award size={20} />
           </div>
           <div>
             <div style={{ fontSize: '0.6875rem', textTransform: 'uppercase', color: 'hsl(var(--accent-indigo-text))', fontWeight: 600, letterSpacing: '0.04em' }}>Cumulative GPA</div>
             <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'hsl(var(--accent-indigo-text))' }}>{averageGrade}</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Selectors */}
+      <div className="card animate-slide-up stagger-1" style={{ marginBottom: '2rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+          <div className="form-group" style={{ marginBottom: 0 }}>
+            <label className="form-label">Academic Session</label>
+            {loading ? (
+              <div style={{ fontSize: '0.875rem', color: 'hsl(var(--muted-foreground))' }}>Loading sessions...</div>
+            ) : (
+              <select 
+                className="input" 
+                value={selectedYearId} 
+                onChange={(e) => setSelectedYearId(e.target.value)}
+                style={{ margin: 0 }}
+              >
+                <option value="">Select session...</option>
+                {academicYears.map(y => (
+                  <option key={y.id} value={y.id}>{y.name}</option>
+                ))}
+              </select>
+            )}
+          </div>
+
+          <div className="form-group" style={{ marginBottom: 0 }}>
+            <label className="form-label">Academic Term</label>
+            <select 
+              className="input" 
+              value={selectedTerm} 
+              onChange={(e) => setSelectedTerm(e.target.value)}
+              style={{ margin: 0 }}
+            >
+              <option value="1st Term">1st Term</option>
+              <option value="2nd Term">2nd Term</option>
+              <option value="3rd Term">3rd Term</option>
+            </select>
           </div>
         </div>
       </div>
@@ -60,8 +151,18 @@ export default async function StudentGradesPage() {
           Registered Subject Marks
         </h3>
 
+        {error && (
+          <div className="alert alert-error" style={{ marginBottom: '1rem' }}>
+            <span>{error}</span>
+          </div>
+        )}
+
         <div className="table-container">
-          {grades && grades.length > 0 ? (
+          {loadingGrades ? (
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '3rem', gap: '0.5rem', color: 'hsl(var(--muted-foreground))' }}>
+              <Loader2 className="animate-spin" /> Fetching terminal scores...
+            </div>
+          ) : grades.length > 0 ? (
             <table className="table">
               <thead>
                 <tr>
@@ -113,7 +214,7 @@ export default async function StudentGradesPage() {
               <div className="empty-state-icon">
                 <FileSpreadsheet size={24} />
               </div>
-              <p>No grades have been posted for your account yet.</p>
+              <p>No grades have been posted for your account under the selected session/term.</p>
             </div>
           )}
         </div>

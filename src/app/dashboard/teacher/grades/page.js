@@ -12,6 +12,11 @@ export default function TeacherGradesPage() {
   const [students, setStudents] = useState([]);
   const [gradeRecords, setGradeRecords] = useState({}); // studentId -> { gradeValue, remarks }
   
+  // Academic Session States
+  const [academicYears, setAcademicYears] = useState([]);
+  const [selectedYearId, setSelectedYearId] = useState('');
+  const [selectedTerm, setSelectedTerm] = useState('1st Term');
+
   // Loading & status
   const [loadingCourses, setLoadingCourses] = useState(true);
   const [loadingStudents, setLoadingStudents] = useState(false);
@@ -19,28 +24,46 @@ export default function TeacherGradesPage() {
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
-  // Fetch teacher's assigned subjects/classes
+  // Fetch teacher's assigned subjects/classes & academic years
   useEffect(() => {
-    const fetchCourses = async () => {
+    const fetchCoursesAndYears = async () => {
       setLoadingCourses(true);
       const { data: { user } } = await supabase.auth.getUser();
-      const { data, error } = await supabase
-        .from('class_subjects')
-        .select('id, classes(id, name), subjects(name, code)')
-        .eq('teacher_id', user.id);
+      
+      const [coursesRes, yearsRes] = await Promise.all([
+        supabase
+          .from('class_subjects')
+          .select('id, classes(id, name), subjects(name, code)')
+          .eq('teacher_id', user.id),
+        supabase
+          .from('academic_years')
+          .select('*')
+          .order('name', { ascending: false })
+      ]);
 
-      if (!error && data) {
-        setClassSubjects(data);
+      if (!coursesRes.error && coursesRes.data) {
+        setClassSubjects(coursesRes.data);
       }
+
+      if (!yearsRes.error && yearsRes.data) {
+        setAcademicYears(yearsRes.data);
+        const active = yearsRes.data.find(y => y.is_active);
+        if (active) {
+          setSelectedYearId(active.id);
+        } else if (yearsRes.data.length > 0) {
+          setSelectedYearId(yearsRes.data[0].id);
+        }
+      }
+
       setLoadingCourses(false);
     };
 
-    fetchCourses();
+    fetchCoursesAndYears();
   }, [supabase]);
 
-  // Fetch students and existing grade records when selected mapping changes
+  // Fetch students and existing grade records when selected mapping, year, or term changes
   useEffect(() => {
-    if (!selectedMapping) {
+    if (!selectedMapping || !selectedYearId || !selectedTerm) {
       setStudents([]);
       return;
     }
@@ -70,11 +93,13 @@ export default function TeacherGradesPage() {
       const classStudents = enrollments.map(e => e.profiles).filter(Boolean);
       setStudents(classStudents);
 
-      // 2. Fetch existing grade records for this class_subject
+      // 2. Fetch existing grade records for this class_subject, year, and term
       const { data: existingGrades, error: gradeError } = await supabase
         .from('grades')
         .select('student_id, grade_value, remarks')
-        .eq('class_subject_id', selectedMapping);
+        .eq('class_subject_id', selectedMapping)
+        .eq('academic_year_id', selectedYearId)
+        .eq('term', selectedTerm);
 
       if (gradeError) {
         setError(gradeError.message);
@@ -97,10 +122,9 @@ export default function TeacherGradesPage() {
     };
 
     fetchStudentsAndGrades();
-  }, [selectedMapping, classSubjects, supabase]);
+  }, [selectedMapping, selectedYearId, selectedTerm, classSubjects, supabase]);
 
   const handleGradeChange = (studentId, gradeValue) => {
-    // Basic validation to clamp values between 0 and 100 or format
     setGradeRecords(prev => ({
       ...prev,
       [studentId]: {
@@ -131,7 +155,7 @@ export default function TeacherGradesPage() {
 
     for (let st of students) {
       const rec = gradeRecords[st.id];
-      if (rec.gradeValue === '') continue; // Skip empty fields
+      if (!rec || rec.gradeValue === '') continue; // Skip empty fields
 
       const val = parseFloat(rec.gradeValue);
       if (isNaN(val) || val < 0 || val > 100) {
@@ -159,8 +183,14 @@ export default function TeacherGradesPage() {
       return;
     }
 
-    // Call Server Action
-    const result = await saveGradesAction(selectedMapping, studentIds, upsertRecords);
+    // Call Server Action with academic year and term
+    const result = await saveGradesAction(
+      selectedMapping, 
+      studentIds, 
+      upsertRecords, 
+      selectedYearId, 
+      selectedTerm
+    );
 
     if (result?.error) {
       setError(`Failed to save: ${result.error}`);
@@ -179,26 +209,58 @@ export default function TeacherGradesPage() {
         </p>
       </div>
 
-      {/* Class Course selector */}
+      {/* Class Course, Academic Year & Term selectors */}
       <div className="card animate-slide-up stagger-1" style={{ marginBottom: '2rem' }}>
-        <div className="form-group" style={{ marginBottom: 0 }}>
-          <label className="form-label">Select Course / Class Section</label>
-          {loadingCourses ? (
-            <div style={{ fontSize: '0.875rem', color: 'hsl(var(--muted-foreground))' }}>Loading assigned classes...</div>
-          ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '1rem' }}>
+          <div className="form-group" style={{ marginBottom: 0 }}>
+            <label className="form-label">Select Course / Class Section</label>
+            {loadingCourses ? (
+              <div style={{ fontSize: '0.875rem', color: 'hsl(var(--muted-foreground))' }}>Loading assigned classes...</div>
+            ) : (
+              <select 
+                className="input" 
+                value={selectedMapping} 
+                onChange={(e) => setSelectedMapping(e.target.value)}
+                style={{ margin: 0 }}
+              >
+                <option value="">Choose course allocation...</option>
+                {classSubjects.map(cs => (
+                  <option key={cs.id} value={cs.id}>
+                    {cs.classes?.name} — {cs.subjects?.name} ({cs.subjects?.code})
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
+
+          <div className="form-group" style={{ marginBottom: 0 }}>
+            <label className="form-label">Academic Session</label>
             <select 
               className="input" 
-              value={selectedMapping} 
-              onChange={(e) => setSelectedMapping(e.target.value)}
+              value={selectedYearId} 
+              onChange={(e) => setSelectedYearId(e.target.value)}
+              style={{ margin: 0 }}
             >
-              <option value="">Choose course allocation...</option>
-              {classSubjects.map(cs => (
-                <option key={cs.id} value={cs.id}>
-                  {cs.classes?.name} — {cs.subjects?.name} ({cs.subjects?.code})
-                </option>
+              <option value="">Select session...</option>
+              {academicYears.map(y => (
+                <option key={y.id} value={y.id}>{y.name}</option>
               ))}
             </select>
-          )}
+          </div>
+
+          <div className="form-group" style={{ marginBottom: 0 }}>
+            <label className="form-label">Academic Term</label>
+            <select 
+              className="input" 
+              value={selectedTerm} 
+              onChange={(e) => setSelectedTerm(e.target.value)}
+              style={{ margin: 0 }}
+            >
+              <option value="1st Term">1st Term</option>
+              <option value="2nd Term">2nd Term</option>
+              <option value="3rd Term">3rd Term</option>
+            </select>
+          </div>
         </div>
       </div>
 

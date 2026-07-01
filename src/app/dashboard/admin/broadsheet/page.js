@@ -19,6 +19,7 @@ export default function AdminBroadsheetPage() {
   const [academicYears, setAcademicYears] = useState([]);
   const [selectedClassId, setSelectedClassId] = useState('');
   const [selectedYearId, setSelectedYearId] = useState('');
+  const [selectedTerm, setSelectedTerm] = useState('1st Term');
   
   const [classSubjects, setClassSubjects] = useState([]);
   const [enrollments, setEnrollments] = useState([]);
@@ -67,7 +68,7 @@ export default function AdminBroadsheetPage() {
   }, []);
 
   const loadBroadsheetData = async () => {
-    if (!selectedClassId) return;
+    if (!selectedClassId || !selectedYearId || !selectedTerm) return;
     setLoading(true);
     try {
       // 1. Fetch class subjects
@@ -84,13 +85,15 @@ export default function AdminBroadsheetPage() {
         .eq('class_id', selectedClassId);
       setEnrollments(enrolls || []);
 
-      // 3. Fetch grades for students in this class
+      // 3. Fetch grades for students in this class, matching year & term
       if (enrolls && enrolls.length > 0) {
         const studentIds = enrolls.map(e => e.student_id);
         const { data: gradeList } = await supabase
           .from('grades')
           .select('*')
-          .in('student_id', studentIds);
+          .in('student_id', studentIds)
+          .eq('academic_year_id', selectedYearId)
+          .eq('term', selectedTerm);
         setGrades(gradeList || []);
       } else {
         setGrades([]);
@@ -104,7 +107,7 @@ export default function AdminBroadsheetPage() {
 
   useEffect(() => {
     loadBroadsheetData();
-  }, [selectedClassId, selectedYearId]);
+  }, [selectedClassId, selectedYearId, selectedTerm]);
 
   // Compute broadsheet rows in real-time
   useEffect(() => {
@@ -213,6 +216,20 @@ export default function AdminBroadsheetPage() {
             {academicYears.map(y => (
               <option key={y.id} value={y.id}>{y.name} {y.is_active ? '(Active)' : ''}</option>
             ))}
+          </select>
+        </div>
+
+        <div className="form-group" style={{ margin: 0, minWidth: '180px' }}>
+          <label className="form-label" style={{ fontSize: '0.75rem', marginBottom: '0.3rem' }}>Academic Term</label>
+          <select 
+            className="input" 
+            value={selectedTerm} 
+            onChange={(e) => setSelectedTerm(e.target.value)}
+            style={{ padding: '0.4rem 0.75rem' }}
+          >
+            <option value="1st Term">1st Term</option>
+            <option value="2nd Term">2nd Term</option>
+            <option value="3rd Term">3rd Term</option>
           </select>
         </div>
 
