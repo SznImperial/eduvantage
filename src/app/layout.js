@@ -22,6 +22,8 @@ export const metadata = {
   }
 };
 
+import ToastProvider from "@/components/ToastProvider";
+
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${inter.variable} ${outfit.variable}`} data-theme="light" suppressHydrationWarning>
@@ -43,7 +45,9 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body>
-        {children}
+        <ToastProvider>
+          {children}
+        </ToastProvider>
       </body>
     </html>
   );
