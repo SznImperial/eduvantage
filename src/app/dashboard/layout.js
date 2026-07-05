@@ -43,23 +43,12 @@ export default async function DashboardLayout({ children }) {
       {/* Main Content Area */}
       <div className="dashboard-main">
         {/* Top Header — dynamic breadcrumb + session context */}
-        <header className="dashboard-header" style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '0.875rem 2rem',
-          borderBottom: '1px solid hsl(var(--border) / 0.5)',
-          backgroundColor: 'hsl(var(--card) / 0.6)',
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
-          gap: '1rem',
-          flexWrap: 'wrap'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap', minWidth: 0 }}>
+        <header className="dashboard-header">
+          <div className="dashboard-header-left">
             <ActiveBreadcrumb />
             <ActiveSessionBanner role={role} />
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <div className="dashboard-header-right">
             <ThemeToggle />
           </div>
         </header>

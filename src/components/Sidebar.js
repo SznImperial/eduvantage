@@ -57,38 +57,19 @@ export default function Sidebar({ role, schoolName, userName, userInitials }) {
 
       {/* Sidebar */}
       <aside className={`sidebar${mobileOpen ? ' mobile-open' : ''}`}>
-        <div className="sidebar-header" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-          <div>
-            <div className="nav-logo" style={{ fontSize: '1.15rem' }}>
-              <GraduationCap size={24} />
-              Edu<span>Vantage</span>
-            </div>
-            <div style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              marginTop: '0.5rem',
-              padding: '0.15rem 0.625rem',
-              borderRadius: '9999px',
-              fontSize: '0.7rem',
-              fontWeight: 600,
-              letterSpacing: '0.02em',
-              backgroundColor: 'hsl(var(--accent-indigo))',
-              color: 'hsl(var(--accent-indigo-text))',
-              maxWidth: '100%',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap'
-            }}>
-              {schoolName}
+        <div className="sidebar-header flex items-start justify-between">
+          <div className="w-full overflow-hidden pr-xs">
+            <div className="nav-logo text-lg text-truncate" title={schoolName}>
+              <GraduationCap size={24} className="shrink-0" />
+              <span className="font-extrabold">{schoolName}</span>
             </div>
           </div>
 
           {/* Close button for mobile */}
           <button
-            className="mobile-menu-btn"
+            className="mobile-menu-btn mt-xs"
             onClick={() => setMobileOpen(false)}
             aria-label="Close navigation menu"
-            style={{ marginTop: '0.25rem' }}
           >
             <X size={24} />
           </button>
@@ -211,83 +192,33 @@ export default function Sidebar({ role, schoolName, userName, userInitials }) {
         </nav>
 
         {/* User profile section */}
-        <div style={{
-          marginTop: 'auto',
-          borderTop: '1px solid hsl(var(--border) / 0.6)',
-          paddingTop: '1.25rem'
-        }}>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.75rem',
-            marginBottom: '1rem',
-            padding: '0 0.375rem'
-          }}>
+        <div className="mt-auto pt-lg border-b">
+          <div className="flex items-center gap-sm mb-md px-xs">
             {/* Gradient ring avatar */}
-            <div style={{
-              width: '38px',
-              height: '38px',
-              borderRadius: '50%',
-              background: 'var(--avatar-gradient)',
-              padding: '2px',
-              flexShrink: 0
-            }}>
-              <div style={{
-                width: '100%',
-                height: '100%',
-                borderRadius: '50%',
-                backgroundColor: 'hsl(var(--sidebar-bg))',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontWeight: 700,
-                fontSize: '0.8rem',
-                color: 'hsl(var(--primary))',
-                letterSpacing: '-0.02em'
-              }}>
+            <div className="auth-card-icon rounded-full shrink-0 p-0.5 w-10 h-10 mb-0">
+              <div className="w-full h-full flex items-center justify-center font-bold text-xs bg-card text-primary rounded-full tracking-tight">
                 {userInitials}
               </div>
             </div>
-            <div style={{ overflow: 'hidden', minWidth: 0 }}>
-              <div style={{
-                fontSize: '0.85rem',
-                fontWeight: 600,
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                color: 'hsl(var(--foreground))',
-                lineHeight: 1.3
-              }}>
+            <div className="overflow-hidden min-w-0">
+              <div className="text-sm font-bold text-foreground text-truncate leading-tight">
                 {userName}
               </div>
-              <div style={{
-                fontSize: '0.7rem',
-                fontWeight: 500,
-                color: 'hsl(var(--muted-foreground))',
-                textTransform: 'capitalize',
-                letterSpacing: '0.02em'
-              }}>
+              <div className="text-xs font-medium text-muted capitalize tracking-wide">
                 {role}
               </div>
             </div>
           </div>
 
           <form action={logoutUser}>
-            <button
-              className="btn btn-ghost"
-              style={{
-                width: '100%',
-                justifyContent: 'flex-start',
-                gap: '0.75rem',
-                borderRadius: 'var(--radius-sm)',
-                fontSize: '0.875rem', /* better readability */
-                padding: '0.75rem 0.5rem' /* larger touch target */
-              }}
-            >
+            <button className="btn btn-ghost w-full justify-start gap-sm">
               <LogOut size={18} />
               Sign Out
             </button>
           </form>
+          <div className="text-center text-xs text-muted mt-lg opacity-70 tracking-wide">
+            Powered by EduVantage
+          </div>
         </div>
       </aside>
     </>

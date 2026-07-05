@@ -4,7 +4,9 @@ import React, { useState, useTransition } from 'react';
 import { loginUser, createPasswordResetRequestAction } from '@/app/actions';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { GraduationCap, ArrowRight, ShieldAlert, Loader2, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, Loader2 } from 'lucide-react';
+import AuthCard from '@/components/ui/AuthCard';
+import AlertBanner from '@/components/ui/AlertBanner';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -46,38 +48,12 @@ export default function LoginPage() {
 
   return (
     <div className="auth-container">
-      <div className="card auth-card glass-panel animate-scale-in" style={{ boxShadow: 'var(--shadow-xl)' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '2rem' }}>
-          <div style={{
-            background: 'var(--avatar-gradient)',
-            padding: '0.875rem',
-            borderRadius: '16px',
-            marginBottom: '1rem',
-            color: 'hsl(var(--accent-indigo-text))'
-          }}>
-            <GraduationCap size={30} />
-          </div>
-          <h2 style={{ fontSize: '1.625rem', fontWeight: 800, letterSpacing: '-0.03em', marginBottom: '0.25rem' }}>
-            {isResetMode ? 'Reset Password' : 'Sign in to EduVantage'}
-          </h2>
-          <p style={{ fontSize: '0.875rem', color: 'hsl(var(--muted-foreground))', textAlign: 'center' }}>
-            {isResetMode ? 'Enter your email and full name to request a password reset' : 'Enter your email and password to access your portal'}
-          </p>
-        </div>
-
-        {error && (
-          <div className="alert alert-error">
-            <ShieldAlert size={15} />
-            <span>{error}</span>
-          </div>
-        )}
-
-        {success && (
-          <div className="alert alert-success" style={{ marginBottom: '1.5rem', backgroundColor: 'var(--success-bg, #ecfdf5)', color: 'var(--success-text, #065f46)', padding: '1rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <CheckCircle2 size={15} />
-            <span>{success}</span>
-          </div>
-        )}
+      <AuthCard
+        title={isResetMode ? 'Reset Password' : 'Sign in to EduVantage'}
+        subtitle={isResetMode ? 'Enter your email and full name to request a password reset' : 'Enter your email and password to access your portal'}
+      >
+        {error && <AlertBanner variant="error" message={error} className="mb-md" />}
+        {success && <AlertBanner variant="success" message={success} className="mb-lg" />}
 
         <form onSubmit={handleSubmit}>
           {isResetMode && (
@@ -109,13 +85,13 @@ export default function LoginPage() {
           </div>
 
           {!isResetMode && (
-            <div className="form-group" style={{ marginBottom: '1.75rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div className="form-group mb-xl">
+              <div className="flex justify-between items-center">
                 <label className="form-label" htmlFor="password">Password</label>
                 <button
                   type="button"
+                  className="btn-ghost text-xs font-medium"
                   onClick={() => { setIsResetMode(true); setError(''); setSuccess(''); }}
-                  style={{ background: 'none', border: 'none', fontSize: '0.8rem', color: 'hsl(var(--accent-indigo-text))', cursor: 'pointer', fontWeight: 500 }}
                 >
                   Forgot Password?
                 </button>
@@ -133,10 +109,9 @@ export default function LoginPage() {
           )}
 
           <button
-            className="btn btn-primary"
+            className="btn btn-primary w-full"
             type="submit"
             disabled={isPending}
-            style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-sm)' }}
           >
             {isPending ? (
               <>
@@ -152,30 +127,25 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <div style={{
-          marginTop: '2rem',
-          textAlign: 'center',
-          fontSize: '0.875rem',
-          color: 'hsl(var(--muted-foreground))'
-        }}>
+        <div className="mt-xl text-center text-sm text-muted">
           {isResetMode ? (
             <button
               type="button"
+              className="btn-ghost font-bold"
               onClick={() => { setIsResetMode(false); setError(''); }}
-              style={{ background: 'none', border: 'none', color: 'hsl(var(--accent-indigo-text))', cursor: 'pointer', fontWeight: 600 }}
             >
               Back to Sign In
             </button>
           ) : (
             <>
               Don&apos;t have an account?{' '}
-              <Link href="/register" style={{ color: 'hsl(var(--accent-indigo-text))', fontWeight: 600 }}>
+              <Link href="/register" className="font-bold text-foreground">
                 Register your school
               </Link>
             </>
           )}
         </div>
-      </div>
+      </AuthCard>
     </div>
   );
 }
