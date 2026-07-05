@@ -220,6 +220,10 @@ export async function createUserAccount(formData) {
       email: email.trim().toLowerCase(),
       password,
       email_confirm: true,
+      user_metadata: {
+        role: role,
+        school_id: schoolId
+      }
     });
 
     if (createAuthError) {
@@ -343,6 +347,10 @@ export async function createUserAccount(formData) {
               email: parentEmail.trim().toLowerCase(),
               password: parentPassword,
               email_confirm: true,
+              user_metadata: {
+                role: 'parent',
+                school_id: schoolId
+              }
             });
 
             if (!pAuthErr && parentAuth?.user) {
