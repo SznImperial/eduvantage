@@ -23,6 +23,7 @@ export default function AdminClassesPage() {
   const [teachers, setTeachers] = useState([]);
   const [students, setStudents] = useState([]);
   const [classSubjects, setClassSubjects] = useState([]);
+  const [enrollments, setEnrollments] = useState([]);
   
   // Tabs: 'classes' or 'assign' or 'enroll'
   const [activeTab, setActiveTab] = useState('classes');
@@ -61,6 +62,10 @@ export default function AdminClassesPage() {
     // 6. Class subjects with relation
     const { data: map } = await supabase.from('class_subjects').select('*, classes(name), subjects(name), profiles(first_name, last_name)');
     if (map) setClassSubjects(map);
+
+    // 7. Enrollments
+    const { data: enr } = await supabase.from('enrollments').select('*');
+    if (enr) setEnrollments(enr);
   };
 
   useEffect(() => {
@@ -299,7 +304,8 @@ export default function AdminClassesPage() {
                   </table>
                 ) : (
                   <div className="empty-state">
-                    <p>No academic years registered yet. Add one on the right.</p>
+                <div className="empty-state-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg></div>
+                <p>No academic years registered yet. Add one on the right.</p>
                   </div>
                 )}
               </div>
@@ -332,7 +338,8 @@ export default function AdminClassesPage() {
                   </table>
                 ) : (
                   <div className="empty-state">
-                    <p>No classes set up yet. Create a class on the right.</p>
+                <div className="empty-state-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg></div>
+                <p>No classes set up yet. Create a class on the right.</p>
                   </div>
                 )}
               </div>
@@ -365,7 +372,8 @@ export default function AdminClassesPage() {
                   </table>
                 ) : (
                   <div className="empty-state">
-                    <p>No subjects in the catalog. Add one on the right.</p>
+                <div className="empty-state-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg></div>
+                <p>No subjects in the catalog. Add one on the right.</p>
                   </div>
                 )}
               </div>
@@ -381,7 +389,7 @@ export default function AdminClassesPage() {
                   <label className="form-label">Term Name</label>
                   <input className="input" name="name" placeholder="e.g. 2025-2026 Fall" required />
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: '1rem' }}>
                   <div className="form-group">
                     <label className="form-label">Start Date</label>
                     <input className="input" name="start_date" type="date" required />
@@ -474,7 +482,8 @@ export default function AdminClassesPage() {
                 </table>
               ) : (
                 <div className="empty-state">
-                  <p>No subject allocations mapped yet. Set up one on the right.</p>
+                <div className="empty-state-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg></div>
+                <p>No subject allocations mapped yet. Set up one on the right.</p>
                 </div>
               )}
             </div>
@@ -626,6 +635,7 @@ export default function AdminClassesPage() {
             </h3>
             {!electiveStudentId ? (
               <div className="empty-state">
+                <div className="empty-state-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg></div>
                 <p>Select a student to manage their elective subject enrollments.</p>
               </div>
             ) : (

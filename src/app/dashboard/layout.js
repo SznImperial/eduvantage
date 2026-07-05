@@ -43,7 +43,7 @@ export default async function DashboardLayout({ children }) {
       {/* Main Content Area */}
       <div className="dashboard-main">
         {/* Top Header — dynamic breadcrumb + session context */}
-        <header style={{
+        <header className="dashboard-header" style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',

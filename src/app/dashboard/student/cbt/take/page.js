@@ -492,7 +492,7 @@ function CBTTerminalContent() {
       </header>
 
       {/* Main Body Grid */}
-      <main style={{ flex: 1, display: 'grid', gridTemplateColumns: '3fr 1fr', gap: '1.5rem', padding: '1.5rem', maxWidth: '1440px', width: '100%', margin: '0 auto' }}>
+      <main className="responsive-grid-3-2" style={{ flex: 1, gap: '1.5rem', padding: '1.5rem', maxWidth: '1440px', width: '100%', margin: '0 auto' }}>
         {/* Left Side: Active Question Display */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           {fullscreenError && (

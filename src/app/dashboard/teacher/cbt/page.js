@@ -263,7 +263,8 @@ export default function TeacherCbtPage() {
       {loading ? (
         <div className="card">
           <div className="empty-state">
-            <p>Loading CBT records...</p>
+                <div className="empty-state-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg></div>
+                <p>Loading CBT records...</p>
           </div>
         </div>
       ) : classSubjects.length === 0 ? (
@@ -417,7 +418,7 @@ export default function TeacherCbtPage() {
                   />
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: '1rem' }}>
                   <div className="form-group">
                     <label className="form-label">Option A</label>
                     <input className="input" value={questions[activeQuestionIdx].option_a} onChange={e => handleQuestionChange(activeQuestionIdx, 'option_a', e.target.value)} required />
@@ -532,7 +533,7 @@ export default function TeacherCbtPage() {
                         <span className="badge badge-primary" style={{ fontSize: '0.7rem' }}>Correct Key: {q.correct_option}</span>
                       </div>
                       <p style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '0.75rem' }}>{q.question_text}</p>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', fontSize: '0.8rem', color: 'hsl(var(--muted-foreground))' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: '0.5rem', fontSize: '0.8rem', color: 'hsl(var(--muted-foreground))' }}>
                         <div><strong>A.</strong> {q.option_a}</div>
                         <div><strong>B.</strong> {q.option_b}</div>
                         <div><strong>C.</strong> {q.option_c}</div>

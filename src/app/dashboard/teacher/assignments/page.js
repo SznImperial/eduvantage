@@ -271,7 +271,8 @@ export default function TeacherAssignmentsPage() {
 
         {loading ? (
           <div className="empty-state">
-            <p>Loading assignments...</p>
+                <div className="empty-state-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg></div>
+                <p>Loading assignments...</p>
           </div>
         ) : assignments.length > 0 ? (
           <div style={{ display: 'flex', flexDirection: 'column', divideY: '1px solid var(--border)' }}>
@@ -394,7 +395,7 @@ export default function TeacherAssignmentsPage() {
                           </a>
                         </div>
                         {selectedSubmission.file_url.match(/\.(jpeg|jpg|png|gif|webp)/i) || selectedSubmission.file_url.startsWith('data:image/') ? (
-                          <img src={selectedSubmission.file_url} alt="Student Math Sheet Upload" style={{ width: '100%', maxHeight: '420px', objectFit: 'contain', backgroundColor: '#1a1a1a', display: 'block' }} />
+                          <img src={selectedSubmission.file_url} alt="Student Math Sheet Upload" loading="lazy" style={{ width: '100%', maxHeight: '420px', objectFit: 'contain', backgroundColor: '#1a1a1a', display: 'block' }} />
                         ) : (
                           <iframe src={selectedSubmission.file_url} width="100%" height="400px" style={{ border: 'none' }} />
                         )}
@@ -404,7 +405,8 @@ export default function TeacherAssignmentsPage() {
                 ) : (
                   /* Student Submissions Roster List */
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                    <table className="table" style={{ fontSize: '0.85rem' }}>
+                    <div className="table-container">
+                      <table className="table" style={{ fontSize: '0.85rem' }}>
                       <thead>
                         <tr>
                           <th>Student Name</th>
@@ -442,6 +444,7 @@ export default function TeacherAssignmentsPage() {
                         )}
                       </tbody>
                     </table>
+                    </div>
                   </div>
                 )}
               </div>

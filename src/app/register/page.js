@@ -89,7 +89,7 @@ export default function RegisterPage() {
             School Details
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: '1rem' }}>
             <div className="form-group">
               <label className="form-label" htmlFor="schoolName">School Name</label>
               <input
@@ -111,6 +111,8 @@ export default function RegisterPage() {
                 name="schoolSlug"
                 type="text"
                 placeholder="apex"
+                pattern="^[a-z0-9-]+$"
+                title="Subdomain slug can only contain lowercase letters, numbers, and hyphens."
                 required
                 disabled={isPending || success}
               />
@@ -138,7 +140,7 @@ export default function RegisterPage() {
             Administrator Details
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: '1rem' }}>
             <div className="form-group">
               <label className="form-label" htmlFor="firstName">First Name</label>
               <input

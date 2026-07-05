@@ -5,52 +5,15 @@ import { createAdminClient } from '@/lib/supabaseAdmin';
 import { redirect } from 'next/navigation';
 
 /**
- * Normalizes internal and database exceptions to simple, non-confusing user messages.
+ * Normalizes internal and database exceptions to a simple, generic user message
+ * while logging the full exception server-side for debugging.
  */
 function getFriendlyError(error) {
-  if (!error) return 'Something went wrong. Please try again later.';
-  
-  const msg = typeof error === 'string' ? error : (error.message || '');
-  
-  // Let standard user-facing auth, verification, and validation messages pass through directly
-  if (
-    msg.includes('required') || 
-    msg.includes('Unauthorized') || 
-    msg.includes('credentials') || 
-    msg.includes('login') || 
-    msg.includes('Email') || 
-    msg.includes('email') || 
-    msg.includes('password') || 
-    msg.includes('Password') || 
-    msg.includes('confirm') || 
-    msg.includes('Confirm') || 
-    msg.includes('verify') || 
-    msg.includes('Verify') || 
-    msg.includes('registered') || 
-    msg.includes('rate') || 
-    msg.includes('request') || 
-    msg.includes('valid') || 
-    msg.includes('short') ||
-    msg.includes('Session') ||
-    msg.includes('profile context')
-  ) {
-    return msg;
-  }
-  
-  // Map specific duplicate constraint errors to helpful product copy
-  if (msg.includes('duplicate key') || msg.includes('already exists') || msg.includes('unique constraint')) {
-    if (msg.includes('profiles_email_key') || msg.includes('email')) {
-      return 'An account with this email address already exists.';
-    }
-    if (msg.includes('schools_slug_key') || msg.includes('slug')) {
-      return 'This school workspace link is already taken. Please choose another one.';
-    }
-    return 'This record already exists in our database.';
-  }
+  // Log the full actual error for server-side debugging
+  console.error('EduVantage Internal Exception:', error);
 
-  // Log internal errors to system console for diagnostics, but show friendly fallback to user
-  console.error('EduVantage Internal DB Exception:', msg);
-  return 'Database is under maintenance. Please try again later.';
+  // Return a single generic user-facing message, no conditional matching
+  return 'Something went wrong. Please try again.';
 }
 
 /**
@@ -73,6 +36,33 @@ async function getAuthContext() {
 }
 
 /**
+ * Validates that the provided foreign keys belong to the caller's school tenant.
+ * references: array of { table: 'table_name', id: 'uuid_string' } or { table: 'table_name', ids: ['uuid_string'] }
+ */
+async function verifyTenantOwnership(references, schoolId, client) {
+  for (const ref of references) {
+    const idsToCheck = ref.ids || (ref.id ? [ref.id] : []);
+    if (idsToCheck.length === 0) continue;
+    
+    // Check all IDs for this table in a single query
+    const { data, error } = await client
+      .from(ref.table)
+      .select('id, school_id')
+      .in('id', idsToCheck);
+      
+    if (error) {
+      console.error(`Tenant verification error on ${ref.table}:`, error.message);
+      throw new Error(`Unauthorized reference in ${ref.table}.`);
+    }
+    
+    // Validate we got records back for all requested IDs and they belong to this school
+    if (!data || data.length !== idsToCheck.length || data.some(record => record.school_id !== schoolId)) {
+      throw new Error(`Unauthorized cross-tenant reference detected in ${ref.table}.`);
+    }
+  }
+}
+
+/**
  * Registers a new School (Tenant) and provisions the creator as the School Admin.
  */
 export async function signUpSchool(prevState, formData) {
@@ -85,6 +75,11 @@ export async function signUpSchool(prevState, formData) {
 
   if (!schoolName || !slug || !firstName || !lastName || !email || !password) {
     return { error: 'All fields are required.' };
+  }
+
+  const slugRegex = /^[a-z0-9-]+$/;
+  if (!slugRegex.test(slug)) {
+    return { error: 'Subdomain slug can only contain lowercase letters, numbers, and hyphens.' };
   }
 
   const supabase = await createClient();
@@ -135,9 +130,11 @@ export async function signUpSchool(prevState, formData) {
     ]);
 
   if (profileError) {
-    // Cleanup school & user
-    await adminClient.from('schools').delete().eq('id', schoolData.id);
-    await adminClient.auth.admin.deleteUser(user.id);
+    // Cleanup school & user concurrently so one failure doesn't block the other
+    await Promise.allSettled([
+      adminClient.from('schools').delete().eq('id', schoolData.id),
+      adminClient.auth.admin.deleteUser(user.id)
+    ]);
     return { error: getFriendlyError(profileError) };
   }
 
@@ -201,30 +198,22 @@ export async function createUserAccount(formData) {
 
     const adminClient = createAdminClient();
 
-    // Enforce SaaS Subscription limits on student creations
+    // Verify foreign keys for student creation
     if (role === 'student') {
-      const { count: studentCount, error: countErr } = await adminClient
-        .from('profiles')
-        .select('*', { count: 'exact', head: true })
-        .eq('school_id', schoolId)
-        .eq('role', 'student');
-
-      if (countErr) return { error: getFriendlyError(countErr) };
-
-      const { data: school, error: schoolErr } = await adminClient
-        .from('schools')
-        .select('max_student_limit')
-        .eq('id', schoolId)
-        .single();
-
-      if (schoolErr) return { error: getFriendlyError(schoolErr) };
-
-      if (studentCount >= school.max_student_limit) {
-        return { 
-          error: `Limit Reached: Your current plan allows up to ${school.max_student_limit} students. You currently have ${studentCount}. Please upgrade your plan in the Billing dashboard.` 
-        };
+      const refs = [];
+      const classId = formData.get('classId');
+      if (classId) refs.push({ table: 'classes', id: classId });
+      
+      if (formData.get('parentType') === 'existing') {
+        const parentId = formData.get('parentId');
+        if (parentId) refs.push({ table: 'profiles', id: parentId });
+      }
+      if (refs.length > 0) {
+        await verifyTenantOwnership(refs, schoolId, adminClient);
       }
     }
+
+    // SaaS limits are now enforced atomically via RPC during profile insertion
 
     // 1. Create the main authentication account
     const { data: newAuthData, error: createAuthError } = await adminClient.auth.admin.createUser({
@@ -255,9 +244,31 @@ export async function createUserAccount(formData) {
       profilePayload.phone = formData.get('phone') || null;
     }
 
-    const { error: newProfileError } = await adminClient
-      .from('profiles')
-      .insert([profilePayload]);
+    let newProfileError = null;
+
+    if (role === 'student') {
+      // Use atomic RPC for students to enforce limits
+      const { data: rpcData, error: rpcError } = await adminClient.rpc('create_student_profile_atomic', {
+        p_id: profilePayload.id,
+        p_school_id: profilePayload.school_id,
+        p_first_name: profilePayload.first_name,
+        p_last_name: profilePayload.last_name,
+        p_email: profilePayload.email,
+        p_admission_no: profilePayload.admission_no
+      });
+
+      if (rpcError) {
+        newProfileError = rpcError;
+      } else if (rpcData && !rpcData.success) {
+        newProfileError = new Error(rpcData.error);
+      }
+    } else {
+      // Standard insert for non-students
+      const { error } = await adminClient
+        .from('profiles')
+        .insert([profilePayload]);
+      newProfileError = error;
+    }
 
     if (newProfileError) {
       await adminClient.auth.admin.deleteUser(userId);
@@ -429,35 +440,15 @@ export async function createClassAction(name, gradeLevel) {
     const { supabase, schoolId, role } = await getAuthContext();
     if (role !== 'admin' && role !== 'super_admin') return { error: 'Unauthorized.' };
 
-    // Enforce SaaS Subscription limits on class creations
-    const { count: classCount, error: countErr } = await supabase
-      .from('classes')
-      .select('*', { count: 'exact', head: true })
-      .eq('school_id', schoolId);
-
-    if (countErr) return { error: getFriendlyError(countErr) };
-
-    const { data: school, error: schoolErr } = await supabase
-      .from('schools')
-      .select('max_class_limit')
-      .eq('id', schoolId)
-      .single();
-
-    if (schoolErr) return { error: getFriendlyError(schoolErr) };
-
-    if (classCount >= school.max_class_limit) {
-      return { 
-        error: `Limit Reached: Your current plan allows up to ${school.max_class_limit} classes. You currently have ${classCount}. Please upgrade your plan in the Billing dashboard.` 
-      };
-    }
-
-    const { error } = await supabase.from('classes').insert([{
-      school_id: schoolId,
-      name,
-      grade_level: gradeLevel
-    }]);
+    // Atomic SaaS limits enforcement via RPC
+    const { data: rpcData, error } = await supabase.rpc('create_class_atomic', {
+      p_school_id: schoolId,
+      p_name: name,
+      p_grade_level: gradeLevel
+    });
 
     if (error) return { error: getFriendlyError(error) };
+    if (rpcData && !rpcData.success) return { error: rpcData.error };
     return { success: true };
   } catch (err) {
     return { error: getFriendlyError(err) };
@@ -501,6 +492,11 @@ export async function promoteStudentsAction(studentIds, targetClassId) {
   try {
     const { supabase, schoolId, role } = await getAuthContext();
     if (role !== 'admin') return { error: 'Unauthorized.' };
+
+    await verifyTenantOwnership([
+      { table: 'profiles', ids: studentIds },
+      ...(targetClassId && targetClassId !== 'graduate' ? [{ table: 'classes', id: targetClassId }] : [])
+    ], schoolId, supabase);
 
     if (!targetClassId || targetClassId === 'graduate') {
       const { error } = await supabase
@@ -577,10 +573,13 @@ export async function createPasswordResetRequestAction(email, fullName) {
  */
 export async function resolvePasswordResetRequestAction(requestId, tempPassword) {
   try {
-    const { role } = await getAuthContext();
+    const { role, schoolId } = await getAuthContext();
     if (role !== 'admin') return { error: 'Unauthorized.' };
 
     const adminClient = createAdminClient();
+    
+    // BOLA Fix: Verify the request belongs to the caller's tenant
+    await verifyTenantOwnership([{ table: 'password_reset_requests', id: requestId }], schoolId, adminClient);
 
     const { data: req, error: rError } = await adminClient
       .from('password_reset_requests')
@@ -652,6 +651,12 @@ export async function allocateCourseAction(classId, subjectId, teacherId) {
     const { supabase, schoolId, role } = await getAuthContext();
     if (role !== 'admin') return { error: 'Unauthorized.' };
 
+    await verifyTenantOwnership([
+      { table: 'classes', id: classId },
+      { table: 'subjects', id: subjectId },
+      ...(teacherId ? [{ table: 'profiles', id: teacherId }] : [])
+    ], schoolId, supabase);
+
     const { error } = await supabase.from('class_subjects').insert([{
       school_id: schoolId,
       class_id: classId,
@@ -673,6 +678,11 @@ export async function enrollStudentAction(studentId, classId) {
   try {
     const { supabase, schoolId, role } = await getAuthContext();
     if (role !== 'admin') return { error: 'Unauthorized.' };
+
+    await verifyTenantOwnership([
+      { table: 'profiles', id: studentId },
+      { table: 'classes', id: classId }
+    ], schoolId, supabase);
 
     const { error } = await supabase.from('enrollments').insert([{
       school_id: schoolId,
@@ -735,6 +745,11 @@ export async function saveAttendanceAction(classId, date, records) {
     const { supabase, schoolId, role } = await getAuthContext();
     if (role !== 'admin' && role !== 'teacher') return { error: 'Unauthorized.' };
 
+    await verifyTenantOwnership([
+      { table: 'classes', id: classId },
+      { table: 'profiles', ids: records.map(r => r.student_id) }
+    ], schoolId, supabase);
+
     const upserts = records.map(rec => ({
       school_id: schoolId,
       student_id: rec.student_id,
@@ -762,6 +777,12 @@ export async function saveGradesAction(classSubjectId, studentIds, upserts, acad
   try {
     const { supabase, schoolId, role, user } = await getAuthContext();
     if (role !== 'admin' && role !== 'teacher') return { error: 'Unauthorized.' };
+
+    await verifyTenantOwnership([
+      { table: 'class_subjects', id: classSubjectId },
+      { table: 'academic_years', id: academicYearId },
+      { table: 'profiles', ids: studentIds }
+    ], schoolId, supabase);
 
     // 1. Delete existing marks for these students under this course, year, and term
     const { error: delError } = await supabase
@@ -893,6 +914,8 @@ export async function createTimetableSlotAction(classSubjectId, dayOfWeek, start
     const { supabase, schoolId, role } = await getAuthContext();
     if (role !== 'admin') return { error: 'Unauthorized.' };
 
+    await verifyTenantOwnership([{ table: 'class_subjects', id: classSubjectId }], schoolId, supabase);
+
     const { error } = await supabase.from('timetable_slots').insert([{
       school_id: schoolId,
       class_subject_id: classSubjectId,
@@ -917,6 +940,8 @@ export async function deleteTimetableSlotAction(id) {
     const { supabase, role } = await getAuthContext();
     if (role !== 'admin') return { error: 'Unauthorized.' };
 
+    await verifyTenantOwnership([{ table: 'class_subjects', id: classSubjectId }], schoolId, supabase);
+
     const { error } = await supabase.from('timetable_slots').delete().eq('id', id);
     if (error) return { error: getFriendlyError(error) };
     return { success: true };
@@ -932,6 +957,11 @@ export async function createFeeRecordAction(studentId, term, academicYearId, amo
   try {
     const { supabase, schoolId, role } = await getAuthContext();
     if (role !== 'admin') return { error: 'Unauthorized.' };
+
+    await verifyTenantOwnership([
+      { table: 'profiles', id: studentId },
+      { table: 'academic_years', id: academicYearId }
+    ], schoolId, supabase);
 
     const { error } = await supabase.from('fee_records').insert([{
       school_id: schoolId,
@@ -958,6 +988,11 @@ export async function updateFeeRecordAction(id, amountPaid, status) {
     const { supabase, role } = await getAuthContext();
     if (role !== 'admin') return { error: 'Unauthorized.' };
 
+    await verifyTenantOwnership([
+      { table: 'profiles', id: studentId },
+      { table: 'academic_years', id: academicYearId }
+    ], schoolId, supabase);
+
     const { error } = await supabase.from('fee_records').update({
       amount_paid: parseFloat(amountPaid || 0),
       status,
@@ -978,6 +1013,8 @@ export async function createAssignmentAction(classSubjectId, title, description,
   try {
     const { supabase, schoolId, role } = await getAuthContext();
     if (role !== 'admin' && role !== 'teacher') return { error: 'Unauthorized.' };
+
+    await verifyTenantOwnership([{ table: 'class_subjects', id: classSubjectId }], schoolId, supabase);
 
     const { error } = await supabase.from('assignments').insert([{
       school_id: schoolId,
@@ -1002,6 +1039,8 @@ export async function deleteAssignmentAction(id) {
     const { supabase, role } = await getAuthContext();
     if (role !== 'admin' && role !== 'teacher') return { error: 'Unauthorized.' };
 
+    await verifyTenantOwnership([{ table: 'class_subjects', id: classSubjectId }], schoolId, supabase);
+
     const { error } = await supabase.from('assignments').delete().eq('id', id);
     if (error) return { error: getFriendlyError(error) };
     return { success: true };
@@ -1017,6 +1056,8 @@ export async function gradeSubmissionAction(submissionId, grade, feedback) {
   try {
     const { supabase, role } = await getAuthContext();
     if (role !== 'admin' && role !== 'teacher') return { error: 'Unauthorized.' };
+
+    await verifyTenantOwnership([{ table: 'submissions', id: submissionId }], schoolId, supabase);
 
     const { error } = await supabase.from('submissions').update({
       grade,
@@ -1038,6 +1079,8 @@ export async function submitAssignmentAction(assignmentId, submissionText, fileU
   try {
     const { supabase, schoolId, role, user } = await getAuthContext();
     if (role !== 'student') return { error: 'Unauthorized.' };
+
+    await verifyTenantOwnership([{ table: 'assignments', id: assignmentId }], schoolId, supabase);
 
     const { error } = await supabase.from('submissions').upsert([{
       school_id: schoolId,
@@ -1063,6 +1106,11 @@ export async function toggleStudentSubjectAction(studentId, classSubjectId, isEn
   try {
     const { supabase, schoolId, role } = await getAuthContext();
     if (role !== 'admin') return { error: 'Unauthorized.' };
+
+    await verifyTenantOwnership([
+      { table: 'profiles', id: studentId },
+      { table: 'class_subjects', id: classSubjectId }
+    ], schoolId, supabase);
 
     if (isEnrolled) {
       // Enroll elective
@@ -1093,6 +1141,8 @@ export async function createCbtExamAction(title, classSubjectId, durationMinutes
   try {
     const { supabase, schoolId, role, user } = await getAuthContext();
     if (role !== 'admin' && role !== 'teacher') return { error: 'Unauthorized.' };
+
+    await verifyTenantOwnership([{ table: 'class_subjects', id: classSubjectId }], schoolId, supabase);
 
     // 1. Insert exam
     const { data: exam, error: examError } = await supabase.from('cbt_exams').insert([{
@@ -1204,6 +1254,8 @@ export async function submitCbtExamAction(examId, answers, score, totalQuestions
   try {
     const { supabase, schoolId, role, user } = await getAuthContext();
     if (role !== 'student') return { error: 'Unauthorized.' };
+
+    await verifyTenantOwnership([{ table: 'cbt_exams', id: examId }], schoolId, supabase);
 
     const { error } = await supabase.from('cbt_submissions').upsert([{
       school_id: schoolId,

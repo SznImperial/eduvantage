@@ -106,7 +106,7 @@ export default function StudentGradesPage() {
 
       {/* Selectors */}
       <div className="card animate-slide-up stagger-1" style={{ marginBottom: '2rem' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: '1rem' }}>
           <div className="form-group" style={{ marginBottom: 0 }}>
             <label className="form-label">Academic Session</label>
             {loading ? (

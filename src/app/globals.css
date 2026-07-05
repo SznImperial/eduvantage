@@ -11,6 +11,14 @@
   --font-system: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --font-display: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 
+  /* Spacing Scale */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
+
   /* Color Palette (Forest Green Light) */
   --background: 132 15% 98.2%;          /* Soft clean green-tinted light background #f8fbf8 */
   --foreground: 132 40% 9.8%;           /* Slate forest text #0e1a0e */
@@ -187,6 +195,19 @@ a {
   transition: color 0.15s ease, opacity 0.15s ease;
 }
 
+/* ---- Accessibility & Focus Rings ---- */
+*:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+/* ---- Text Truncation ---- */
+.text-truncate {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* ---- Layout Utilities ---- */
 .container {
   width: 100%;
@@ -326,7 +347,7 @@ a {
   background-color: hsl(var(--card));
   padding: 0.5rem 0.75rem;
   color: hsl(var(--foreground));
-  font-size: 0.875rem;
+  font-size: 16px; /* 16px prevents iOS auto-zoom on focus */
   font-family: inherit;
   outline: none;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
@@ -499,6 +520,8 @@ a {
   top: 0;
   height: 100vh;
   padding: 1.5rem 0.75rem;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .sidebar-header {
@@ -985,8 +1008,8 @@ a {
   display: none;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 44px; /* Minimum 44px for touch targets */
+  height: 44px;
   border-radius: var(--radius-sm);
   border: 1px solid hsl(var(--border));
   background: hsl(var(--card));
@@ -1017,10 +1040,14 @@ a {
 
   .mobile-menu-btn {
     display: flex;
+    position: fixed;
+    top: 1rem;
+    right: 1.5rem;
+    z-index: 100;
   }
 
   .dashboard-content {
-    padding: 1.25rem;
+    padding: 1rem;
   }
 
   .dashboard-grid {
@@ -1028,7 +1055,21 @@ a {
   }
 
   .auth-card {
-    padding: 1.75rem;
+    padding: 1.5rem;
+    border-radius: var(--radius);
+  }
+
+  .dashboard-header {
+    padding-right: 4.5rem !important; /* Space for the fixed hamburger menu */
+  }
+}
+
+@media (max-width: 480px) {
+  .responsive-grid-1-1,
+  .responsive-grid-2-1,
+  .responsive-grid-3-2,
+  .responsive-grid-15-1 {
+    grid-template-columns: 1fr;
   }
 }
 

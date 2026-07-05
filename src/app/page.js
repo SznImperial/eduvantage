@@ -125,7 +125,7 @@ export default function LandingPage() {
 
             <div style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))',
               gap: '1.5rem'
             }}>
               <div className="card card-hover animate-fade-in stagger-1" style={{ display: 'flex', gap: '1.25rem', alignItems: 'flex-start' }}>
@@ -181,7 +181,7 @@ export default function LandingPage() {
           <div className="container" style={{ maxWidth: '1000px' }}>
             <div style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 400px), 1fr))',
               gap: '3rem',
               alignItems: 'center'
             }}>

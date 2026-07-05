@@ -46,7 +46,7 @@ export default function Sidebar({ role, schoolName, userName, userInitials }) {
         onClick={() => setMobileOpen(true)}
         aria-label="Open navigation menu"
       >
-        <Menu size={20} />
+        <Menu size={24} />
       </button>
 
       {/* Overlay backdrop */}
@@ -90,7 +90,7 @@ export default function Sidebar({ role, schoolName, userName, userInitials }) {
             aria-label="Close navigation menu"
             style={{ marginTop: '0.25rem' }}
           >
-            <X size={18} />
+            <X size={24} />
           </button>
         </div>
 
@@ -280,10 +280,11 @@ export default function Sidebar({ role, schoolName, userName, userInitials }) {
                 justifyContent: 'flex-start',
                 gap: '0.75rem',
                 borderRadius: 'var(--radius-sm)',
-                fontSize: '0.825rem'
+                fontSize: '0.875rem', /* better readability */
+                padding: '0.75rem 0.5rem' /* larger touch target */
               }}
             >
-              <LogOut size={15} />
+              <LogOut size={18} />
               Sign Out
             </button>
           </form>

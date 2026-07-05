@@ -211,7 +211,7 @@ export default function TeacherGradesPage() {
 
       {/* Class Course, Academic Year & Term selectors */}
       <div className="card animate-slide-up stagger-1" style={{ marginBottom: '2rem' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '1rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 120px), 1fr))', gap: '1rem' }}>
           <div className="form-group" style={{ marginBottom: 0 }}>
             <label className="form-label">Select Course / Class Section</label>
             {loadingCourses ? (

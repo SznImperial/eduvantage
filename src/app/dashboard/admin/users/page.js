@@ -415,6 +415,7 @@ export default function AdminUsersPage() {
               </table>
             ) : (
               <div className="empty-state">
+                <div className="empty-state-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg></div>
                 <p>No student profiles found matching your search.</p>
               </div>
             )}
@@ -487,6 +488,7 @@ export default function AdminUsersPage() {
               </table>
             ) : (
               <div className="empty-state">
+                <div className="empty-state-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg></div>
                 <p>No teacher records found matching your search.</p>
               </div>
             )}
@@ -505,7 +507,7 @@ export default function AdminUsersPage() {
           </div>
 
           <form onSubmit={handlePromoteStudents}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: '1.5rem', marginBottom: '1.5rem' }}>
               <div className="form-group">
                 <label className="form-label">Source Class (Promote From)</label>
                 <select 
@@ -672,6 +674,7 @@ export default function AdminUsersPage() {
               </table>
             ) : (
               <div className="empty-state">
+                <div className="empty-state-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg></div>
                 <p>No password reset requests filed yet.</p>
               </div>
             )}
@@ -696,7 +699,7 @@ export default function AdminUsersPage() {
             <form onSubmit={handleCreateStudent}>
               <h5 style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', color: 'hsl(var(--primary))', marginBottom: '0.75rem', letterSpacing: '0.5px' }}>Student Profile</h5>
               
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: '1rem', marginBottom: '1rem' }}>
                 <div className="form-group">
                   <label className="form-label">First Name</label>
                   <input className="input" name="firstName" placeholder="e.g. John" required disabled={isPending} />
@@ -707,7 +710,7 @@ export default function AdminUsersPage() {
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: '1rem', marginBottom: '1rem' }}>
                 <div className="form-group">
                   <label className="form-label">Admission No</label>
                   <input className="input" name="admissionNo" placeholder="e.g. SCH-2026-001" required disabled={isPending} />
@@ -723,7 +726,7 @@ export default function AdminUsersPage() {
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
                 <div className="form-group">
                   <label className="form-label">Portal Email (Optional)</label>
                   <input className="input" name="email" type="email" placeholder="e.g. student@school.edu" disabled={isPending} />
@@ -774,7 +777,7 @@ export default function AdminUsersPage() {
                       <label className="form-label">Parent Full Name</label>
                       <input className="input" name="parentName" placeholder="e.g. Alhaji Ibrahim Balogun" required disabled={isPending} />
                     </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: '1rem' }}>
                       <div className="form-group">
                         <label className="form-label">Parent Email Address</label>
                         <input className="input" name="parentEmail" type="email" placeholder="e.g. parent@mail.com" required disabled={isPending} />
@@ -818,7 +821,7 @@ export default function AdminUsersPage() {
             </div>
 
             <form onSubmit={handleCreateTeacher}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: '1rem', marginBottom: '1rem' }}>
                 <div className="form-group">
                   <label className="form-label">First Name</label>
                   <input className="input" name="firstName" placeholder="e.g. Folashade" required disabled={isPending} />
@@ -829,7 +832,7 @@ export default function AdminUsersPage() {
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: '1rem', marginBottom: '1rem' }}>
                 <div className="form-group">
                   <label className="form-label">Portal Email</label>
                   <input className="input" name="email" type="email" placeholder="e.g. teacher.adebayo@school.edu" required disabled={isPending} />
@@ -840,7 +843,7 @@ export default function AdminUsersPage() {
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: '1rem', marginBottom: '1rem' }}>
                 <div className="form-group">
                   <label className="form-label">Specialization Area</label>
                   <input className="input" name="specialization" placeholder="e.g. Math & Physics" disabled={isPending} />

@@ -66,6 +66,7 @@ export default function AdminCbtPage() {
       // 4. Fetch student profiles
       const { data: stdList } = await supabase
         .from('profiles')
+        .select('*')
         .eq('role', 'student');
 
       if (examsList) setExams(examsList);
@@ -204,7 +205,8 @@ export default function AdminCbtPage() {
       {loading ? (
         <div className="card">
           <div className="empty-state">
-            <p>Loading CBT registry...</p>
+                <div className="empty-state-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg></div>
+                <p>Loading CBT registry...</p>
           </div>
         </div>
       ) : activeTab === 'approvals' ? (
@@ -315,6 +317,7 @@ export default function AdminCbtPage() {
               </table>
             ) : (
               <div className="empty-state">
+                <div className="empty-state-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg></div>
                 <p>No active exams recorded in the curriculum database.</p>
               </div>
             )}
@@ -348,7 +351,7 @@ export default function AdminCbtPage() {
                         <span className="badge badge-primary" style={{ fontSize: '0.7rem' }}>Correct Key: {q.correct_option}</span>
                       </div>
                       <p style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '0.75rem' }}>{q.question_text}</p>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', fontSize: '0.8rem', color: 'hsl(var(--muted-foreground))' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: '0.5rem', fontSize: '0.8rem', color: 'hsl(var(--muted-foreground))' }}>
                         <div><strong>A.</strong> {q.option_a}</div>
                         <div><strong>B.</strong> {q.option_b}</div>
                         <div><strong>C.</strong> {q.option_c}</div>
@@ -387,7 +390,7 @@ export default function AdminCbtPage() {
               <button onClick={() => setShowSubmissionsModal(false)} style={{ background: 'none', border: 'none', fontSize: '1.25rem', cursor: 'pointer', color: 'hsl(var(--muted-foreground))' }}>✕</button>
             </div>
 
-            <div style={{ flex: 1, overflowY: 'auto', marginBottom: '1.5rem' }}>
+            <div style={{ flex: 1, overflow: 'auto', marginBottom: '1.5rem' }}>
               <table className="table" style={{ fontSize: '0.85rem' }}>
                 <thead>
                   <tr>
