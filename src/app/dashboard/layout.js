@@ -26,7 +26,7 @@ export default async function DashboardLayout({ children }) {
   }
 
   const role = profile.role;
-  const schoolName = role === 'super_admin' ? 'Global SaaS Admin' : (profile.schools?.name || 'EduVantage');
+  const schoolName = role === 'super_admin' ? 'Global SaaS Admin' : (profile.schools?.name || 'IMP3RIAL EDU');
   const userName = `${profile.first_name} ${profile.last_name}`;
   const userInitials = `${profile.first_name?.[0] || ''}${profile.last_name?.[0] || ''}`;
 

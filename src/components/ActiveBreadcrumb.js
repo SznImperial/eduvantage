@@ -29,7 +29,7 @@ export default function ActiveBreadcrumb() {
   // Split pathname and remove empty segments + "dashboard" root
   const allSegments = pathname.split('/').filter(Boolean);
   // e.g. ['dashboard', 'admin', 'classes']
-  // Remove 'dashboard' since we always start with "EduVantage"
+  // Remove 'dashboard' since we always start with "IMP3RIAL EDU"
   const segments = allSegments.slice(1);
 
   // Build breadcrumb items
@@ -48,7 +48,7 @@ export default function ActiveBreadcrumb() {
           fontWeight: 650,
           color: 'hsl(var(--foreground))'
         }}>
-          EduVantage
+          IMP3RIAL EDU
         </span>
       ) : (
         <>
@@ -60,7 +60,7 @@ export default function ActiveBreadcrumb() {
               fontWeight: 500
             }}
           >
-            EduVantage
+            IMP3RIAL EDU
           </Link>
 
           {crumbs.map((crumb, i) => {

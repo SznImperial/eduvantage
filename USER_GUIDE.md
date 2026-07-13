@@ -1,18 +1,18 @@
-# EduVantage User Guide
+# IMP3RIAL EDU User Guide
 
-Welcome to **EduVantage**, your modern, unified school management platform! 
+Welcome to **IMP3RIAL EDU**, your modern, unified school management platform! 
 
-This guide provides step-by-step instructions on how to use EduVantage from the perspective of our different users: Super Admins, School Admins, Teachers, Students, and Parents.
+This guide provides step-by-step instructions on how to use IMP3RIAL EDU from the perspective of our different users: Super Admins, School Admins, Teachers, Students, and Parents.
 
 ---
 
 ## 1. Getting Started
 
 ### 1.1 Accessing the Platform
-You can access EduVantage through your web browser. Your school will provide you with the specific URL to access the platform.
+You can access IMP3RIAL EDU through your web browser. Your school will provide you with the specific URL to access the platform.
 
 ### 1.2 Logging In
-1. Navigate to the EduVantage login page.
+1. Navigate to the IMP3RIAL EDU login page.
 2. Enter your registered **Email** and **Password**.
 3. Click the **Log In** button.
 4. *Note: If you have forgotten your password, click the "Forgot Password?" link and follow the email instructions to reset it.*
@@ -30,7 +30,7 @@ Once logged in, you will be directed to your personalized dashboard based on you
 ### 2.1 Super Admin Portal
 *Role: Global SaaS Administrator*
 
-As a Super Admin, you have a bird's-eye view of the entire EduVantage ecosystem.
+As a Super Admin, you have a bird's-eye view of the entire IMP3RIAL EDU ecosystem.
 *   **Tenant Management**: Register new schools (tenants) onto the platform, assigning them unique IDs and slugs.
 *   **Global Overviews**: View aggregated statistics across all schools on the platform.
 *   **System Settings**: Configure top-level features, email delivery protocols, and system-wide configurations.
@@ -47,7 +47,7 @@ As a School Admin, you are responsible for managing your specific institution. Y
 ### 2.3 Teacher Portal
 *Role: Educator / Instructor*
 
-As a Teacher, EduVantage provides tools to manage your classrooms efficiently.
+As a Teacher, IMP3RIAL EDU provides tools to manage your classrooms efficiently.
 *   **My Classes**: View all the classes you are assigned to teach for the active academic year.
 *   **Class Roster**: Access the list of students in each of your classes.
 *   **Grades & Assessments**: Enter grades for assignments, quizzes, and exams.
@@ -56,7 +56,7 @@ As a Teacher, EduVantage provides tools to manage your classrooms efficiently.
 ### 2.4 Student Portal
 *Role: Enrolled Student*
 
-As a Student, EduVantage is your hub for all academic information.
+As a Student, IMP3RIAL EDU is your hub for all academic information.
 *   **My Schedule**: View your daily and weekly class schedule, including room assignments and teacher information.
 *   **Coursework**: Access materials, assignments, and reading lists provided by your teachers.
 *   **Grades**: View your academic performance in real-time, including assignment scores and term report cards.
@@ -81,8 +81,8 @@ A: Ensure you are using the correct email address provided by your school. If yo
 **Q: Why don't I see my classes listed?**
 A: If you are a student or teacher and do not see your classes, the School Admin may not have assigned them to you yet for the current academic year. Please reach out to your school's administration office.
 
-**Q: Can I use EduVantage on my mobile phone?**
-A: Yes! EduVantage is designed with a responsive layout. You can access the platform seamlessly from your mobile browser on a smartphone or tablet.
+**Q: Can I use IMP3RIAL EDU on my mobile phone?**
+A: Yes! IMP3RIAL EDU is designed with a responsive layout. You can access the platform seamlessly from your mobile browser on a smartphone or tablet.
 
 **Q: How is my data kept secure?**
-A: EduVantage utilizes advanced database security (Row-Level Security) to ensure that your data is completely isolated. You can only view information relevant to your role and your school.
+A: IMP3RIAL EDU utilizes advanced database security (Row-Level Security) to ensure that your data is completely isolated. You can only view information relevant to your role and your school.

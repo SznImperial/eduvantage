@@ -10,7 +10,7 @@ import { redirect } from 'next/navigation';
  */
 function getFriendlyError(error) {
   // Log the full actual error for server-side debugging
-  console.error('EduVantage Internal Exception:', error);
+  console.error('IMP3RIAL EDU Internal Exception:', error);
 
   // Return a single generic user-facing message, no conditional matching
   return 'Something went wrong. Please try again.';

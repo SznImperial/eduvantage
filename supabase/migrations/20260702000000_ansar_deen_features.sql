@@ -1,4 +1,4 @@
--- Migration: Add Ansar-Ud-Deen Features to EduVantage SaaS (Multi-Tenant Scoped)
+-- Migration: Add Ansar-Ud-Deen Features to IMP3RIAL EDU SaaS (Multi-Tenant Scoped)
 -- Path: supabase/migrations/20260702000000_ansar_deen_features.sql
 
 -- 1. Create TEACHERS metadata table (extends profiles for teachers)

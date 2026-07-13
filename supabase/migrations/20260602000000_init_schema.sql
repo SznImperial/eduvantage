@@ -1,5 +1,5 @@
 -- Disable search path warnings for security definer functions
--- Initialize schema for EduVantage school management SaaS
+-- Initialize schema for IMP3RIAL EDU school management SaaS
 
 -- 1. Create Schools (Tenants) table
 CREATE TABLE public.schools (

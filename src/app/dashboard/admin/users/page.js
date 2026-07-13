@@ -139,7 +139,7 @@ export default function AdminUsersPage() {
     const admissionNo = formData.get('admissionNo') || `STD-${Date.now()}`;
     if (!sEmail) {
       const cleanAdNo = admissionNo.toLowerCase().replace(/[^a-z0-9]/g, '');
-      formData.set('email', `student.${cleanAdNo}@eduvantage.temp`);
+      formData.set('email', `student.${cleanAdNo}@imp3rialedu.temp`);
       formData.set('password', `PASS-${cleanAdNo}`);
     }
 

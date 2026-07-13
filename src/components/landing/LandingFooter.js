@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { GraduationCap, Globe } from 'lucide-react';
 
 const GithubIcon = (props) => (
@@ -24,9 +25,9 @@ export default function LandingFooter() {
           
           {/* Brand Col */}
           <div className="footer-col footer-col-brand">
-            <div className="nav-logo text-sm-medium">
-              <GraduationCap size={24} style={{ color: 'hsl(var(--primary))' }} />
-              Edu<span>Vantage</span>
+            <div className="nav-logo text-sm-medium flex items-center gap-2">
+              <Image src="/imperial-edu-logo.svg" alt="IMP3RIAL EDU Logo" width={48} height={48} className="shrink-0" />
+              <span className="font-extrabold text-lg">IMP3RIAL EDU</span>
             </div>
             <p className="text-xs text-muted" style={{ maxWidth: '240px', lineHeight: '1.6' }}>
               A high-performance multi-tenant school management system. Streamlining admin workflows, course structures, and grade reporting.
@@ -61,6 +62,7 @@ export default function LandingFooter() {
             <Link href="/register" className="footer-link">Sign Up</Link>
             <a href="https://supabase.com" className="footer-link" target="_blank" rel="noreferrer">Supabase Backend</a>
             <a href="https://nextjs.org" className="footer-link" target="_blank" rel="noreferrer">NextJS Docs</a>
+            <a href="mailto:contact@imp3rial.dev" className="footer-link">Contact Us</a>
           </div>
 
           {/* Column 3: Legal */}
@@ -76,7 +78,7 @@ export default function LandingFooter() {
 
         {/* Bottom footer: Copyright and legal status */}
         <div className="footer-bottom">
-          <p>© {new Date().getFullYear()} EduVantage Inc. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} IMP3RIAL EDU Inc. All rights reserved.</p>
           <div className="footer-bottom-links">
             <a href="#" className="text-muted hover:text-foreground text-xs" style={{ textDecoration: 'none' }}>Security Compliance</a>
             <a href="#" className="text-muted hover:text-foreground text-xs" style={{ textDecoration: 'none' }}>Status Indicators</a>

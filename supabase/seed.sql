@@ -1,4 +1,4 @@
--- EduVantage Demo Seed Data SQL
+-- IMP3RIAL EDU Demo Seed Data SQL
 -- Paste this script into the Supabase SQL Editor AFTER running the initial migration.
 -- Make sure to update the UUID placeholders if you wish to link directly to specific users,
 -- or simply use this to populate reference catalogs (subjects, academic terms).

@@ -1,8 +1,8 @@
-# EduVantage Technical Documentation
+# IMP3RIAL EDU Technical Documentation
 
 ## 1. Overview & Architecture
 
-EduVantage is a modern, scalable multi-tenant school management system. The core architectural principle of this system is **multi-tenancy**. Instead of a single application serving a single school, a single unified platform serves multiple schools (tenants) simultaneously, with strict data isolation.
+IMP3RIAL EDU is a modern, scalable multi-tenant school management system. The core architectural principle of this system is **multi-tenancy**. Instead of a single application serving a single school, a single unified platform serves multiple schools (tenants) simultaneously, with strict data isolation.
 
 ### 1.1 Multi-Tenancy Model
 Data isolation is enforced through **PostgreSQL Row-Level Security (RLS)** in Supabase. Each user belongs to a specific school, and their database queries are automatically filtered to only allow read/write access to records associated with their respective `school_id`. This prevents cross-tenant data leaks and ensures high security.
@@ -32,8 +32,8 @@ The platform differentiates users via distinct roles. These roles dictate what U
 
 1.  **Clone the repository and install dependencies:**
     ```bash
-    git clone https://github.com/yourusername/eduvantage.git
-    cd eduvantage
+    git clone https://github.com/yourusername/imp3rialedu.git
+    cd imp3rialedu
     npm install
     ```
 

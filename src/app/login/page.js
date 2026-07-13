@@ -49,7 +49,7 @@ export default function LoginPage() {
   return (
     <div className="auth-container">
       <AuthCard
-        title={isResetMode ? 'Reset Password' : 'Sign in to EduVantage'}
+        title={isResetMode ? 'Reset Password' : 'Sign in to IMP3RIAL EDU'}
         subtitle={isResetMode ? 'Enter your email and full name to request a password reset' : 'Enter your email and password to access your portal'}
       >
         {error && <AlertBanner variant="error" message={error} className="mb-md" />}

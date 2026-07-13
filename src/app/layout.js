@@ -12,11 +12,11 @@ const outfit = Outfit({
 });
 
 export const metadata = {
-  title: "EduVantage | Next-Gen Multi-Tenant School Management SaaS",
-  description: "EduVantage centralizes administrative workflows, school registrations, academic grading, and student attendance tracking under a secure multi-tenant model powered by Supabase RLS.",
-  metadataBase: new URL("https://eduvantage-saas.vercel.app"),
+  title: "IMP3RIAL EDU | Next-Gen Multi-Tenant School Management SaaS",
+  description: "IMP3RIAL EDU centralizes administrative workflows, school registrations, academic grading, and student attendance tracking under a secure multi-tenant model powered by Supabase RLS.",
+  metadataBase: new URL("https://imp3rialedu-saas.vercel.app"),
   openGraph: {
-    title: "EduVantage | School Management SaaS",
+    title: "IMP3RIAL EDU | School Management SaaS",
     description: "Centralized workflows and academic tracking powered by Next.js and Supabase.",
     type: "website",
   }

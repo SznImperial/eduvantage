@@ -1,8 +1,8 @@
-# EduVantage 🎓
+# IMP3RIAL EDU 🎓
 
 A modern, scalable multi-tenant school management system designed to streamline institutional operations, administrative tasks, and student data management. 
 
-Built with performance and security in mind, EduVantage provides isolated environments for multiple schools under a single unified platform.
+Built with performance and security in mind, IMP3RIAL EDU provides isolated environments for multiple schools under a single unified platform.
 
 ## 🚀 Tech Stack
 
@@ -28,5 +28,5 @@ Built with performance and security in mind, EduVantage provides isolated enviro
 
 1. **Clone the repository:**
 ```bash
-   git clone [https://github.com/yourusername/eduvantage.git](https://github.com/yourusername/eduvantage.git)
-   cd eduvantage
+   git clone [https://github.com/yourusername/imp3rialedu.git](https://github.com/yourusername/imp3rialedu.git)
+   cd imp3rialedu

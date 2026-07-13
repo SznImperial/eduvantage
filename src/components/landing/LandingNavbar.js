@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import ThemeToggle from '@/components/ThemeToggle';
 import { GraduationCap, Menu, X } from 'lucide-react';
 
@@ -23,9 +24,9 @@ export default function LandingNavbar() {
 
   return (
     <header className={`navbar ${isScrolled ? 'navbar-scrolled' : ''}`}>
-      <Link href="/" className="nav-logo">
-        <GraduationCap size={28} style={{ color: 'hsl(var(--primary))' }} />
-        Edu<span>Vantage</span>
+      <Link href="/" className="nav-logo flex items-center gap-2">
+        <Image src="/imperial-edu-logo.svg" alt="IMP3RIAL EDU Logo" width={48} height={48} className="shrink-0" />
+        <span className="font-extrabold text-xl">IMP3RIAL EDU</span>
       </Link>
 
       <button

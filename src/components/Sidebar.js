@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { logoutUser } from '@/app/actions';
 import {
   GraduationCap,
@@ -59,8 +60,8 @@ export default function Sidebar({ role, schoolName, userName, userInitials }) {
       <aside className={`sidebar${mobileOpen ? ' mobile-open' : ''}`}>
         <div className="sidebar-header flex items-start justify-between">
           <div className="w-full overflow-hidden pr-xs">
-            <div className="nav-logo text-lg text-truncate" title={schoolName}>
-              <GraduationCap size={24} className="shrink-0" />
+            <div className="nav-logo text-lg text-truncate flex items-center gap-2" title={schoolName}>
+              <Image src="/imperial-edu-logo.svg" alt="IMP3RIAL EDU Logo" width={48} height={48} className="shrink-0" />
               <span className="font-extrabold">{schoolName}</span>
             </div>
           </div>
@@ -217,7 +218,7 @@ export default function Sidebar({ role, schoolName, userName, userInitials }) {
             </button>
           </form>
           <div className="text-center text-xs text-muted mt-lg opacity-70 tracking-wide">
-            Powered by EduVantage
+            Powered by IMP3RIAL EDU
           </div>
         </div>
       </aside>

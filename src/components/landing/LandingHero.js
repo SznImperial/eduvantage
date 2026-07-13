@@ -28,7 +28,7 @@ export default function LandingHero() {
             </h1>
 
             <p className="animate-slide-up stagger-2 text-hero-subtitle mb-xl">
-              EduVantage unites directors, educators, students, and parents in one high-performance workspace. 
+              IMP3RIAL EDU unites directors, educators, students, and parents in one high-performance workspace. 
               Manage enrollments, automate grading compilation, and record attendance with premium security.
             </p>
 
@@ -47,8 +47,8 @@ export default function LandingHero() {
           <div className="animate-fade-in stagger-2 hero-mockup-wrapper">
             <div className="hero-mockup-frame">
               <img 
-                src="/eduvantage_dashboard_mockup.png" 
-                alt="EduVantage Premium School Dashboard Mockup" 
+                src="/imp3rialedu_dashboard_mockup.png" 
+                alt="IMP3RIAL EDU Premium School Dashboard Mockup" 
                 className="hero-mockup-img"
               />
             </div>
