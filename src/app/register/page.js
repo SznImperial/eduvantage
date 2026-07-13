@@ -27,10 +27,6 @@ export default function RegisterPage() {
         setError(result.error);
       } else {
         setSuccess(true);
-        // Wait 3 seconds and redirect to login
-        setTimeout(() => {
-          router.push('/login');
-        }, 2500);
       }
     });
   };
@@ -43,7 +39,7 @@ export default function RegisterPage() {
         wide={true}
       >
         {error && <AlertBanner variant="error" message={error} className="mb-md" />}
-        {success && <AlertBanner variant="success" message="School registered! Redirecting to login..." className="mb-lg" />}
+        {success && <AlertBanner variant="success" message="School registered! Please check your email for a confirmation link." className="mb-lg" />}
 
         <form onSubmit={handleSubmit}>
           <div className="badge-pill mb-md">
