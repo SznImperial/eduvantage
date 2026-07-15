@@ -21,6 +21,7 @@ export default function AdminFeesPage() {
   const [students, setStudents] = useState([]);
   const [classes, setClasses] = useState([]);
   const [academicYears, setAcademicYears] = useState([]);
+  const [academicTerms, setAcademicTerms] = useState([]);
   const [fees, setFees] = useState([]);
   const [enrollments, setEnrollments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -34,7 +35,7 @@ export default function AdminFeesPage() {
   const [selectedStudent, setSelectedStudent] = useState(null);
 
   // Form Fields
-  const [term, setTerm] = useState('1st Term');
+  const [selectedTermId, setSelectedTermId] = useState('');
   const [selectedYearId, setSelectedYearId] = useState('');
   const [amountOwed, setAmountOwed] = useState(120000);
   const [amountPaid, setAmountPaid] = useState(0);
@@ -44,7 +45,7 @@ export default function AdminFeesPage() {
   // Class fee allocation states
   const [showAllocModal, setShowAllocModal] = useState(false);
   const [allocClassId, setAllocClassId] = useState('');
-  const [allocTerm, setAllocTerm] = useState('1st Term');
+  const [allocTermId, setAllocTermId] = useState('');
   const [allocYearId, setAllocYearId] = useState('');
   const [allocAmount, setAllocAmount] = useState(120000);
   const [allocating, setAllocating] = useState(false);
@@ -54,20 +55,45 @@ export default function AdminFeesPage() {
   const loadData = async () => {
     setLoading(true);
     try {
-      // 1. Fetch academic years
-      const { data: years } = await supabase
-        .from('academic_years')
-        .select('*')
-        .order('name', { ascending: false });
+      const { data: { user } } = await supabase.auth.getUser();
+
+      // 1. Fetch academic years and terms
+      const [yearsRes, profileRes] = await Promise.all([
+        supabase
+          .from('academic_years')
+          .select('*, academic_terms(*)')
+          .order('name', { ascending: false }),
+        supabase
+          .from('profiles')
+          .select('schools(active_academic_year_id, active_academic_term_id)')
+          .eq('id', user.id)
+          .single()
+      ]);
+
+      const years = yearsRes.data;
       if (years) {
         setAcademicYears(years);
-        const active = years.find(y => y.is_active);
-        if (active) {
-          setSelectedYearId(active.id);
-          setAllocYearId(active.id);
+        
+        const activeYearId = profileRes.data?.schools?.active_academic_year_id;
+        const activeTermId = profileRes.data?.schools?.active_academic_term_id;
+
+        if (activeYearId) {
+          setSelectedYearId(activeYearId);
+          setAllocYearId(activeYearId);
+          const activeYear = years.find(y => y.id === activeYearId);
+          if (activeYear) {
+            setAcademicTerms(activeYear.academic_terms || []);
+            setSelectedTermId(activeTermId || '');
+            setAllocTermId(activeTermId || '');
+          }
         } else if (years.length > 0) {
           setSelectedYearId(years[0].id);
           setAllocYearId(years[0].id);
+          setAcademicTerms(years[0].academic_terms || []);
+          if (years[0].academic_terms?.length > 0) {
+            setSelectedTermId(years[0].academic_terms[0].id);
+            setAllocTermId(years[0].academic_terms[0].id);
+          }
         }
       }
 
@@ -106,9 +132,8 @@ export default function AdminFeesPage() {
     setModalSuccess('');
     setModalError('');
 
-    // Check if there is an existing fee record
     const existing = fees.find(
-      f => f.student_id === student.id && f.term === term && f.academic_year_id === selectedYearId
+      f => f.student_id === student.id && f.academic_term_id === selectedTermId
     );
 
     if (existing) {
@@ -125,7 +150,7 @@ export default function AdminFeesPage() {
   useEffect(() => {
     if (selectedStudent) {
       const existing = fees.find(
-        f => f.student_id === selectedStudent.id && f.term === term && f.academic_year_id === selectedYearId
+        f => f.student_id === selectedStudent.id && f.academic_term_id === selectedTermId
       );
       if (existing) {
         setAmountOwed(existing.amount_owed);
@@ -135,7 +160,7 @@ export default function AdminFeesPage() {
         setAmountPaid(0);
       }
     }
-  }, [term, selectedYearId, selectedStudent, fees]);
+  }, [selectedTermId, selectedYearId, selectedStudent, fees]);
 
   const handleSavePayment = async (e) => {
     e.preventDefault();
@@ -154,16 +179,15 @@ export default function AdminFeesPage() {
     if (paid === owed && owed > 0) status = 'paid';
     else if (paid > 0) status = 'partial';
 
-    // Find if existing to perform update vs create
     const existing = fees.find(
-      f => f.student_id === selectedStudent.id && f.term === term && f.academic_year_id === selectedYearId
+      f => f.student_id === selectedStudent.id && f.academic_term_id === selectedTermId
     );
 
     let res;
     if (existing) {
       res = await updateFeeRecordAction(existing.id, paid, status);
     } else {
-      res = await createFeeRecordAction(selectedStudent.id, term, selectedYearId, owed, paid, status);
+      res = await createFeeRecordAction(selectedStudent.id, selectedTermId, selectedYearId, owed, paid, status);
     }
 
     if (res.error) {
@@ -180,7 +204,7 @@ export default function AdminFeesPage() {
 
   const handleAllocateFees = async (e) => {
     e.preventDefault();
-    if (!allocClassId || !allocTerm || !allocYearId || !allocAmount) return;
+    if (!allocClassId || !allocTermId || !allocYearId || !allocAmount) return;
     setAllocating(true);
     setAllocSuccess('');
     setAllocError('');
@@ -201,12 +225,12 @@ export default function AdminFeesPage() {
       // 3. Loop and create bill record (using actions or supabase client directly)
       for (const enroll of classEnrollments) {
         const existing = fees.find(
-          f => f.student_id === enroll.student_id && f.term === allocTerm && f.academic_year_id === allocYearId
+          f => f.student_id === enroll.student_id && f.academic_term_id === allocTermId
         );
         if (!existing) {
           const res = await createFeeRecordAction(
             enroll.student_id,
-            allocTerm,
+            allocTermId,
             allocYearId,
             allocAmount,
             0,
@@ -400,16 +424,20 @@ export default function AdminFeesPage() {
 
             <div className="form-group">
               <label className="form-label">Billing Term</label>
-              <select className="input" value={term} onChange={(e) => setTerm(e.target.value)}>
-                <option value="1st Term">1st Term</option>
-                <option value="2nd Term">2nd Term</option>
-                <option value="3rd Term">3rd Term</option>
+              <select className="input" value={selectedTermId} onChange={(e) => setSelectedTermId(e.target.value)}>
+                {academicYears.find(y => y.id === selectedYearId)?.academic_terms?.map(t => (
+                  <option key={t.id} value={t.id}>{t.name}</option>
+                ))}
               </select>
             </div>
 
             <div className="form-group">
               <label className="form-label">Academic Session</label>
-              <select className="input" value={selectedYearId} onChange={(e) => setSelectedYearId(e.target.value)}>
+              <select className="input" value={selectedYearId} onChange={(e) => {
+                setSelectedYearId(e.target.value);
+                const terms = academicYears.find(y => y.id === e.target.value)?.academic_terms;
+                if (terms && terms.length > 0) setSelectedTermId(terms[0].id);
+              }}>
                 {academicYears.map(y => (
                   <option key={y.id} value={y.id}>{y.name}</option>
                 ))}
@@ -467,16 +495,20 @@ export default function AdminFeesPage() {
 
             <div className="form-group">
               <label className="form-label">Billing Term</label>
-              <select className="input" value={allocTerm} onChange={(e) => setAllocTerm(e.target.value)}>
-                <option value="1st Term">1st Term</option>
-                <option value="2nd Term">2nd Term</option>
-                <option value="3rd Term">3rd Term</option>
+              <select className="input" value={allocTermId} onChange={(e) => setAllocTermId(e.target.value)}>
+                {academicYears.find(y => y.id === allocYearId)?.academic_terms?.map(t => (
+                  <option key={t.id} value={t.id}>{t.name}</option>
+                ))}
               </select>
             </div>
 
             <div className="form-group">
               <label className="form-label">Academic Session</label>
-              <select className="input" value={allocYearId} onChange={(e) => setAllocYearId(e.target.value)}>
+              <select className="input" value={allocYearId} onChange={(e) => {
+                setAllocYearId(e.target.value);
+                const terms = academicYears.find(y => y.id === e.target.value)?.academic_terms;
+                if (terms && terms.length > 0) setAllocTermId(terms[0].id);
+              }}>
                 {academicYears.map(y => (
                   <option key={y.id} value={y.id}>{y.name}</option>
                 ))}

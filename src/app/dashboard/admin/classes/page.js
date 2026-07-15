@@ -10,7 +10,7 @@ import {
   allocateCourseAction, 
   enrollStudentAction,
   toggleStudentSubjectAction,
-  toggleAcademicYearActiveAction
+  setActiveSessionAction
 } from '@/app/actions';
 
 export default function AdminClassesPage() {
@@ -24,6 +24,8 @@ export default function AdminClassesPage() {
   const [students, setStudents] = useState([]);
   const [classSubjects, setClassSubjects] = useState([]);
   const [enrollments, setEnrollments] = useState([]);
+  const [activeSchoolYearId, setActiveSchoolYearId] = useState(null);
+  const [activeSchoolTermId, setActiveSchoolTermId] = useState(null);
   
   // Tabs: 'classes' or 'assign' or 'enroll'
   const [activeTab, setActiveTab] = useState('classes');
@@ -39,9 +41,19 @@ export default function AdminClassesPage() {
 
   // Fetch all necessary data for dropdowns/tables
   const fetchData = async () => {
-    // 1. Academic years
-    const { data: years } = await supabase.from('academic_years').select('*').order('name', { ascending: false });
-    if (years) setAcademicYears(years);
+    // 1. Academic years and active sessions
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    const [yearsRes, profileRes] = await Promise.all([
+      supabase.from('academic_years').select('*, academic_terms(*)').order('name', { ascending: false }),
+      supabase.from('profiles').select('schools(active_academic_year_id, active_academic_term_id)').eq('id', user.id).single()
+    ]);
+
+    if (yearsRes.data) setAcademicYears(yearsRes.data);
+    if (profileRes.data) {
+      setActiveSchoolYearId(profileRes.data.schools?.active_academic_year_id);
+      setActiveSchoolTermId(profileRes.data.schools?.active_academic_term_id);
+    }
 
     // 2. Classes
     const { data: cls } = await supabase.from('classes').select('*').order('name');
@@ -272,31 +284,40 @@ export default function AdminClassesPage() {
                             {new Date(year.start_date).toLocaleDateString()} - {new Date(year.end_date).toLocaleDateString()}
                           </td>
                           <td>
-                            {year.is_active ? (
-                              <span className="badge badge-success">Active Session</span>
+                            {activeSchoolYearId === year.id ? (
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                <span className="badge badge-success">Active Session</span>
+                                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                                  Term: {year.academic_terms?.find(t => t.id === activeSchoolTermId)?.name || 'None'}
+                                </span>
+                              </div>
                             ) : (
                               <span className="badge badge-secondary">Inactive</span>
                             )}
                           </td>
                           <td style={{ textAlign: 'right' }}>
-                            {!year.is_active && (
-                              <button
-                                onClick={async () => {
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', alignItems: 'flex-end' }}>
+                              <select 
+                                className="input" 
+                                style={{ padding: '0.1rem 0.2rem', fontSize: '0.7rem', width: 'auto' }}
+                                onChange={async (e) => {
+                                  if (!e.target.value) return;
                                   setError(''); setSuccess('');
-                                  const res = await toggleAcademicYearActiveAction(year.id);
-                                  if (res?.error) {
-                                    setError(res.error);
-                                  } else {
+                                  const res = await setActiveSessionAction(year.id, e.target.value);
+                                  if (res?.error) setError(res.error);
+                                  else {
                                     setSuccess(`Successfully activated session: ${year.name}!`);
                                     fetchData();
                                   }
                                 }}
-                                className="btn btn-primary"
-                                style={{ padding: '0.2rem 0.5rem', fontSize: '0.7rem', height: 'auto' }}
+                                value={activeSchoolYearId === year.id ? activeSchoolTermId : ''}
                               >
-                                Activate
-                              </button>
-                            )}
+                                <option value="">Set Active Term...</option>
+                                {year.academic_terms?.map(t => (
+                                  <option key={t.id} value={t.id}>{t.name}</option>
+                                ))}
+                              </select>
+                            </div>
                           </td>
                         </tr>
                       ))}

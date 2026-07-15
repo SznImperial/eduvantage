@@ -27,12 +27,19 @@ async function getAuthContext() {
   
   const { data: profile, error: pError } = await supabase
     .from('profiles')
-    .select('school_id, role')
+    .select('school_id, role, schools(active_academic_year_id, active_academic_term_id)')
     .eq('id', user.id)
     .single();
     
   if (pError || !profile) throw new Error('Public profile context not found.');
-  return { supabase, user, schoolId: profile.school_id, role: profile.role };
+  return { 
+    supabase, 
+    user, 
+    schoolId: profile.school_id, 
+    role: profile.role,
+    activeYearId: profile.schools?.active_academic_year_id,
+    activeTermId: profile.schools?.active_academic_term_id
+  };
 }
 
 /**
@@ -425,15 +432,24 @@ export async function createAcademicYearAction(name, startDate, endDate) {
     const { supabase, schoolId, role } = await getAuthContext();
     if (role !== 'admin') return { error: 'Unauthorized.' };
 
-    const { error } = await supabase.from('academic_years').insert([{
+    const { data: yearData, error } = await supabase.from('academic_years').insert([{
       school_id: schoolId,
       name,
       start_date: startDate,
       end_date: endDate,
       is_active: true
-    }]);
+    }]).select().single();
 
     if (error) return { error: getFriendlyError(error) };
+
+    // Create default terms for the new year
+    const terms = [
+      { school_id: schoolId, academic_year_id: yearData.id, name: '1st Term' },
+      { school_id: schoolId, academic_year_id: yearData.id, name: '2nd Term' },
+      { school_id: schoolId, academic_year_id: yearData.id, name: '3rd Term' }
+    ];
+    await supabase.from('academic_terms').insert(terms);
+
     return { success: true };
   } catch (err) {
     return { error: getFriendlyError(err) };
@@ -464,29 +480,22 @@ export async function createClassAction(name, gradeLevel) {
 }
 
 /**
- * Toggles an academic year's active state for a school.
+ * Sets the active academic session (Year and Term) globally for the school.
  */
-export async function toggleAcademicYearActiveAction(yearId) {
+export async function setActiveSessionAction(yearId, termId) {
   try {
     const { supabase, schoolId, role } = await getAuthContext();
     if (role !== 'admin') return { error: 'Unauthorized.' };
 
-    // 1. Deactivate all sessions
-    const { error: error1 } = await supabase
-      .from('academic_years')
-      .update({ is_active: false })
-      .eq('school_id', schoolId);
+    const { error } = await supabase
+      .from('schools')
+      .update({
+        active_academic_year_id: yearId,
+        active_academic_term_id: termId
+      })
+      .eq('id', schoolId);
 
-    if (error1) return { error: getFriendlyError(error1) };
-
-    // 2. Activate the target session
-    const { error: error2 } = await supabase
-      .from('academic_years')
-      .update({ is_active: true })
-      .eq('school_id', schoolId)
-      .eq('id', yearId);
-
-    if (error2) return { error: getFriendlyError(error2) };
+    if (error) return { error: getFriendlyError(error) };
     return { success: true };
   } catch (err) {
     return { error: getFriendlyError(err) };
@@ -498,8 +507,12 @@ export async function toggleAcademicYearActiveAction(yearId) {
  */
 export async function promoteStudentsAction(studentIds, targetClassId) {
   try {
-    const { supabase, schoolId, role } = await getAuthContext();
+    const { supabase, schoolId, role, activeYearId } = await getAuthContext();
     if (role !== 'admin') return { error: 'Unauthorized.' };
+
+    if (!activeYearId) {
+      return { error: 'No active academic year configured for this school. Cannot promote students.' };
+    }
 
     await verifyTenantOwnership([
       { table: 'profiles', ids: studentIds },
@@ -507,19 +520,19 @@ export async function promoteStudentsAction(studentIds, targetClassId) {
     ], schoolId, supabase);
 
     if (!targetClassId || targetClassId === 'graduate') {
-      const { error } = await supabase
-        .from('enrollments')
-        .delete()
-        .in('student_id', studentIds)
-        .eq('school_id', schoolId);
-      if (error) return { error: getFriendlyError(error) };
+      // Do nothing for graduation. The student simply won't get a new enrollment record for the active year.
+      // Their historical enrollments remain intact.
     } else {
       for (const studentId of studentIds) {
-        // Delete existing mapping
+        // We do NOT delete existing mappings to preserve history.
+        // We only insert the new enrollment for the active academic year.
+        
+        // Ensure no duplicate exists for the same student + active year
         await supabase
           .from('enrollments')
           .delete()
           .eq('student_id', studentId)
+          .eq('academic_year_id', activeYearId)
           .eq('school_id', schoolId);
 
         // Insert new enrollment mapping
@@ -528,7 +541,8 @@ export async function promoteStudentsAction(studentIds, targetClassId) {
           .insert([{
             school_id: schoolId,
             student_id: studentId,
-            class_id: targetClassId
+            class_id: targetClassId,
+            academic_year_id: activeYearId
           }]);
 
         if (error) return { error: getFriendlyError(error) };
@@ -781,7 +795,7 @@ export async function saveAttendanceAction(classId, date, records) {
 /**
  * Saves or updates Student Grades/Marks. Teachers/Admins only.
  */
-export async function saveGradesAction(classSubjectId, studentIds, upserts, academicYearId, term) {
+export async function saveGradesAction(classSubjectId, studentIds, upserts, academicYearId, academicTermId) {
   try {
     const { supabase, schoolId, role, user } = await getAuthContext();
     if (role !== 'admin' && role !== 'teacher') return { error: 'Unauthorized.' };
@@ -797,8 +811,7 @@ export async function saveGradesAction(classSubjectId, studentIds, upserts, acad
       .from('grades')
       .delete()
       .eq('class_subject_id', classSubjectId)
-      .eq('academic_year_id', academicYearId)
-      .eq('term', term)
+      .eq('academic_term_id', academicTermId)
       .in('student_id', studentIds);
 
     if (delError) return { error: getFriendlyError(delError) };
@@ -808,8 +821,7 @@ export async function saveGradesAction(classSubjectId, studentIds, upserts, acad
       school_id: schoolId,
       student_id: u.student_id,
       class_subject_id: classSubjectId,
-      academic_year_id: academicYearId,
-      term: term,
+      academic_term_id: academicTermId,
       grade_value: u.grade_value,
       remarks: u.remarks || null,
       graded_by: user.id
@@ -961,7 +973,7 @@ export async function deleteTimetableSlotAction(id) {
 /**
  * Creates/issues a Fee Record for a student. Admin only.
  */
-export async function createFeeRecordAction(studentId, term, academicYearId, amountOwed, amountPaid, status) {
+export async function createFeeRecordAction(studentId, academicTermId, academicYearId, amountOwed, amountPaid, status) {
   try {
     const { supabase, schoolId, role } = await getAuthContext();
     if (role !== 'admin') return { error: 'Unauthorized.' };
@@ -974,8 +986,7 @@ export async function createFeeRecordAction(studentId, term, academicYearId, amo
     const { error } = await supabase.from('fee_records').insert([{
       school_id: schoolId,
       student_id: studentId,
-      term,
-      academic_year_id: academicYearId,
+      academic_term_id: academicTermId,
       amount_owed: parseFloat(amountOwed || 0),
       amount_paid: parseFloat(amountPaid || 0),
       status

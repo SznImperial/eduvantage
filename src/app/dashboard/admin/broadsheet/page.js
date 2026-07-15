@@ -17,9 +17,10 @@ export default function AdminBroadsheetPage() {
   const supabase = createClient();
   const [classes, setClasses] = useState([]);
   const [academicYears, setAcademicYears] = useState([]);
+  const [academicTerms, setAcademicTerms] = useState([]);
   const [selectedClassId, setSelectedClassId] = useState('');
   const [selectedYearId, setSelectedYearId] = useState('');
-  const [selectedTerm, setSelectedTerm] = useState('1st Term');
+  const [selectedTermId, setSelectedTermId] = useState('');
   
   const [classSubjects, setClassSubjects] = useState([]);
   const [enrollments, setEnrollments] = useState([]);
@@ -35,16 +36,42 @@ export default function AdminBroadsheetPage() {
   const loadInitialData = async () => {
     setLoading(true);
     try {
-      // 1. Fetch academic years
-      const { data: years } = await supabase
-        .from('academic_years')
-        .select('*')
-        .order('name', { ascending: false });
+      const { data: { user } } = await supabase.auth.getUser();
+
+      // 1. Fetch academic years and active sessions
+      const [yearsRes, profileRes] = await Promise.all([
+        supabase
+          .from('academic_years')
+          .select('*, academic_terms(*)')
+          .order('name', { ascending: false }),
+        supabase
+          .from('profiles')
+          .select('schools(active_academic_year_id, active_academic_term_id)')
+          .eq('id', user.id)
+          .single()
+      ]);
+
+      const years = yearsRes.data;
       if (years) {
         setAcademicYears(years);
-        const active = years.find(y => y.is_active);
-        if (active) setSelectedYearId(active.id);
-        else if (years.length > 0) setSelectedYearId(years[0].id);
+        
+        const activeYearId = profileRes.data?.schools?.active_academic_year_id;
+        const activeTermId = profileRes.data?.schools?.active_academic_term_id;
+
+        if (activeYearId) {
+          setSelectedYearId(activeYearId);
+          const activeYear = years.find(y => y.id === activeYearId);
+          if (activeYear) {
+            setAcademicTerms(activeYear.academic_terms || []);
+            setSelectedTermId(activeTermId || '');
+          }
+        } else if (years.length > 0) {
+          setSelectedYearId(years[0].id);
+          setAcademicTerms(years[0].academic_terms || []);
+          if (years[0].academic_terms?.length > 0) {
+            setSelectedTermId(years[0].academic_terms[0].id);
+          }
+        }
       }
 
       // 2. Fetch classes
@@ -68,7 +95,7 @@ export default function AdminBroadsheetPage() {
   }, []);
 
   const loadBroadsheetData = async () => {
-    if (!selectedClassId || !selectedYearId || !selectedTerm) return;
+    if (!selectedClassId || !selectedYearId || !selectedTermId) return;
     setLoading(true);
     try {
       // 1. Fetch class subjects
@@ -92,8 +119,7 @@ export default function AdminBroadsheetPage() {
           .from('grades')
           .select('*')
           .in('student_id', studentIds)
-          .eq('academic_year_id', selectedYearId)
-          .eq('term', selectedTerm);
+          .eq('academic_term_id', selectedTermId);
         setGrades(gradeList || []);
       } else {
         setGrades([]);
@@ -107,7 +133,7 @@ export default function AdminBroadsheetPage() {
 
   useEffect(() => {
     loadBroadsheetData();
-  }, [selectedClassId, selectedYearId, selectedTerm]);
+  }, [selectedClassId, selectedYearId, selectedTermId]);
 
   // Compute broadsheet rows in real-time
   useEffect(() => {
@@ -210,11 +236,15 @@ export default function AdminBroadsheetPage() {
           <select 
             className="input" 
             value={selectedYearId} 
-            onChange={(e) => setSelectedYearId(e.target.value)}
+            onChange={(e) => {
+              setSelectedYearId(e.target.value);
+              const terms = academicYears.find(y => y.id === e.target.value)?.academic_terms;
+              if (terms && terms.length > 0) setSelectedTermId(terms[0].id);
+            }}
             style={{ padding: '0.4rem 0.75rem' }}
           >
             {academicYears.map(y => (
-              <option key={y.id} value={y.id}>{y.name} {y.is_active ? '(Active)' : ''}</option>
+              <option key={y.id} value={y.id}>{y.name}</option>
             ))}
           </select>
         </div>
@@ -223,13 +253,13 @@ export default function AdminBroadsheetPage() {
           <label className="form-label" style={{ fontSize: '0.75rem', marginBottom: '0.3rem' }}>Academic Term</label>
           <select 
             className="input" 
-            value={selectedTerm} 
-            onChange={(e) => setSelectedTerm(e.target.value)}
+            value={selectedTermId} 
+            onChange={(e) => setSelectedTermId(e.target.value)}
             style={{ padding: '0.4rem 0.75rem' }}
           >
-            <option value="1st Term">1st Term</option>
-            <option value="2nd Term">2nd Term</option>
-            <option value="3rd Term">3rd Term</option>
+            {academicYears.find(y => y.id === selectedYearId)?.academic_terms?.map(t => (
+              <option key={t.id} value={t.id}>{t.name}</option>
+            ))}
           </select>
         </div>
 

@@ -14,8 +14,9 @@ export default function TeacherGradesPage() {
   
   // Academic Session States
   const [academicYears, setAcademicYears] = useState([]);
+  const [academicTerms, setAcademicTerms] = useState([]);
   const [selectedYearId, setSelectedYearId] = useState('');
-  const [selectedTerm, setSelectedTerm] = useState('1st Term');
+  const [selectedTermId, setSelectedTermId] = useState('');
 
   // Loading & status
   const [loadingCourses, setLoadingCourses] = useState(true);
@@ -30,15 +31,20 @@ export default function TeacherGradesPage() {
       setLoadingCourses(true);
       const { data: { user } } = await supabase.auth.getUser();
       
-      const [coursesRes, yearsRes] = await Promise.all([
+      const [coursesRes, yearsRes, profileRes] = await Promise.all([
         supabase
           .from('class_subjects')
           .select('id, classes(id, name), subjects(name, code)')
           .eq('teacher_id', user.id),
         supabase
           .from('academic_years')
-          .select('*')
-          .order('name', { ascending: false })
+          .select('*, academic_terms(*)')
+          .order('name', { ascending: false }),
+        supabase
+          .from('profiles')
+          .select('schools(active_academic_year_id, active_academic_term_id)')
+          .eq('id', user.id)
+          .single()
       ]);
 
       if (!coursesRes.error && coursesRes.data) {
@@ -47,11 +53,23 @@ export default function TeacherGradesPage() {
 
       if (!yearsRes.error && yearsRes.data) {
         setAcademicYears(yearsRes.data);
-        const active = yearsRes.data.find(y => y.is_active);
-        if (active) {
-          setSelectedYearId(active.id);
+        
+        const activeYearId = profileRes.data?.schools?.active_academic_year_id;
+        const activeTermId = profileRes.data?.schools?.active_academic_term_id;
+
+        if (activeYearId) {
+          setSelectedYearId(activeYearId);
+          const activeYear = yearsRes.data.find(y => y.id === activeYearId);
+          if (activeYear) {
+            setAcademicTerms(activeYear.academic_terms || []);
+            setSelectedTermId(activeTermId || '');
+          }
         } else if (yearsRes.data.length > 0) {
           setSelectedYearId(yearsRes.data[0].id);
+          setAcademicTerms(yearsRes.data[0].academic_terms || []);
+          if (yearsRes.data[0].academic_terms?.length > 0) {
+            setSelectedTermId(yearsRes.data[0].academic_terms[0].id);
+          }
         }
       }
 
@@ -60,6 +78,19 @@ export default function TeacherGradesPage() {
 
     fetchCoursesAndYears();
   }, [supabase]);
+
+  // Handle Year Change
+  const handleYearChange = (yearId) => {
+    setSelectedYearId(yearId);
+    const year = academicYears.find(y => y.id === yearId);
+    if (year && year.academic_terms?.length > 0) {
+      setAcademicTerms(year.academic_terms);
+      setSelectedTermId(year.academic_terms[0].id);
+    } else {
+      setAcademicTerms([]);
+      setSelectedTermId('');
+    }
+  };
 
   // Fetch students and existing grade records when selected mapping, year, or term changes
   useEffect(() => {
@@ -93,13 +124,12 @@ export default function TeacherGradesPage() {
       const classStudents = enrollments.map(e => e.profiles).filter(Boolean);
       setStudents(classStudents);
 
-      // 2. Fetch existing grade records for this class_subject, year, and term
+      // 2. Fetch existing grade records for this class_subject and term
       const { data: existingGrades, error: gradeError } = await supabase
         .from('grades')
         .select('student_id, grade_value, remarks')
         .eq('class_subject_id', selectedMapping)
-        .eq('academic_year_id', selectedYearId)
-        .eq('term', selectedTerm);
+        .eq('academic_term_id', selectedTermId);
 
       if (gradeError) {
         setError(gradeError.message);
@@ -122,7 +152,7 @@ export default function TeacherGradesPage() {
     };
 
     fetchStudentsAndGrades();
-  }, [selectedMapping, selectedYearId, selectedTerm, classSubjects, supabase]);
+  }, [selectedMapping, selectedYearId, selectedTermId, classSubjects, supabase]);
 
   const handleGradeChange = (studentId, gradeValue) => {
     setGradeRecords(prev => ({
@@ -189,7 +219,7 @@ export default function TeacherGradesPage() {
       studentIds, 
       upsertRecords, 
       selectedYearId, 
-      selectedTerm
+      selectedTermId
     );
 
     if (result?.error) {
@@ -238,7 +268,7 @@ export default function TeacherGradesPage() {
             <select 
               className="input" 
               value={selectedYearId} 
-              onChange={(e) => setSelectedYearId(e.target.value)}
+              onChange={(e) => handleYearChange(e.target.value)}
               style={{ margin: 0 }}
             >
               <option value="">Select session...</option>
@@ -252,13 +282,14 @@ export default function TeacherGradesPage() {
             <label className="form-label">Academic Term</label>
             <select 
               className="input" 
-              value={selectedTerm} 
-              onChange={(e) => setSelectedTerm(e.target.value)}
+              value={selectedTermId} 
+              onChange={(e) => setSelectedTermId(e.target.value)}
               style={{ margin: 0 }}
             >
-              <option value="1st Term">1st Term</option>
-              <option value="2nd Term">2nd Term</option>
-              <option value="3rd Term">3rd Term</option>
+              <option value="">Select term...</option>
+              {academicTerms.map(t => (
+                <option key={t.id} value={t.id}>{t.name}</option>
+              ))}
             </select>
           </div>
         </div>
