@@ -435,8 +435,8 @@ export async function createAcademicYearAction(name, startDate, endDate) {
     const { data: yearData, error } = await supabase.from('academic_years').insert([{
       school_id: schoolId,
       name,
-      start_date: startDate,
-      end_date: endDate,
+      start_date: startDate || null,
+      end_date: endDate || null,
       is_active: true
     }]).select().single();
 

@@ -434,11 +434,11 @@ export default function AdminClassesPage() {
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: '1rem' }}>
                   <div className="form-group">
                     <label className="form-label">Start Date</label>
-                    <input className="input" name="start_date" type="date" required />
+                    <input className="input" name="start_date" type="date" />
                   </div>
                   <div className="form-group">
                     <label className="form-label">End Date</label>
-                    <input className="input" name="end_date" type="date" required />
+                    <input className="input" name="end_date" type="date" />
                   </div>
                 </div>
                 <button className="btn btn-primary" type="submit" style={{ width: '100%', marginTop: '0.25rem' }}>
