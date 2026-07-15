@@ -457,6 +457,31 @@ export async function createAcademicYearAction(name, startDate, endDate) {
 }
 
 /**
+ * Creates an Academic Term. Admin only.
+ */
+export async function createAcademicTermAction(academicYearId, name, startDate, endDate) {
+  try {
+    const { supabase, schoolId, role } = await getAuthContext();
+    if (role !== 'admin') return { error: 'Unauthorized.' };
+
+    await verifyTenantOwnership([{ table: 'academic_years', id: academicYearId }], schoolId, supabase);
+
+    const { error } = await supabase.from('academic_terms').insert([{
+      school_id: schoolId,
+      academic_year_id: academicYearId,
+      name,
+      start_date: startDate || null,
+      end_date: endDate || null
+    }]);
+
+    if (error) return { error: getFriendlyError(error) };
+    return { success: true };
+  } catch (err) {
+    return { error: getFriendlyError(err) };
+  }
+}
+
+/**
  * Creates a Class section. Admin only.
  */
 export async function createClassAction(name, gradeLevel) {

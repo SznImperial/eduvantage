@@ -10,7 +10,8 @@ import {
   allocateCourseAction, 
   enrollStudentAction,
   toggleStudentSubjectAction,
-  setActiveSessionAction
+  setActiveSessionAction,
+  createAcademicTermAction
 } from '@/app/actions';
 
 export default function AdminClassesPage() {
@@ -121,6 +122,26 @@ export default function AdminClassesPage() {
       setError(result.error);
     } else {
       setSuccess('Academic year created successfully!');
+      e.target.reset();
+      fetchData();
+    }
+  };
+
+  const handleCreateTerm = async (e) => {
+    e.preventDefault();
+    setError(''); setSuccess('');
+    const formData = new FormData(e.target);
+    const academic_year_id = formData.get('academic_year_id');
+    const name = formData.get('name');
+    const start_date = formData.get('start_date');
+    const end_date = formData.get('end_date');
+
+    const result = await createAcademicTermAction(academic_year_id, name, start_date, end_date);
+
+    if (result?.error) {
+      setError(result.error);
+    } else {
+      setSuccess('Custom term created successfully!');
       e.target.reset();
       fetchData();
     }
@@ -404,11 +425,11 @@ export default function AdminClassesPage() {
           {/* Right panel: Forms to create */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             <div className="card glass-panel">
-              <h4 style={{ fontWeight: 700, fontSize: '0.9375rem', marginBottom: '1.25rem' }}>Create Term / Academic Year</h4>
+              <h4 style={{ fontWeight: 700, fontSize: '0.9375rem', marginBottom: '1.25rem' }}>Create Academic Year (Session)</h4>
               <form onSubmit={handleCreateYear}>
                 <div className="form-group">
-                  <label className="form-label">Term Name</label>
-                  <input className="input" name="name" placeholder="e.g. 2025-2026 Fall" required />
+                  <label className="form-label">Academic Year Name</label>
+                  <input className="input" name="name" placeholder="e.g. 2025/2026 Session" required />
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: '1rem' }}>
                   <div className="form-group">
@@ -418,6 +439,38 @@ export default function AdminClassesPage() {
                   <div className="form-group">
                     <label className="form-label">End Date</label>
                     <input className="input" name="end_date" type="date" required />
+                  </div>
+                </div>
+                <button className="btn btn-primary" type="submit" style={{ width: '100%', marginTop: '0.25rem' }}>
+                  <Plus size={16} /> Create Year
+                </button>
+              </form>
+            </div>
+
+            <div className="card glass-panel">
+              <h4 style={{ fontWeight: 700, fontSize: '0.9375rem', marginBottom: '1.25rem' }}>Create Custom Term</h4>
+              <form onSubmit={handleCreateTerm}>
+                <div className="form-group">
+                  <label className="form-label">Academic Year</label>
+                  <select className="input" name="academic_year_id" required>
+                    <option value="">Select Year...</option>
+                    {academicYears.map(year => (
+                      <option key={year.id} value={year.id}>{year.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Term Name</label>
+                  <input className="input" name="name" placeholder="e.g. Summer Term" required />
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: '1rem' }}>
+                  <div className="form-group">
+                    <label className="form-label">Start Date</label>
+                    <input className="input" name="start_date" type="date" />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">End Date</label>
+                    <input className="input" name="end_date" type="date" />
                   </div>
                 </div>
                 <button className="btn btn-primary" type="submit" style={{ width: '100%', marginTop: '0.25rem' }}>
