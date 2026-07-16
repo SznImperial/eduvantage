@@ -113,10 +113,8 @@ export default function AdminClassesPage() {
     setError(''); setSuccess('');
     const formData = new FormData(e.target);
     const name = formData.get('name');
-    const start_date = formData.get('start_date');
-    const end_date = formData.get('end_date');
 
-    const result = await createAcademicYearAction(name, start_date, end_date);
+    const result = await createAcademicYearAction(name, null, null);
 
     if (result?.error) {
       setError(result.error);
@@ -430,16 +428,6 @@ export default function AdminClassesPage() {
                 <div className="form-group">
                   <label className="form-label">Academic Year Name</label>
                   <input className="input" name="name" placeholder="e.g. 2025/2026 Session" required />
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: '1rem' }}>
-                  <div className="form-group">
-                    <label className="form-label">Start Date</label>
-                    <input className="input" name="start_date" type="date" />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">End Date</label>
-                    <input className="input" name="end_date" type="date" />
-                  </div>
                 </div>
                 <button className="btn btn-primary" type="submit" style={{ width: '100%', marginTop: '0.25rem' }}>
                   <Plus size={16} /> Create Year
