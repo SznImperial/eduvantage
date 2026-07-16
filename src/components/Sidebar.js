@@ -191,6 +191,11 @@ export default function Sidebar({ role, schoolName, userName, userInitials }) {
               </Link>
             </>
           )}
+
+          <Link href="/dashboard/settings" className={linkClass('/dashboard/settings')} onClick={handleNavClick}>
+            <Settings size={18} />
+            Account Settings
+          </Link>
         </nav>
 
         {/* User profile section */}
@@ -211,11 +216,6 @@ export default function Sidebar({ role, schoolName, userName, userInitials }) {
               </div>
             </div>
           </div>
-
-          <Link href="/dashboard/settings" className="btn btn-ghost w-full justify-start gap-sm mb-xs" style={{ display: 'flex', textDecoration: 'none' }} onClick={handleNavClick}>
-            <Settings size={18} />
-            Account Settings
-          </Link>
 
           <form action={logoutUser}>
             <button className="btn btn-ghost w-full justify-start gap-sm">
