@@ -48,7 +48,8 @@ async function getAuthContext() {
  */
 async function verifyTenantOwnership(references, schoolId, client) {
   for (const ref of references) {
-    const idsToCheck = ref.ids || (ref.id ? [ref.id] : []);
+    const rawIds = ref.ids || (ref.id ? [ref.id] : []);
+    const idsToCheck = Array.from(new Set(rawIds));
     if (idsToCheck.length === 0) continue;
     
     // Check all IDs for this table in a single query

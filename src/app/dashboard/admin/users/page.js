@@ -112,7 +112,9 @@ export default function AdminUsersPage() {
   // Update selected promotion list checkmarks when source class changes
   useEffect(() => {
     if (promoSourceClassId) {
-      const classStudents = enrollments.filter(e => e.class_id === promoSourceClassId).map(e => e.student_id);
+      const classStudents = Array.from(new Set(
+        enrollments.filter(e => e.class_id === promoSourceClassId).map(e => e.student_id)
+      ));
       setSelectedPromoStudentIds(classStudents);
 
       const currentIndex = classes.findIndex(c => c.id === promoSourceClassId);
@@ -548,7 +550,9 @@ export default function AdminUsersPage() {
                   <button
                     type="button"
                     onClick={() => {
-                      const classStudentIds = enrollments.filter(e => e.class_id === promoSourceClassId).map(e => e.student_id);
+                      const classStudentIds = Array.from(new Set(
+                        enrollments.filter(e => e.class_id === promoSourceClassId).map(e => e.student_id)
+                      ));
                       setSelectedPromoStudentIds(classStudentIds);
                     }}
                     style={{ border: 'none', background: 'none', color: 'hsl(var(--primary))', cursor: 'pointer' }}
@@ -567,43 +571,56 @@ export default function AdminUsersPage() {
               </div>
 
               <div style={{ maxHeight: '300px', overflowY: 'auto', backgroundColor: 'hsl(var(--card))' }}>
-                {enrollments.filter(e => e.class_id === promoSourceClassId).length === 0 ? (
-                  <div style={{ padding: '2.5rem', textAlign: 'center', color: 'hsl(var(--muted-foreground))', fontSize: '0.85rem' }}>
-                    No students currently enrolled in the source class.
-                  </div>
-                ) : (
+                {(() => {
+                  const uniqueEnrollments = [];
+                  const seen = new Set();
                   enrollments
                     .filter(e => e.class_id === promoSourceClassId)
-                    .map(enroll => {
-                      const stud = profiles.find(p => p.id === enroll.student_id);
-                      if (!stud) return null;
-                      const isChecked = selectedPromoStudentIds.includes(stud.id);
+                    .forEach(e => {
+                      if (!seen.has(e.student_id)) {
+                        seen.add(e.student_id);
+                        uniqueEnrollments.push(e);
+                      }
+                    });
 
-                      return (
-                        <label 
-                          key={stud.id}
-                          style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1rem', borderBottom: '1px solid hsl(var(--border)/0.5)', cursor: 'pointer', userSelect: 'none' }}
-                        >
-                          <input 
-                            type="checkbox"
-                            checked={isChecked}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setSelectedPromoStudentIds(prev => [...prev, stud.id]);
-                              } else {
-                                setSelectedPromoStudentIds(prev => prev.filter(id => id !== stud.id));
-                              }
-                            }}
-                            style={{ width: '15px', height: '15px', cursor: 'pointer' }}
-                          />
-                          <div style={{ display: 'flex', justifyContent: 'space-between', flex: 1 }}>
-                            <span style={{ fontWeight: 600, fontSize: '0.85rem' }}>{stud.first_name} {stud.last_name}</span>
-                            <span style={{ fontFamily: 'monospace', fontSize: '0.75rem', color: 'hsl(var(--muted-foreground))' }}>{stud.admission_no || 'No Admission No'}</span>
-                          </div>
-                        </label>
-                      );
-                    })
-                )}
+                  if (uniqueEnrollments.length === 0) {
+                    return (
+                      <div style={{ padding: '2.5rem', textAlign: 'center', color: 'hsl(var(--muted-foreground))', fontSize: '0.85rem' }}>
+                        No students currently enrolled in the source class.
+                      </div>
+                    );
+                  }
+
+                  return uniqueEnrollments.map(enroll => {
+                    const stud = profiles.find(p => p.id === enroll.student_id);
+                    if (!stud) return null;
+                    const isChecked = selectedPromoStudentIds.includes(stud.id);
+
+                    return (
+                      <label 
+                        key={stud.id}
+                        style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1rem', borderBottom: '1px solid hsl(var(--border)/0.5)', cursor: 'pointer', userSelect: 'none' }}
+                      >
+                        <input 
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedPromoStudentIds(prev => [...prev, stud.id]);
+                            } else {
+                              setSelectedPromoStudentIds(prev => prev.filter(id => id !== stud.id));
+                            }
+                          }}
+                          style={{ width: '15px', height: '15px', cursor: 'pointer' }}
+                        />
+                        <div style={{ display: 'flex', justifyContent: 'space-between', flex: 1 }}>
+                          <span style={{ fontWeight: 600, fontSize: '0.85rem' }}>{stud.first_name} {stud.last_name}</span>
+                          <span style={{ fontFamily: 'monospace', fontSize: '0.75rem', color: 'hsl(var(--muted-foreground))' }}>{stud.admission_no || 'No Admission No'}</span>
+                        </div>
+                      </label>
+                    );
+                  });
+                })()}
               </div>
             </div>
 
