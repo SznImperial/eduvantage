@@ -846,6 +846,7 @@ export async function saveGradesAction(classSubjectId, studentIds, upserts, acad
       school_id: schoolId,
       student_id: u.student_id,
       class_subject_id: classSubjectId,
+      academic_year_id: academicYearId,
       academic_term_id: academicTermId,
       grade_value: u.grade_value,
       remarks: u.remarks || null,
@@ -1012,6 +1013,7 @@ export async function createFeeRecordAction(studentId, academicTermId, academicY
       school_id: schoolId,
       student_id: studentId,
       academic_term_id: academicTermId,
+      academic_year_id: academicYearId,
       amount_owed: parseFloat(amountOwed || 0),
       amount_paid: parseFloat(amountPaid || 0),
       status
