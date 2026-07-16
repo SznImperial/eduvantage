@@ -44,12 +44,14 @@ export default function StudentAssignmentsPage() {
       if (!user) return;
       setStudentId(user.id);
 
-      // 2. Find enrollment to know class_id
-      const { data: enroll } = await supabase
-        .from('enrollments')
-        .select('*')
-        .eq('student_id', user.id)
-        .single();
+      // 2. Find enrollment to know class_id (prioritize active year, prevent PGRST116 single error)
+      const [profileRes, enrollsRes] = await Promise.all([
+        supabase.from('profiles').select('schools(active_academic_year_id)').eq('id', user.id).single(),
+        supabase.from('enrollments').select('*').eq('student_id', user.id)
+      ]);
+
+      const activeYearId = profileRes.data?.schools?.active_academic_year_id;
+      const enroll = enrollsRes.data?.find(e => e.academic_year_id === activeYearId) || enrollsRes.data?.[0];
 
       if (enroll) {
         // 3. Fetch class subjects mapped to this class

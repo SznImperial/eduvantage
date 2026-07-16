@@ -32,12 +32,20 @@ export default async function StudentDashboardPage() {
     attendanceRate = ((presentCount / attendance.length) * 100).toFixed(0) + '%';
   }
 
-  // 3. Fetch student enrollment class name
-  const { data: enrollment } = await supabase
+  // 3. Fetch student enrollment class name (prioritize active year, prevent PGRST116 single error)
+  const { data: enrollmentsList } = await supabase
     .from('enrollments')
-    .select('classes(name, academic_years(name))')
-    .eq('student_id', user.id)
+    .select('academic_year_id, classes(name, academic_years(name))')
+    .eq('student_id', user.id);
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('schools(active_academic_year_id)')
+    .eq('id', user.id)
     .single();
+
+  const activeYearId = profile?.schools?.active_academic_year_id;
+  const enrollment = enrollmentsList?.find(e => e.academic_year_id === activeYearId) || enrollmentsList?.[0];
 
   const className = enrollment?.classes?.name || 'Not Enrolled';
   const termName = enrollment?.classes?.academic_years?.name || 'Unassigned Session';
