@@ -1,8 +1,8 @@
 'use server';
 
-import { createClient } from '@/lib/supabaseServer';
-import { createAdminClient } from '@/lib/supabaseAdmin';
-import { redirect } from 'next/navigation';
+import { createClient } from './mockSupabaseServer.mjs';
+import { createAdminClient } from '../src/lib/supabaseAdmin.js';
+import { redirect } from './mockNextNavigation.mjs';
 
 /**
  * Normalizes internal and database exceptions to a simple, generic user message

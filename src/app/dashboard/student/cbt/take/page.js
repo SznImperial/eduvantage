@@ -58,6 +58,57 @@ function CBTTerminalContent() {
   const audioAnalyserRef = useRef(null);
   const micIntervalRef = useRef(null);
 
+  function stopProctoringStreams() {
+    if (micIntervalRef.current) {
+      clearInterval(micIntervalRef.current);
+    }
+    if (mediaStreamRef.current) {
+      mediaStreamRef.current.getTracks().forEach(track => track.stop());
+    }
+    if (audioContextRef.current) {
+      audioContextRef.current.close().catch(console.error);
+    }
+  }
+
+  function calculateScore() {
+    let score = 0;
+    questions.forEach(q => {
+      if (answers[q.id] === q.correct_option) {
+        score++;
+      }
+    });
+    return score;
+  }
+
+  async function handleAutoSubmit(finalTabSwitches, finalNoiseSpikes) {
+    if (submitting) return;
+    setSubmitting(true);
+    stopProctoringStreams();
+
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch(console.error);
+    }
+
+    const finalScore = calculateScore();
+    const violated = finalTabSwitches >= 3;
+
+    try {
+      await submitCbtExamAction(
+        exam.id,
+        answers,
+        finalScore,
+        questions.length,
+        finalTabSwitches,
+        finalNoiseSpikes,
+        violated
+      );
+    } catch (err) {
+      console.error(err);
+    } finally {
+      router.replace('/dashboard/student/cbt');
+    }
+  }
+
   // Load Exam Details
   useEffect(() => {
     if (!examId) return;
@@ -261,17 +312,6 @@ function CBTTerminalContent() {
     }
   };
 
-  const stopProctoringStreams = () => {
-    if (micIntervalRef.current) {
-      clearInterval(micIntervalRef.current);
-    }
-    if (mediaStreamRef.current) {
-      mediaStreamRef.current.getTracks().forEach(track => track.stop());
-    }
-    if (audioContextRef.current) {
-      audioContextRef.current.close().catch(console.error);
-    }
-  };
 
   const handleBeginExam = async () => {
     setMediaError('');
@@ -287,15 +327,6 @@ function CBTTerminalContent() {
     setAnswers(prev => ({ ...prev, [qId]: option }));
   };
 
-  const calculateScore = () => {
-    let score = 0;
-    questions.forEach(q => {
-      if (answers[q.id] === q.correct_option) {
-        score++;
-      }
-    });
-    return score;
-  };
 
   const handleSubmitExam = async () => {
     setSubmitting(true);
@@ -325,34 +356,6 @@ function CBTTerminalContent() {
     }
   };
 
-  const handleAutoSubmit = async (finalTabSwitches, finalNoiseSpikes) => {
-    if (submitting) return;
-    setSubmitting(true);
-    stopProctoringStreams();
-
-    if (document.fullscreenElement) {
-      document.exitFullscreen().catch(console.error);
-    }
-
-    const finalScore = calculateScore();
-    const violated = finalTabSwitches >= 3;
-
-    try {
-      await submitCbtExamAction(
-        exam.id,
-        answers,
-        finalScore,
-        questions.length,
-        finalTabSwitches,
-        finalNoiseSpikes,
-        violated
-      );
-    } catch (err) {
-      console.error(err);
-    } finally {
-      router.replace('/dashboard/student/cbt');
-    }
-  };
 
   // Keyboard Copy/Paste Blocks
   useEffect(() => {

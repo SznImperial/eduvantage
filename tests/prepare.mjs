@@ -1,4 +1,32 @@
-import { 
+import fs from 'fs';
+import path from 'path';
+
+function prepare() {
+  // 1. Prepare actions.test.mjs
+  const actionsSource = path.resolve('src/app/actions.js');
+  const actionsTarget = path.resolve('tests/actions.test.mjs');
+
+  let actionsCode = fs.readFileSync(actionsSource, 'utf8');
+  
+  actionsCode = actionsCode.replace(
+    /import\s+{\s*createClient\s*}\s+from\s+['"]@\/lib\/supabaseServer['"];/g,
+    `import { createClient } from './mockSupabaseServer.mjs';`
+  );
+  actionsCode = actionsCode.replace(
+    /import\s+{\s*createAdminClient\s*}\s+from\s+['"]@\/lib\/supabaseAdmin['"];/g,
+    `import { createAdminClient } from '../src/lib/supabaseAdmin.js';`
+  );
+  actionsCode = actionsCode.replace(
+    /import\s+{\s*redirect\s*}\s+from\s+['"]next\/navigation['"];/g,
+    `import { redirect } from './mockNextNavigation.mjs';`
+  );
+
+  fs.writeFileSync(actionsTarget, actionsCode, 'utf8');
+  console.log('Prepared tests/actions.test.mjs successfully.');
+
+  // 2. Prepare route.test.mjs
+  const routeTarget = path.resolve('tests/route.test.mjs');
+  const routeCode = `import { 
   saveGradesAction, 
   enrollStudentAction, 
   createPasswordResetRequestAction,
@@ -7,10 +35,13 @@ import {
   createUserAccount,
   createClassAction,
   signUpSchool
-} from '@/app/actions';
-import { createAdminClient } from '@/lib/supabaseAdmin';
+} from './actions.test.mjs';
+import { createAdminClient } from '../src/lib/supabaseAdmin.js';
 
 export async function POST(req) {
+  if (process.env.NODE_ENV === 'production') {
+    return Response.json({ error: 'Not Found' }, { status: 404 });
+  }
   const body = await req.json();
   const { action, args } = body;
 
@@ -72,30 +103,30 @@ export async function POST(req) {
       // We will set its limit artificially low to test atomic limits quickly
       const { data: sA } = await adminClient.from('schools')
         .insert([{ 
-          name: `School A ${ts}`, 
-          slug: `school-a-${ts}`,
+          name: \`School A \${ts}\`, 
+          slug: \`school-a-\${ts}\`,
           max_student_limit: 2,
           max_class_limit: 2
         }])
         .select().single();
         
-      const { data: adminA } = await adminClient.auth.admin.createUser({ email: `admina_${ts}@schoola.com`, password: 'password123', email_confirm: true });
-      await adminClient.from('profiles').insert([{ id: adminA.user.id, school_id: sA.id, first_name: 'Admin', last_name: 'A', role: 'admin', email: `admina_${ts}@schoola.com` }]);
+      const { data: adminA } = await adminClient.auth.admin.createUser({ email: \`admina_\${ts}@schoola.com\`, password: 'password123', email_confirm: true });
+      await adminClient.from('profiles').insert([{ id: adminA.user.id, school_id: sA.id, first_name: 'Admin', last_name: 'A', role: 'admin', email: \`admina_\${ts}@schoola.com\` }]);
 
       // Setup School B
-      const { data: sB } = await adminClient.from('schools').insert([{ name: `School B ${ts}`, slug: `school-b-${ts}` }]).select().single();
+      const { data: sB } = await adminClient.from('schools').insert([{ name: \`School B \${ts}\`, slug: \`school-b-\${ts}\` }]).select().single();
       const { data: yB } = await adminClient.from('academic_years').insert([{ school_id: sB.id, name: '2026/2027', start_date: '2026-09-01', end_date: '2027-06-30' }]).select().single();
       const { data: cB } = await adminClient.from('classes').insert([{ school_id: sB.id, name: 'Grade 10B', grade_level: '10' }]).select().single();
       const { data: subB } = await adminClient.from('subjects').insert([{ school_id: sB.id, name: 'Math B', code: 'MTHB' }]).select().single();
       const { data: csB } = await adminClient.from('class_subjects').insert([{ school_id: sB.id, class_id: cB.id, subject_id: subB.id }]).select().single();
       
       // Student B in School B
-      const { data: stuB } = await adminClient.auth.admin.createUser({ email: `studentb_${ts}@schoolb.com`, password: 'password123', email_confirm: true });
-      await adminClient.from('profiles').insert([{ id: stuB.user.id, school_id: sB.id, first_name: 'Student', last_name: 'B', role: 'student', email: `studentb_${ts}@schoolb.com` }]);
+      const { data: stuB } = await adminClient.auth.admin.createUser({ email: \`studentb_\${ts}@schoolb.com\`, password: 'password123', email_confirm: true });
+      await adminClient.from('profiles').insert([{ id: stuB.user.id, school_id: sB.id, first_name: 'Student', last_name: 'B', role: 'student', email: \`studentb_\${ts}@schoolb.com\` }]);
 
       return Response.json({
         schoolA_id: sA.id,
-        adminA_email: `admina_${ts}@schoola.com`,
+        adminA_email: \`admina_\${ts}@schoola.com\`,
         adminA_id: adminA.user.id,
         schoolB_id: sB.id,
         classB_id: cB.id,
@@ -108,4 +139,10 @@ export async function POST(req) {
   } catch (err) {
     return Response.json({ error: err.message }, { status: 500 });
   }
+}`;
+
+  fs.writeFileSync(routeTarget, routeCode, 'utf8');
+  console.log('Prepared tests/route.test.mjs successfully.');
 }
+
+prepare();

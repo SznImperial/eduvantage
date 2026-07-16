@@ -306,7 +306,7 @@ export default function StudentAssignmentsPage() {
 
             {success && (
               <div className="alert alert-success" style={{ marginBottom: '1rem' }}>
-                <CheckCircle2 size={14} />
+                <CheckCircle size={14} />
                 <span>{success}</span>
               </div>
             )}

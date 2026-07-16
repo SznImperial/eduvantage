@@ -65,7 +65,7 @@ We employ a tiered SaaS subscription model. The platform is designed to scale re
 - **Phase 3 (Expansion)**: Introduce AI-assisted grading for assignments and predictive analytics for student performance based on historical grade data.
 
 ## 9. Funding & Investment Ask
-We are raising **[Insert Target Amount, e.g., $2M Seed]** to capitalize on the substantial technical foundation already built. Funds will be deployed to:
+We are raising **$1.5M Seed Funding** to capitalize on the substantial technical foundation already built. Funds will be deployed to:
 - **60% Sales & Marketing**: Build a robust outbound sales team and run targeted campaigns at private school networks.
 - **30% Engineering & Product**: Scale infrastructure, build the Phase 2 payment gateway, and develop native iOS/Android companion apps.
 - **10% Customer Success**: Ensure 100% retention rate for early adopting schools through white-glove onboarding.

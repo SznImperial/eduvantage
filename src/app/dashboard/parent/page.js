@@ -17,6 +17,7 @@ import {
   MapPin,
   CreditCard,
   AlertCircle,
+  AlertTriangle,
   ShieldAlert,
   ClipboardList
 } from 'lucide-react';
