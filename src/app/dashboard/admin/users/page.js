@@ -37,6 +37,7 @@ export default function AdminUsersPage() {
   const [enrollments, setEnrollments] = useState([]);
   const [parentLinks, setParentLinks] = useState([]);
   const [resetRequests, setResetRequests] = useState([]);
+  const [activeSchoolYearId, setActiveSchoolYearId] = useState(null);
 
   // Search/Filter states
   const [searchQuery, setSearchQuery] = useState('');
@@ -65,6 +66,17 @@ export default function AdminUsersPage() {
   const fetchData = async () => {
     setLoading(true);
     try {
+      // 0. Fetch active school session details
+      const { data: { user } } = await supabase.auth.getUser();
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('schools(active_academic_year_id)')
+        .eq('id', user.id)
+        .single();
+      if (profile?.schools?.active_academic_year_id) {
+        setActiveSchoolYearId(profile.schools.active_academic_year_id);
+      }
+
       // 1. Fetch profiles
       const { data: profilesList } = await supabase.from('profiles').select('*');
       if (profilesList) setProfiles(profilesList);
