@@ -68,6 +68,7 @@ export default function TeacherAssignmentsPage() {
       // 2. Fetch profiles of students
       const { data: stdList } = await supabase
         .from('profiles')
+        .select('*')
         .eq('role', 'student');
 
       // 3. Fetch enrollments
