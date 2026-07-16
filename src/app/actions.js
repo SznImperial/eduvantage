@@ -693,7 +693,7 @@ export async function createSubjectAction(name, code) {
 /**
  * Allocates a Subject to a Class and assigns a Teacher. Admin only.
  */
-export async function allocateCourseAction(classId, subjectId, teacherId) {
+export async function allocateCourseAction(classId, subjectId, teacherId, academicYearId) {
   try {
     const { supabase, schoolId, role } = await getAuthContext();
     if (role !== 'admin') return { error: 'Unauthorized.' };
@@ -708,6 +708,7 @@ export async function allocateCourseAction(classId, subjectId, teacherId) {
       school_id: schoolId,
       class_id: classId,
       subject_id: subjectId,
+      academic_year_id: academicYearId,
       teacher_id: teacherId === '' ? null : teacherId
     }]);
 

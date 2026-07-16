@@ -192,7 +192,7 @@ export default function AdminClassesPage() {
     const subject_id = formData.get('subject_id');
     const teacher_id = formData.get('teacher_id') || '';
 
-    const result = await allocateCourseAction(class_id, subject_id, teacher_id);
+    const result = await allocateCourseAction(class_id, subject_id, teacher_id, activeSchoolYearId);
 
     if (result?.error) {
       setError(result.error);
