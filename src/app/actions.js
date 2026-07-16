@@ -692,11 +692,13 @@ export async function createSubjectAction(name, code) {
 
 /**
  * Allocates a Subject to a Class and assigns a Teacher. Admin only.
+ * Uses server-side active academic year to prevent cross-tenant data leakage.
  */
-export async function allocateCourseAction(classId, subjectId, teacherId, academicYearId) {
+export async function allocateCourseAction(classId, subjectId, teacherId) {
   try {
-    const { supabase, schoolId, role } = await getAuthContext();
+    const { supabase, schoolId, role, activeYearId } = await getAuthContext();
     if (role !== 'admin') return { error: 'Unauthorized.' };
+    if (!activeYearId) return { error: 'No active academic year set. Please set an active session first.' };
 
     await verifyTenantOwnership([
       { table: 'classes', id: classId },
@@ -708,7 +710,7 @@ export async function allocateCourseAction(classId, subjectId, teacherId, academ
       school_id: schoolId,
       class_id: classId,
       subject_id: subjectId,
-      academic_year_id: academicYearId,
+      academic_year_id: activeYearId,
       teacher_id: teacherId === '' ? null : teacherId
     }]);
 
@@ -721,11 +723,13 @@ export async function allocateCourseAction(classId, subjectId, teacherId, academ
 
 /**
  * Enrolls a Student in a Class section. Admin only.
+ * Automatically stamps with the school's active academic year.
  */
 export async function enrollStudentAction(studentId, classId) {
   try {
-    const { supabase, schoolId, role } = await getAuthContext();
+    const { supabase, schoolId, role, activeYearId } = await getAuthContext();
     if (role !== 'admin') return { error: 'Unauthorized.' };
+    if (!activeYearId) return { error: 'No active academic year set. Please set an active session first.' };
 
     await verifyTenantOwnership([
       { table: 'profiles', id: studentId },
@@ -735,7 +739,8 @@ export async function enrollStudentAction(studentId, classId) {
     const { error } = await supabase.from('enrollments').insert([{
       school_id: schoolId,
       student_id: studentId,
-      class_id: classId
+      class_id: classId,
+      academic_year_id: activeYearId
     }]);
 
     if (error) return { error: getFriendlyError(error) };
@@ -820,15 +825,16 @@ export async function saveAttendanceAction(classId, date, records) {
 
 /**
  * Saves or updates Student Grades/Marks. Teachers/Admins only.
+ * Uses server-side active year/term to prevent cross-tenant data leakage.
  */
-export async function saveGradesAction(classSubjectId, studentIds, upserts, academicYearId, academicTermId) {
+export async function saveGradesAction(classSubjectId, studentIds, upserts) {
   try {
-    const { supabase, schoolId, role, user } = await getAuthContext();
+    const { supabase, schoolId, role, user, activeYearId, activeTermId } = await getAuthContext();
     if (role !== 'admin' && role !== 'teacher') return { error: 'Unauthorized.' };
+    if (!activeYearId || !activeTermId) return { error: 'No active academic session set. Please set an active session first.' };
 
     await verifyTenantOwnership([
       { table: 'class_subjects', id: classSubjectId },
-      { table: 'academic_years', id: academicYearId },
       { table: 'profiles', ids: studentIds }
     ], schoolId, supabase);
 
@@ -837,7 +843,7 @@ export async function saveGradesAction(classSubjectId, studentIds, upserts, acad
       .from('grades')
       .delete()
       .eq('class_subject_id', classSubjectId)
-      .eq('academic_term_id', academicTermId)
+      .eq('academic_term_id', activeTermId)
       .in('student_id', studentIds);
 
     if (delError) return { error: getFriendlyError(delError) };
@@ -847,8 +853,8 @@ export async function saveGradesAction(classSubjectId, studentIds, upserts, acad
       school_id: schoolId,
       student_id: u.student_id,
       class_subject_id: classSubjectId,
-      academic_year_id: academicYearId,
-      academic_term_id: academicTermId,
+      academic_year_id: activeYearId,
+      academic_term_id: activeTermId,
       grade_value: u.grade_value,
       remarks: u.remarks || null,
       graded_by: user.id
@@ -999,22 +1005,23 @@ export async function deleteTimetableSlotAction(id) {
 
 /**
  * Creates/issues a Fee Record for a student. Admin only.
+ * Uses server-side active year/term to prevent cross-tenant data leakage.
  */
-export async function createFeeRecordAction(studentId, academicTermId, academicYearId, amountOwed, amountPaid, status) {
+export async function createFeeRecordAction(studentId, amountOwed, amountPaid, status) {
   try {
-    const { supabase, schoolId, role } = await getAuthContext();
+    const { supabase, schoolId, role, activeYearId, activeTermId } = await getAuthContext();
     if (role !== 'admin') return { error: 'Unauthorized.' };
+    if (!activeYearId || !activeTermId) return { error: 'No active academic session set. Please set an active session first.' };
 
     await verifyTenantOwnership([
-      { table: 'profiles', id: studentId },
-      { table: 'academic_years', id: academicYearId }
+      { table: 'profiles', id: studentId }
     ], schoolId, supabase);
 
     const { error } = await supabase.from('fee_records').insert([{
       school_id: schoolId,
       student_id: studentId,
-      academic_term_id: academicTermId,
-      academic_year_id: academicYearId,
+      academic_term_id: activeTermId,
+      academic_year_id: activeYearId,
       amount_owed: parseFloat(amountOwed || 0),
       amount_paid: parseFloat(amountPaid || 0),
       status

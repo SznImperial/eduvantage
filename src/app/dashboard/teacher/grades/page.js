@@ -213,13 +213,11 @@ export default function TeacherGradesPage() {
       return;
     }
 
-    // Call Server Action with academic year and term
+    // Call Server Action - server uses active session context automatically
     const result = await saveGradesAction(
       selectedMapping, 
       studentIds, 
-      upsertRecords, 
-      selectedYearId, 
-      selectedTermId
+      upsertRecords
     );
 
     if (result?.error) {

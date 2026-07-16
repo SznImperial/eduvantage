@@ -187,7 +187,7 @@ export default function AdminFeesPage() {
     if (existing) {
       res = await updateFeeRecordAction(existing.id, paid, status);
     } else {
-      res = await createFeeRecordAction(selectedStudent.id, selectedTermId, selectedYearId, owed, paid, status);
+      res = await createFeeRecordAction(selectedStudent.id, owed, paid, status);
     }
 
     if (res.error) {
@@ -230,8 +230,6 @@ export default function AdminFeesPage() {
         if (!existing) {
           const res = await createFeeRecordAction(
             enroll.student_id,
-            allocTermId,
-            allocYearId,
             allocAmount,
             0,
             'unpaid'
