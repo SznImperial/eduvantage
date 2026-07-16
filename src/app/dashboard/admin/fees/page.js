@@ -251,7 +251,8 @@ export default function AdminFeesPage() {
   };
 
   const getStudentClass = (studentId) => {
-    const enroll = enrollments.find(e => e.student_id === studentId);
+    const enroll = enrollments.find(e => e.student_id === studentId && e.academic_year_id === selectedYearId)
+                 || enrollments.find(e => e.student_id === studentId);
     if (!enroll) return 'Not Enrolled';
     const cls = classes.find(c => c.id === enroll.class_id);
     return cls ? cls.name : 'Unknown Class';
@@ -259,7 +260,9 @@ export default function AdminFeesPage() {
 
   // Filter lists
   const filteredStudents = students.filter(s => {
-    const studentClassId = enrollments.find(e => e.student_id === s.id)?.class_id || 'none';
+    const enroll = enrollments.find(e => e.student_id === s.id && e.academic_year_id === selectedYearId)
+                 || enrollments.find(e => e.student_id === s.id);
+    const studentClassId = enroll?.class_id || 'none';
     const matchesClass = selectedClassId === 'all' || studentClassId === selectedClassId;
     const name = `${s.first_name || ''} ${s.last_name || ''}`.toLowerCase();
     const matchesSearch = name.includes(searchQuery.toLowerCase()) || (s.email && s.email.toLowerCase().includes(searchQuery.toLowerCase()));

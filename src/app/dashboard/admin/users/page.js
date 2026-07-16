@@ -109,11 +109,16 @@ export default function AdminUsersPage() {
     fetchData();
   }, []);
 
+  const getStudentActiveEnrollment = (studentId) => {
+    const activeEnroll = enrollments.find(e => e.student_id === studentId && e.academic_year_id === activeSchoolYearId);
+    return activeEnroll || enrollments.find(e => e.student_id === studentId);
+  };
+
   // Update selected promotion list checkmarks when source class changes
   useEffect(() => {
     if (promoSourceClassId) {
       const classStudents = Array.from(new Set(
-        enrollments.filter(e => e.class_id === promoSourceClassId).map(e => e.student_id)
+        enrollments.filter(e => e.class_id === promoSourceClassId && getStudentActiveEnrollment(e.student_id)?.class_id === promoSourceClassId).map(e => e.student_id)
       ));
       setSelectedPromoStudentIds(classStudents);
 
@@ -126,7 +131,7 @@ export default function AdminUsersPage() {
     } else {
       setSelectedPromoStudentIds([]);
     }
-  }, [promoSourceClassId, enrollments, classes]);
+  }, [promoSourceClassId, enrollments, classes, activeSchoolYearId]);
 
   const handleCreateStudent = async (e) => {
     e.preventDefault();
@@ -226,10 +231,12 @@ export default function AdminUsersPage() {
     }
   };
 
+
+
   // Filters
   const filteredStudents = profiles.filter(p => {
     if (p.role !== 'student') return false;
-    const enroll = enrollments.find(e => e.student_id === p.id);
+    const enroll = getStudentActiveEnrollment(p.id);
     const className = enroll?.classes?.name || 'Unassigned';
     
     // Find parent details
@@ -364,7 +371,7 @@ export default function AdminUsersPage() {
                 </thead>
                 <tbody>
                   {filteredStudents.map((student) => {
-                    const enroll = enrollments.find(e => e.student_id === student.id);
+                    const enroll = getStudentActiveEnrollment(student.id);
                     const className = enroll?.classes?.name || 'Unassigned';
 
                     // Parent resolving
@@ -551,7 +558,7 @@ export default function AdminUsersPage() {
                     type="button"
                     onClick={() => {
                       const classStudentIds = Array.from(new Set(
-                        enrollments.filter(e => e.class_id === promoSourceClassId).map(e => e.student_id)
+                        enrollments.filter(e => e.class_id === promoSourceClassId && getStudentActiveEnrollment(e.student_id)?.class_id === promoSourceClassId).map(e => e.student_id)
                       ));
                       setSelectedPromoStudentIds(classStudentIds);
                     }}
@@ -575,7 +582,7 @@ export default function AdminUsersPage() {
                   const uniqueEnrollments = [];
                   const seen = new Set();
                   enrollments
-                    .filter(e => e.class_id === promoSourceClassId)
+                    .filter(e => e.class_id === promoSourceClassId && getStudentActiveEnrollment(e.student_id)?.class_id === promoSourceClassId)
                     .forEach(e => {
                       if (!seen.has(e.student_id)) {
                         seen.add(e.student_id);
