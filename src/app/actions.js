@@ -1332,3 +1332,17 @@ export async function submitCbtExamAction(examId, answers, score, totalQuestions
   }
 }
 
+/**
+ * Updates the authenticated user's password.
+ */
+export async function changePasswordAction(newPassword) {
+  try {
+    const { supabase } = await getAuthContext();
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) return { error: getFriendlyError(error) };
+    return { success: true };
+  } catch (err) {
+    return { error: getFriendlyError(err) };
+  }
+}
+
