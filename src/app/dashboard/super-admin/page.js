@@ -22,6 +22,7 @@ export default function SuperAdminDashboard() {
   const supabase = createClient();
   const [schools, setSchools] = useState([]);
   const [profiles, setProfiles] = useState([]);
+  const [classesList, setClassesList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSchool, setSelectedSchool] = useState(null);
@@ -36,9 +37,11 @@ export default function SuperAdminDashboard() {
     setLoading(true);
     const { data: schoolsData, error: sErr } = await supabase.from('schools').select('*').order('created_at', { ascending: false });
     const { data: profilesData, error: pErr } = await supabase.from('profiles').select('school_id, role');
+    const { data: classesData, error: cErr } = await supabase.from('classes').select('id, school_id');
 
     if (!sErr && schoolsData) setSchools(schoolsData);
     if (!pErr && profilesData) setProfiles(profilesData);
+    if (!cErr && classesData) setClassesList(classesData);
     setLoading(false);
   };
 
@@ -66,6 +69,7 @@ export default function SuperAdminDashboard() {
   
   const studentCountBySchool = (schoolId) => profiles.filter(p => p.school_id === schoolId && p.role === 'student').length;
   const teacherCountBySchool = (schoolId) => profiles.filter(p => p.school_id === schoolId && p.role === 'teacher').length;
+  const classCountBySchool = (schoolId) => classesList.filter(c => c.school_id === schoolId).length;
   const totalUserCount = profiles.length;
 
   const activeSubscriptions = schools.filter(s => s.subscription_tier !== 'free').length;
@@ -79,6 +83,7 @@ export default function SuperAdminDashboard() {
     return acc;
   }, 0);
   const mrr = Math.round(arr / 12);
+  const arpu = activeSubscriptions > 0 ? Math.round(mrr / activeSubscriptions) : 0;
 
   const filteredSchools = schools.filter(s => 
     s.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -134,8 +139,8 @@ export default function SuperAdminDashboard() {
             </div>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1rem', fontSize: '0.75rem', color: 'hsl(var(--muted-foreground))' }}>
-            <span>Projected Annual ARR</span>
-            <span style={{ fontWeight: 600, color: 'hsl(var(--foreground))' }}>₦{arr.toLocaleString()}</span>
+            <span>Average Revenue Per User (ARPU)</span>
+            <span style={{ fontWeight: 600, color: 'hsl(var(--foreground))' }}>₦{arpu.toLocaleString()} / mo</span>
           </div>
         </div>
 
@@ -202,6 +207,7 @@ export default function SuperAdminDashboard() {
                   <tr>
                     <th>School Info</th>
                     <th>Students</th>
+                    <th>Teachers</th>
                     <th>Classes</th>
                     <th>Plan Tier</th>
                     <th>Billing</th>
@@ -212,6 +218,7 @@ export default function SuperAdminDashboard() {
                   {filteredSchools.map((school) => {
                     const students = studentCountBySchool(school.id);
                     const teachers = teacherCountBySchool(school.id);
+                    const classesCount = classCountBySchool(school.id);
                     const tierName = school.subscription_tier || 'free';
                     return (
                       <tr key={school.id}>
@@ -229,7 +236,12 @@ export default function SuperAdminDashboard() {
                         </td>
                         <td>
                           <div>
-                            <span>{teachers} teachers</span>
+                            <span style={{ fontWeight: 650 }}>{teachers}</span>
+                          </div>
+                        </td>
+                        <td>
+                          <div>
+                            <span style={{ fontWeight: 650 }}>{classesCount}</span>
                           </div>
                         </td>
                         <td>
