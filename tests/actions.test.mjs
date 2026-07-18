@@ -1001,7 +1001,7 @@ export async function saveGradesAction(classSubjectId, studentIds, upserts) {
  * Updates the subscription tier for a School (Tenant).
  * Triggers changes in student and class limits.
  */
-export async function updateSubscriptionAction(schoolId, tier) {
+export async function updateSubscriptionAction(schoolId, tier, billingCycle = 'annual') {
   try {
     const { supabase, role } = await getAuthContext();
     if (role !== 'admin' && role !== 'super_admin') {
@@ -1012,7 +1012,7 @@ export async function updateSubscriptionAction(schoolId, tier) {
     let maxClassLimit = 3;
 
     if (tier === 'starter') {
-      maxStudentLimit = 50;
+      maxStudentLimit = 100;
       maxClassLimit = 10;
     } else if (tier === 'growth') {
       maxStudentLimit = 500;
@@ -1022,14 +1022,34 @@ export async function updateSubscriptionAction(schoolId, tier) {
       maxClassLimit = 99;
     }
 
+    const now = new Date();
+    const periodEnd = new Date(now);
+    if (billingCycle === 'monthly') {
+      periodEnd.setMonth(periodEnd.getMonth() + 1);
+    } else {
+      periodEnd.setFullYear(periodEnd.getFullYear() + 1);
+    }
+
+    const updatePayload = {
+      subscription_tier: tier,
+      max_student_limit: maxStudentLimit,
+      max_class_limit: maxClassLimit,
+      subscription_status: 'active',
+      billing_cycle: billingCycle,
+      current_period_start: now.toISOString(),
+      current_period_end: periodEnd.toISOString(),
+    };
+
+    // For free tier, clear billing metadata
+    if (tier === 'free') {
+      updatePayload.billing_cycle = null;
+      updatePayload.current_period_start = null;
+      updatePayload.current_period_end = null;
+    }
+
     const { error } = await supabase
       .from('schools')
-      .update({
-        subscription_tier: tier,
-        max_student_limit: maxStudentLimit,
-        max_class_limit: maxClassLimit,
-        subscription_status: 'active'
-      })
+      .update(updatePayload)
       .eq('id', schoolId);
 
     if (error) return { error: getFriendlyError(error) };

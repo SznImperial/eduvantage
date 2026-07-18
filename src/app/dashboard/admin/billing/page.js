@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useTransition } from 'react';
 import { createClient } from '@/lib/supabaseClient';
-import { updateSubscriptionAction } from '@/app/actions';
 import { 
   CreditCard, 
   Check, 
@@ -12,7 +11,12 @@ import {
   Loader2, 
   Database,
   ArrowRight,
-  TrendingUp
+  TrendingUp,
+  Calendar,
+  Clock,
+  Receipt,
+  ExternalLink,
+  XCircle
 } from 'lucide-react';
 
 export default function AdminBillingPage() {
@@ -21,10 +25,31 @@ export default function AdminBillingPage() {
   const [studentCount, setStudentCount] = useState(0);
   const [classCount, setClassCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [billingCycle, setBillingCycle] = useState('annual');
+  const [paymentHistory, setPaymentHistory] = useState([]);
   
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [processingTier, setProcessingTier] = useState(null);
+
+  // Check for payment callback status in URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const paymentStatus = params.get('payment');
+    const tier = params.get('tier');
+    const cycle = params.get('cycle');
+    const msg = params.get('msg');
+
+    if (paymentStatus === 'success') {
+      setSuccess(`Payment successful! Your ${tier} plan (${cycle}) is now active.`);
+      // Clean URL
+      window.history.replaceState({}, '', '/dashboard/admin/billing');
+    } else if (paymentStatus === 'failed' || paymentStatus === 'error') {
+      setError(msg ? decodeURIComponent(msg) : 'Payment was not completed. Please try again.');
+      window.history.replaceState({}, '', '/dashboard/admin/billing');
+    }
+  }, []);
 
   const fetchBillingData = async () => {
     setLoading(true);
@@ -59,9 +84,21 @@ export default function AdminBillingPage() {
       .select('*', { count: 'exact', head: true })
       .eq('school_id', profile.school_id);
 
+    // 4. Fetch payment history
+    const { data: payments } = await supabase
+      .from('payment_history')
+      .select('*')
+      .eq('school_id', profile.school_id)
+      .order('created_at', { ascending: false })
+      .limit(10);
+
     setSchool(schoolData);
     setStudentCount(sCount || 0);
     setClassCount(cCount || 0);
+    setPaymentHistory(payments || []);
+    if (schoolData?.billing_cycle) {
+      setBillingCycle(schoolData.billing_cycle);
+    }
     setLoading(false);
   };
 
@@ -73,15 +110,34 @@ export default function AdminBillingPage() {
     if (!school) return;
     setError('');
     setSuccess('');
-    startTransition(async () => {
-      const res = await updateSubscriptionAction(school.id, tier);
-      if (res?.error) {
-        setError(res.error);
-      } else {
-        setSuccess(`Plan successfully changed to ${tier}! Limits updated.`);
-        fetchBillingData();
+    setProcessingTier(tier);
+
+    try {
+      const response = await fetch('/api/paystack/initialize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tier, billingCycle }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || data.error) {
+        setError(data.error || 'Failed to initialize payment.');
+        setProcessingTier(null);
+        return;
       }
-    });
+
+      // Redirect to Paystack checkout
+      if (data.authorization_url) {
+        window.location.href = data.authorization_url;
+      } else {
+        setError('No payment URL received. Please try again.');
+        setProcessingTier(null);
+      }
+    } catch (err) {
+      setError('Network error. Please check your connection and try again.');
+      setProcessingTier(null);
+    }
   };
 
   if (loading) {
@@ -96,10 +152,19 @@ export default function AdminBillingPage() {
   const currentTier = school?.subscription_tier || 'free';
   const studentLimit = school?.max_student_limit || 10;
   const classLimit = school?.max_class_limit || 3;
+  const currentBillingCycle = school?.billing_cycle || null;
+  const periodEnd = school?.current_period_end ? new Date(school.current_period_end) : null;
 
   // Percentages for usage bars
   const studentPct = Math.min((studentCount / studentLimit) * 100, 100);
   const classPct = Math.min((classCount / classLimit) * 100, 100);
+
+  // Pricing in display format
+  const pricing = {
+    starter:    { monthly: '₦40,000',    annual: '₦450,000',   monthlySave: '₦30,000' },
+    growth:     { monthly: '₦60,000',    annual: '₦700,000',   monthlySave: '₦20,000' },
+    enterprise: { monthly: '₦110,000',   annual: '₦1,300,000', monthlySave: '₦20,000' },
+  };
 
   const plans = [
     {
@@ -114,17 +179,17 @@ export default function AdminBillingPage() {
     {
       id: 'starter',
       name: 'Starter Plan',
-      price: '₦150,000',
-      period: '/ year',
+      price: billingCycle === 'monthly' ? pricing.starter.monthly : pricing.starter.annual,
+      period: billingCycle === 'monthly' ? '/ month' : '/ year',
       description: 'Perfect for small tutorial centers and micro-schools.',
-      features: ['Up to 50 students', 'Up to 10 classes', 'Prioritized database performance', 'All features included', 'Email support'],
-      limitText: '50 Students / 10 Classes limit'
+      features: ['Up to 100 students', 'Up to 10 classes', 'Prioritized database performance', 'All features included', 'Email support'],
+      limitText: '100 Students / 10 Classes limit'
     },
     {
       id: 'growth',
       name: 'Growth Plan',
-      price: '₦450,000',
-      period: '/ year',
+      price: billingCycle === 'monthly' ? pricing.growth.monthly : pricing.growth.annual,
+      period: billingCycle === 'monthly' ? '/ month' : '/ year',
       description: 'Best fit for established primary & secondary schools.',
       features: ['Up to 500 students', 'Up to 40 classes', 'High resource allocation', 'SSO & Multi-roles support', '24/7 Priority assistance'],
       limitText: '500 Students / 40 Classes limit',
@@ -133,13 +198,16 @@ export default function AdminBillingPage() {
     {
       id: 'enterprise',
       name: 'Enterprise Plan',
-      price: '₦1,200,000',
-      period: '/ year',
+      price: billingCycle === 'monthly' ? pricing.enterprise.monthly : pricing.enterprise.annual,
+      period: billingCycle === 'monthly' ? '/ month' : '/ year',
       description: 'Designed for school districts & large academies.',
       features: ['Unlimited students', 'Unlimited classes', 'Dedicated support manager', 'API access integrations', '99.99% SLA guarantee'],
       limitText: 'Unlimited student capacity'
     }
   ];
+
+  // Tier order for upgrade/downgrade detection
+  const tierOrder = { free: 0, starter: 1, growth: 2, enterprise: 3 };
 
   return (
     <div className="animate-fade-in" style={{ paddingBottom: '3rem' }}>
@@ -173,11 +241,32 @@ export default function AdminBillingPage() {
                 <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'hsl(var(--muted-foreground))', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Current Subscription</span>
                 <h2 style={{ fontSize: '1.75rem', fontWeight: 800, textTransform: 'capitalize', marginTop: '0.125rem' }}>{currentTier} Plan</h2>
               </div>
-              <span className="badge badge-indigo" style={{ fontWeight: 600 }}>Active</span>
+              <span className="badge badge-indigo" style={{ fontWeight: 600 }}>
+                {school?.subscription_status === 'past_due' ? 'Past Due' : school?.subscription_status === 'canceled' ? 'Canceled' : 'Active'}
+              </span>
             </div>
-            <p style={{ fontSize: '0.875rem', color: 'hsl(var(--muted-foreground))', lineHeight: 1.5, marginBottom: '1.5rem' }}>
-              Your workspace is running on the <strong>{currentTier} plan</strong>. Monthly charges will be billed to your registered payment method.
+            <p style={{ fontSize: '0.875rem', color: 'hsl(var(--muted-foreground))', lineHeight: 1.5, marginBottom: '1rem' }}>
+              Your workspace is running on the <strong>{currentTier} plan</strong>.
+              {currentBillingCycle && ` Billed ${currentBillingCycle}ly.`}
             </p>
+
+            {/* Renewal info */}
+            {periodEnd && currentTier !== 'free' && (
+              <div style={{ 
+                display: 'flex', gap: '0.5rem', alignItems: 'center', fontSize: '0.8125rem',
+                padding: '0.625rem 0.875rem', backgroundColor: 'hsl(var(--muted) / 0.5)', borderRadius: 'var(--radius-sm)',
+                marginBottom: '1rem'
+              }}>
+                <Calendar size={14} style={{ color: 'hsl(var(--primary))', flexShrink: 0 }} />
+                <span>
+                  {periodEnd > new Date() ? (
+                    <>Renews on <strong>{periodEnd.toLocaleDateString('en-NG', { day: 'numeric', month: 'long', year: 'numeric' })}</strong></>
+                  ) : (
+                    <span style={{ color: 'hsl(var(--destructive))' }}>Subscription expired on {periodEnd.toLocaleDateString('en-NG', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                  )}
+                </span>
+              </div>
+            )}
           </div>
 
           <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', fontSize: '0.8125rem', color: 'hsl(var(--muted-foreground))', borderTop: '1px solid hsl(var(--border))', paddingTop: '1.25rem' }}>
@@ -226,9 +315,68 @@ export default function AdminBillingPage() {
         </div>
       </div>
 
-      {/* Pricing plans selector */}
-      <h2 style={{ fontSize: '1.35rem', fontWeight: 800, marginBottom: '1.5rem', textAlign: 'center' }}>Available Upgrades</h2>
+      {/* Billing cycle toggle + Pricing plans */}
+      <h2 style={{ fontSize: '1.35rem', fontWeight: 800, marginBottom: '0.75rem', textAlign: 'center' }}>Available Plans</h2>
       
+      {/* Monthly / Annual Toggle */}
+      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '2rem' }}>
+        <div style={{
+          display: 'inline-flex',
+          backgroundColor: 'hsl(var(--muted))',
+          borderRadius: '9999px',
+          padding: '4px',
+          gap: '2px',
+        }}>
+          <button
+            onClick={() => setBillingCycle('monthly')}
+            style={{
+              padding: '0.5rem 1.25rem',
+              borderRadius: '9999px',
+              fontSize: '0.85rem',
+              fontWeight: 600,
+              border: 'none',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              backgroundColor: billingCycle === 'monthly' ? 'hsl(var(--card))' : 'transparent',
+              color: billingCycle === 'monthly' ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground))',
+              boxShadow: billingCycle === 'monthly' ? 'var(--shadow-sm)' : 'none',
+            }}
+          >
+            Monthly
+          </button>
+          <button
+            onClick={() => setBillingCycle('annual')}
+            style={{
+              padding: '0.5rem 1.25rem',
+              borderRadius: '9999px',
+              fontSize: '0.85rem',
+              fontWeight: 600,
+              border: 'none',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.375rem',
+              backgroundColor: billingCycle === 'annual' ? 'hsl(var(--card))' : 'transparent',
+              color: billingCycle === 'annual' ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground))',
+              boxShadow: billingCycle === 'annual' ? 'var(--shadow-sm)' : 'none',
+            }}
+          >
+            Annual
+            <span style={{
+              fontSize: '0.65rem',
+              fontWeight: 700,
+              padding: '0.125rem 0.5rem',
+              borderRadius: '9999px',
+              backgroundColor: 'hsl(var(--accent-emerald))',
+              color: 'hsl(var(--accent-emerald-text))',
+            }}>
+              Save more
+            </span>
+          </button>
+        </div>
+      </div>
+
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
@@ -237,6 +385,10 @@ export default function AdminBillingPage() {
       }}>
         {plans.map((plan) => {
           const isCurrent = currentTier === plan.id;
+          const isDowngrade = tierOrder[plan.id] < tierOrder[currentTier];
+          const isProcessing = processingTier === plan.id;
+          const isPaidPlan = plan.id !== 'free';
+
           return (
             <div 
               key={plan.id} 
@@ -278,6 +430,22 @@ export default function AdminBillingPage() {
                   <span style={{ fontSize: '0.85rem', color: 'hsl(var(--muted-foreground))' }}>{plan.period}</span>
                 </div>
                 <p style={{ fontSize: '0.8rem', color: 'hsl(var(--muted-foreground))', lineHeight: 1.45 }}>{plan.description}</p>
+                
+                {/* Show savings on annual */}
+                {isPaidPlan && billingCycle === 'annual' && pricing[plan.id] && (
+                  <span style={{
+                    display: 'inline-block',
+                    marginTop: '0.5rem',
+                    fontSize: '0.7rem',
+                    fontWeight: 600,
+                    padding: '0.2rem 0.5rem',
+                    borderRadius: '9999px',
+                    backgroundColor: 'hsl(var(--accent-emerald) / 0.15)',
+                    color: 'hsl(var(--accent-emerald-text))',
+                  }}>
+                    Save {pricing[plan.id].monthlySave}/yr vs monthly
+                  </span>
+                )}
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '2rem', flex: 1 }}>
@@ -291,22 +459,89 @@ export default function AdminBillingPage() {
 
               <button 
                 className={`btn ${isCurrent ? 'btn-ghost' : plan.popular ? 'btn-primary' : 'btn-outline'}`}
-                style={{ width: '100%', justifySelf: 'flex-end' }}
-                disabled={isCurrent || isPending}
+                style={{ width: '100%', justifySelf: 'flex-end', gap: '0.375rem' }}
+                disabled={isCurrent || isPending || isProcessing || plan.id === 'free'}
                 onClick={() => handleUpgrade(plan.id)}
               >
-                {isPending ? (
-                  <Loader2 size={15} className="animate-spin" />
+                {isProcessing ? (
+                  <>
+                    <Loader2 size={15} className="animate-spin" />
+                    Redirecting to Paystack...
+                  </>
                 ) : isCurrent ? (
                   'Current Plan'
+                ) : plan.id === 'free' ? (
+                  'Free Tier'
                 ) : (
-                  'Select Tier'
+                  <>
+                    {isDowngrade ? 'Switch Plan' : 'Upgrade'}
+                    <ArrowRight size={14} />
+                  </>
                 )}
               </button>
             </div>
           );
         })}
       </div>
+
+      {/* Payment History */}
+      {paymentHistory.length > 0 && (
+        <div className="card" style={{ marginTop: '2.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem' }}>
+            <Receipt size={18} style={{ color: 'hsl(var(--primary))' }} />
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 700 }}>Payment History</h3>
+          </div>
+
+          <div className="table-container">
+            <table className="table" style={{ fontSize: '0.85rem' }}>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Plan</th>
+                  <th>Cycle</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th>Reference</th>
+                </tr>
+              </thead>
+              <tbody>
+                {paymentHistory.map((payment) => (
+                  <tr key={payment.id}>
+                    <td>
+                      {payment.paid_at 
+                        ? new Date(payment.paid_at).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' })
+                        : '—'
+                      }
+                    </td>
+                    <td>
+                      <span style={{ textTransform: 'capitalize', fontWeight: 600 }}>{payment.subscription_tier}</span>
+                    </td>
+                    <td>
+                      <span style={{ textTransform: 'capitalize' }}>{payment.billing_cycle}</span>
+                    </td>
+                    <td style={{ fontWeight: 600 }}>
+                      ₦{(payment.amount / 100).toLocaleString()}
+                    </td>
+                    <td>
+                      <span className={`badge ${payment.status === 'success' ? 'badge-primary' : payment.status === 'failed' ? 'badge-ghost' : 'badge-secondary'}`} 
+                            style={{ textTransform: 'capitalize', fontWeight: 600 }}>
+                        {payment.status === 'success' && <CheckCircle size={10} />}
+                        {payment.status === 'failed' && <XCircle size={10} />}
+                        {payment.status}
+                      </span>
+                    </td>
+                    <td>
+                      <span style={{ fontSize: '0.75rem', color: 'hsl(var(--muted-foreground))', fontFamily: 'monospace' }}>
+                        {payment.paystack_reference?.slice(0, 16)}...
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

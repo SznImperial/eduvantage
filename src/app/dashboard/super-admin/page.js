@@ -26,6 +26,7 @@ export default function SuperAdminDashboard() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSchool, setSelectedSchool] = useState(null);
   const [newTier, setNewTier] = useState('free');
+  const [newBillingCycle, setNewBillingCycle] = useState('annual');
   
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState('');
@@ -69,11 +70,12 @@ export default function SuperAdminDashboard() {
 
   const activeSubscriptions = schools.filter(s => s.subscription_tier !== 'free').length;
 
-  // Calculate ARR and MRR
+  // Calculate ARR and MRR (billing-cycle aware)
   const arr = schools.reduce((acc, school) => {
-    if (school.subscription_tier === 'starter') return acc + 150000;
-    if (school.subscription_tier === 'growth') return acc + 450000;
-    if (school.subscription_tier === 'enterprise') return acc + 1200000;
+    const cycle = school.billing_cycle || 'annual';
+    if (school.subscription_tier === 'starter') return acc + (cycle === 'monthly' ? 480000 : 450000);
+    if (school.subscription_tier === 'growth') return acc + (cycle === 'monthly' ? 720000 : 700000);
+    if (school.subscription_tier === 'enterprise') return acc + (cycle === 'monthly' ? 1320000 : 1300000);
     return acc;
   }, 0);
   const mrr = Math.round(arr / 12);
@@ -202,6 +204,7 @@ export default function SuperAdminDashboard() {
                     <th>Students</th>
                     <th>Classes</th>
                     <th>Plan Tier</th>
+                    <th>Billing</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
@@ -239,12 +242,18 @@ export default function SuperAdminDashboard() {
                           </span>
                         </td>
                         <td>
+                          <span style={{ fontSize: '0.8125rem', color: 'hsl(var(--muted-foreground))' }}>
+                            {tierName === 'free' ? 'N/A' : (school.billing_cycle ? school.billing_cycle.charAt(0).toUpperCase() + school.billing_cycle.slice(1) : 'N/A')}
+                          </span>
+                        </td>
+                        <td>
                           <button 
                             className="btn btn-outline" 
                             style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem', gap: '0.25rem' }}
                             onClick={() => {
                               setSelectedSchool(school);
                               setNewTier(school.subscription_tier || 'free');
+                              setNewBillingCycle(school.billing_cycle || 'annual');
                             }}
                           >
                             Manage Plan
@@ -330,21 +339,21 @@ export default function SuperAdminDashboard() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8125rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#111827' }} />
-                <span>Enterprise (₦1,200,000/yr)</span>
+                <span>Enterprise</span>
               </div>
               <span style={{ fontWeight: 600 }}>{enterpriseCount} schools</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8125rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#4f46e5' }} />
-                <span>Growth (₦450,000/yr)</span>
+                <span>Growth</span>
               </div>
               <span style={{ fontWeight: 600 }}>{growthCount} schools</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8125rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#6b7280' }} />
-                <span>Starter (₦150,000/yr)</span>
+                <span>Starter</span>
               </div>
               <span style={{ fontWeight: 600 }}>{starterCount} schools</span>
             </div>
@@ -386,9 +395,17 @@ export default function SuperAdminDashboard() {
                 disabled={isPending}
               >
                 <option value="free">Free Tier (10 students limit, 3 classes)</option>
-                <option value="starter">Starter Plan (50 students limit, 10 classes)</option>
+                <option value="starter">Starter Plan (100 students limit, 10 classes)</option>
                 <option value="growth">Growth Plan (500 students limit, 40 classes)</option>
                 <option value="enterprise">Enterprise Plan (Unlimited students/classes)</option>
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Billing Cycle</label>
+              <select className="input" value={newBillingCycle} onChange={(e) => setNewBillingCycle(e.target.value)} disabled={isPending}>
+                <option value="monthly">Monthly</option>
+                <option value="annual">Annual</option>
               </select>
             </div>
 
