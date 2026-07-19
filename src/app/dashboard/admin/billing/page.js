@@ -1,7 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useTransition } from 'react';
-import Script from 'next/script';
+import React, { useState, useEffect, useTransition, useCallback } from 'react';
 import { createClient } from '@/lib/supabaseClient';
 import { 
   CreditCard, 
@@ -34,6 +33,25 @@ export default function AdminBillingPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [processingTier, setProcessingTier] = useState(null);
+  const [paystackReady, setPaystackReady] = useState(false);
+
+  // Load Paystack Inline script on mount
+  useEffect(() => {
+    if (window.PaystackPop) {
+      setPaystackReady(true);
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = 'https://js.paystack.co/v2/inline.js';
+    script.async = true;
+    script.onload = () => setPaystackReady(true);
+    script.onerror = () => console.error('Failed to load Paystack script');
+    document.head.appendChild(script);
+    return () => {
+      // Cleanup only if we added it
+      if (document.head.contains(script)) document.head.removeChild(script);
+    };
+  }, []);
 
   // Check for payment callback status in URL
   useEffect(() => {
@@ -130,27 +148,47 @@ export default function AdminBillingPage() {
         return;
       }
 
-      // Redirect to Paystack checkout using Inline Popup
+      // Open Paystack checkout using Inline Popup
       if (data.access_code) {
-        const popup = new window.PaystackPop();
-        popup.resumeTransaction(data.access_code, {
-          onSuccess: function(response) {
-            // Success! Safely redirect to our verifier using standard local navigation
-            window.location.href = `/api/paystack/verify?reference=${response.reference}`;
-          },
-          onCancel: function() {
+        if (!window.PaystackPop) {
+          setError('Payment system is still loading. Please wait a moment and try again.');
+          setProcessingTier(null);
+          return;
+        }
+        try {
+          const popup = new window.PaystackPop();
+          popup.resumeTransaction(data.access_code, {
+            onSuccess: function(res) {
+              window.location.href = `/api/paystack/verify?reference=${res.reference}`;
+            },
+            onCancel: function() {
+              setProcessingTier(null);
+              setError('Payment was cancelled.');
+            },
+            onError: function(err) {
+              console.error('Paystack popup error:', err);
+              setProcessingTier(null);
+              setError('Payment popup encountered an error. Please try again.');
+            }
+          });
+        } catch (popupErr) {
+          console.error('PaystackPop error:', popupErr);
+          // Fallback to redirect
+          if (data.authorization_url) {
+            window.location.href = data.authorization_url;
+          } else {
+            setError('Could not open payment popup. Please try again.');
             setProcessingTier(null);
-            setError('Payment was cancelled.');
           }
-        });
+        }
       } else if (data.authorization_url) {
-        // Fallback for older standard checkout format
         window.location.href = data.authorization_url;
       } else {
         setError('No payment URL received. Please try again.');
         setProcessingTier(null);
       }
     } catch (err) {
+      console.error('handleUpgrade error:', err);
       setError('Network error. Please check your connection and try again.');
       setProcessingTier(null);
     }
@@ -227,8 +265,6 @@ export default function AdminBillingPage() {
 
   return (
     <div className="animate-fade-in" style={{ paddingBottom: '3rem' }}>
-      <Script src="https://js.paystack.co/v1/inline.js" strategy="lazyOnload" />
-      
       <div className="page-header">
         <h1>Subscription & Billing</h1>
         <p>Monitor school capacity limits, upgrade plans, and manage platform invoices.</p>
