@@ -65,7 +65,7 @@ export async function POST(request) {
     // 6. Fetch school subscription state to detect upgrades
     const { data: school } = await supabase
       .from('schools')
-      .select('subscription_status, paystack_subscription_code, current_period_start, current_period_end')
+      .select('subscription_status, subscription_tier, paystack_subscription_code, current_period_start, current_period_end')
       .eq('id', profile.school_id)
       .single();
 
@@ -75,10 +75,10 @@ export async function POST(request) {
       billing_cycle: billingCycle,
     };
 
-    // If they already have an active subscription, flag this as an upgrade for prorated refund later
-    if (school && school.subscription_status === 'active' && school.paystack_subscription_code) {
+    // If they already have an active paid subscription, flag this as an upgrade for prorated refund later
+    if (school && school.subscription_status === 'active' && school.subscription_tier && school.subscription_tier !== 'free' && school.current_period_start && school.current_period_end) {
       metadata.is_upgrade = true;
-      metadata.old_subscription_code = school.paystack_subscription_code;
+      metadata.old_subscription_code = school.paystack_subscription_code || null;
       metadata.old_period_start = school.current_period_start;
       metadata.old_period_end = school.current_period_end;
     }

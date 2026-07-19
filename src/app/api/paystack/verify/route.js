@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabaseAdmin';
-import { verifyTransaction, calculatePeriodEnd, PLAN_LIMITS } from '@/lib/paystackClient';
+import { verifyTransaction, calculatePeriodEnd, PLAN_LIMITS, refundTransaction, fetchSubscription, disableSubscription } from '@/lib/paystackClient';
 
 /**
  * GET /api/paystack/verify?trxref=xxx&reference=xxx
  * 
  * Called when the user is redirected back from Paystack after payment.
- * Verifies the transaction, activates the subscription, and redirects
- * to the billing dashboard with a status indicator.
+ * Verifies the transaction, activates the subscription, processes
+ * prorated refunds for upgrades, and redirects to the billing dashboard.
  */
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
@@ -52,7 +52,29 @@ export async function GET(request) {
     const now = new Date();
     const periodEnd = calculatePeriodEnd(billingCycle);
 
-    // 4. Activate subscription on the school record
+    // 4. BEFORE activating the new plan, capture the old payment for refund calculation
+    //    We must do this before inserting the new payment, otherwise we'd refund the wrong one.
+    let oldPaymentRef = null;
+    let oldPaymentAmount = null;
+
+    if (metadata.is_upgrade && metadata.old_period_start && metadata.old_period_end) {
+      const { data: previousPayment } = await adminClient
+        .from('payment_history')
+        .select('paystack_reference, amount')
+        .eq('school_id', schoolId)
+        .eq('status', 'success')
+        .neq('paystack_reference', reference) // Exclude the current transaction
+        .order('paid_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (previousPayment && previousPayment.amount) {
+        oldPaymentRef = previousPayment.paystack_reference;
+        oldPaymentAmount = previousPayment.amount;
+      }
+    }
+
+    // 5. Activate subscription on the school record
     const { error: updateError } = await adminClient
       .from('schools')
       .update({
@@ -74,7 +96,7 @@ export async function GET(request) {
       );
     }
 
-    // 5. Record payment in history (idempotent — ignore duplicate reference)
+    // 6. Record payment in history (idempotent — ignore duplicate reference)
     await adminClient
       .from('payment_history')
       .upsert({
@@ -98,7 +120,39 @@ export async function GET(request) {
         },
       }, { onConflict: 'paystack_reference' });
 
-    // 6. Redirect to billing with success
+    // 7. Process Prorated Refund for Upgrades
+    if (metadata.is_upgrade && oldPaymentRef && oldPaymentAmount) {
+      try {
+        const start = new Date(metadata.old_period_start).getTime();
+        const end = new Date(metadata.old_period_end).getTime();
+        const nowMs = now.getTime();
+
+        if (nowMs < end && start < end) {
+          const totalDuration = end - start;
+          const unusedDuration = end - nowMs;
+          const unusedRatio = unusedDuration / totalDuration;
+          const refundAmountKobo = Math.floor(oldPaymentAmount * unusedRatio);
+
+          if (refundAmountKobo > 10000) { // Only refund if > ₦100
+            console.log(`Processing partial refund of ₦${refundAmountKobo / 100} for school ${schoolId}`);
+            await refundTransaction(oldPaymentRef, refundAmountKobo);
+          }
+        }
+
+        // Disable the old subscription to prevent double billing
+        if (metadata.old_subscription_code) {
+          const oldSub = await fetchSubscription(metadata.old_subscription_code);
+          if (oldSub && oldSub.email_token) {
+            await disableSubscription(metadata.old_subscription_code, oldSub.email_token);
+          }
+        }
+      } catch (refundErr) {
+        // Log but don't fail the upgrade — the subscription is already active
+        console.error('Upgrade proration error (non-fatal):', refundErr);
+      }
+    }
+
+    // 8. Redirect to billing with success
     return NextResponse.redirect(
       new URL(`/dashboard/admin/billing?payment=success&tier=${tier}&cycle=${billingCycle}`, request.url)
     );
