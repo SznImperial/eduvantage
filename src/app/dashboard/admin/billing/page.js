@@ -23,6 +23,7 @@ import {
 export default function AdminBillingPage() {
   const supabase = createClient();
   const [school, setSchool] = useState(null);
+  const [userEmail, setUserEmail] = useState('');
   const [studentCount, setStudentCount] = useState(0);
   const [classCount, setClassCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -57,6 +58,7 @@ export default function AdminBillingPage() {
     // 1. Get user profile school ID
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
+    setUserEmail(user.email);
 
     const { data: profile } = await supabase
       .from('profiles')
@@ -132,6 +134,7 @@ export default function AdminBillingPage() {
       if (data.access_code) {
         const handler = window.PaystackPop.setup({
           key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
+          email: userEmail,
           access_code: data.access_code,
           onClose: function() {
             setProcessingTier(null);
