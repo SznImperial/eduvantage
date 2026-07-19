@@ -132,20 +132,17 @@ export default function AdminBillingPage() {
 
       // Redirect to Paystack checkout using Inline Popup
       if (data.access_code) {
-        const handler = window.PaystackPop.setup({
-          key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
-          email: userEmail,
-          access_code: data.access_code,
-          onClose: function() {
-            setProcessingTier(null);
-            setError('Payment was cancelled.');
-          },
-          callback: function(response) {
+        const popup = new window.PaystackPop();
+        popup.resumeTransaction(data.access_code, {
+          onSuccess: function(response) {
             // Success! Safely redirect to our verifier using standard local navigation
             window.location.href = `/api/paystack/verify?reference=${response.reference}`;
+          },
+          onCancel: function() {
+            setProcessingTier(null);
+            setError('Payment was cancelled.');
           }
         });
-        handler.openIframe();
       } else if (data.authorization_url) {
         // Fallback for older standard checkout format
         window.location.href = data.authorization_url;
