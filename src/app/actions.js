@@ -88,6 +88,7 @@ export async function signUpSchool(prevState, formData) {
   const email = formData.get('email');
   const password = formData.get('password');
   const tier = formData.get('subscriptionTier') || 'free';
+  const cycle = formData.get('billingCycle') || 'annual';
 
   if (!schoolName || !slug || !firstName || !lastName || !email || !password) {
     return { error: 'All fields are required.' };
@@ -129,7 +130,7 @@ export async function signUpSchool(prevState, formData) {
     .insert([{ 
       name: schoolName, 
       slug,
-      subscription_tier: tier,
+      subscription_tier: 'free', // Always start as free until payment is verified
       subscription_status: status,
       max_student_limit: maxStudentLimit,
       max_class_limit: maxClassLimit
@@ -166,7 +167,7 @@ export async function signUpSchool(prevState, formData) {
     return { error: getFriendlyError(profileError) };
   }
 
-  return { success: true, schoolId: schoolData.id, email, tier };
+  return { success: true, schoolId: schoolData.id, email, tier, cycle };
 }
 
 // Lockout Configuration Constants

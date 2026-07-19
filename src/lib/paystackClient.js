@@ -33,6 +33,24 @@ export const PLAN_PRICING = {
 };
 
 /**
+ * Plan codes mapped to environment variables (created via Paystack API)
+ */
+export const PLAN_CODES = {
+  starter: {
+    annual: process.env.PAYSTACK_PLAN_STARTER_ANNUAL,
+    monthly: process.env.PAYSTACK_PLAN_STARTER_MONTHLY,
+  },
+  growth: {
+    annual: process.env.PAYSTACK_PLAN_GROWTH_ANNUAL,
+    monthly: process.env.PAYSTACK_PLAN_GROWTH_MONTHLY,
+  },
+  enterprise: {
+    annual: process.env.PAYSTACK_PLAN_ENTERPRISE_ANNUAL,
+    monthly: process.env.PAYSTACK_PLAN_ENTERPRISE_MONTHLY,
+  },
+};
+
+/**
  * Plan limits configuration for reference.
  */
 export const PLAN_LIMITS = {
@@ -78,7 +96,16 @@ async function paystackRequest(method, path, body = null) {
  * @returns {object} { authorization_url, access_code, reference }
  */
 export async function initializeTransaction(email, amountKobo, metadata, callbackUrl) {
-  const data = await paystackRequest('POST', '/transaction/initialize', {
+  // Determine plan code based on tier and billing cycle to enable auto-renew
+  let planCode = undefined;
+  if (metadata && metadata.tier && metadata.billing_cycle) {
+    const tierCodes = PLAN_CODES[metadata.tier];
+    if (tierCodes) {
+      planCode = tierCodes[metadata.billing_cycle];
+    }
+  }
+
+  const payload = {
     email,
     amount: amountKobo,
     callback_url: callbackUrl,
@@ -91,8 +118,52 @@ export async function initializeTransaction(email, amountKobo, metadata, callbac
       ]
     },
     channels: ['card', 'bank', 'ussd', 'bank_transfer'],
-  });
+  };
 
+  if (planCode) {
+    payload.plan = planCode;
+  }
+
+  const data = await paystackRequest('POST', '/transaction/initialize', payload);
+
+  return data.data;
+}
+
+/**
+ * Refund a transaction.
+ * @param {string} transaction - Transaction ID or reference
+ * @param {number} amountKobo - Amount in kobo to refund
+ * @returns {object} Response data
+ */
+export async function refundTransaction(transaction, amountKobo) {
+  const data = await paystackRequest('POST', '/refund', {
+    transaction,
+    amount: amountKobo,
+  });
+  return data.data;
+}
+
+/**
+ * Fetch a subscription by code.
+ * @param {string} code - The subscription code
+ * @returns {object} The subscription data (includes email_token)
+ */
+export async function fetchSubscription(code) {
+  const data = await paystackRequest('GET', `/subscription/${code}`);
+  return data.data;
+}
+
+/**
+ * Disable a Paystack subscription.
+ * @param {string} code - The subscription code
+ * @param {string} token - The email token for the subscription
+ * @returns {object} Response data
+ */
+export async function disableSubscription(code, token) {
+  const data = await paystackRequest('POST', '/subscription/disable', {
+    code,
+    token
+  });
   return data.data;
 }
 

@@ -194,7 +194,7 @@ export default function LandingPricing() {
               </ul>
 
               <Link 
-                href={`/register?plan=${plan.id}&cycle=${billingCycle}`} 
+                href="/register"
                 className={`btn ${plan.popular ? 'btn-primary' : 'btn-outline'}`}
                 style={{ width: '100%', marginTop: 'auto' }}
               >

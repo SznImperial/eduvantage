@@ -14,6 +14,8 @@ export default function RegisterPage() {
   const [success, setSuccess] = useState(false);
   const [isPending, startTransition] = useTransition();
 
+
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     setError('');
@@ -26,7 +28,11 @@ export default function RegisterPage() {
       if (result?.error) {
         setError(result.error);
       } else {
+
         setSuccess(true);
+        setTimeout(() => {
+          router.push('/dashboard');
+        }, 1500);
       }
     });
   };
@@ -42,6 +48,8 @@ export default function RegisterPage() {
         {success && <AlertBanner variant="success" message="School registered! Please check your email for a confirmation link." className="mb-lg" />}
 
         <form onSubmit={handleSubmit}>
+
+
           <div className="badge-pill mb-md">
             <span className="badge-number">1</span>
             School Details

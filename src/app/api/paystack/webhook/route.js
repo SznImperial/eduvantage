@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabaseAdmin';
-import { verifyWebhookSignature, calculatePeriodEnd, PLAN_LIMITS } from '@/lib/paystackClient';
+import { verifyWebhookSignature, calculatePeriodEnd, PLAN_LIMITS, refundTransaction, fetchSubscription, disableSubscription } from '@/lib/paystackClient';
 
 /**
  * POST /api/paystack/webhook
@@ -103,7 +103,6 @@ async function handleChargeSuccess(adminClient, data) {
       current_period_start: now.toISOString(),
       current_period_end: periodEnd.toISOString(),
       paystack_customer_code: data.customer?.customer_code || null,
-      paystack_authorization_code: data.authorization?.authorization_code || null,
     })
     .eq('id', schoolId);
 
@@ -130,6 +129,47 @@ async function handleChargeSuccess(adminClient, data) {
           gateway_response: data.gateway_response,
         },
       }, { onConflict: 'paystack_reference' });
+  }
+
+  // 4. Process Prorated Refund for Upgrades
+  if (metadata.is_upgrade && metadata.old_subscription_code && metadata.old_period_start && metadata.old_period_end) {
+    try {
+      // Find the most recent successful payment to refund
+      const { data: previousPayment } = await adminClient
+        .from('payment_history')
+        .select('paystack_reference, amount')
+        .eq('school_id', schoolId)
+        .eq('status', 'success')
+        .order('paid_at', { ascending: false })
+        .limit(1)
+        .single();
+      
+      if (previousPayment && previousPayment.amount) {
+        const start = new Date(metadata.old_period_start).getTime();
+        const end = new Date(metadata.old_period_end).getTime();
+        const nowMs = now.getTime();
+        
+        if (nowMs < end && start < end) {
+          const totalDuration = end - start;
+          const unusedDuration = end - nowMs;
+          const unusedRatio = unusedDuration / totalDuration;
+          const refundAmountKobo = Math.floor(previousPayment.amount * unusedRatio);
+          
+          if (refundAmountKobo > 10000) { // Only refund if > 100 NGN
+            console.log(`Processing partial refund of ${refundAmountKobo/100} NGN for school ${schoolId}`);
+            await refundTransaction(previousPayment.paystack_reference, refundAmountKobo);
+          }
+        }
+      }
+      
+      // Disable the old subscription to prevent double billing
+      const oldSub = await fetchSubscription(metadata.old_subscription_code);
+      if (oldSub && oldSub.email_token) {
+        await disableSubscription(metadata.old_subscription_code, oldSub.email_token);
+      }
+    } catch (err) {
+      console.error('Upgrade proration error:', err);
+    }
   }
 }
 

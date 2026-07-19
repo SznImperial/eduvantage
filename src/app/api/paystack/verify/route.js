@@ -64,7 +64,6 @@ export async function GET(request) {
         current_period_start: now.toISOString(),
         current_period_end: periodEnd.toISOString(),
         paystack_customer_code: transaction.customer?.customer_code || null,
-        paystack_authorization_code: transaction.authorization?.authorization_code || null,
       })
       .eq('id', schoolId);
 

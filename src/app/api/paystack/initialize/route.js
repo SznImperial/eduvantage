@@ -62,15 +62,32 @@ export async function POST(request) {
     const protocol = headersList.get('x-forwarded-proto') || 'http';
     const callbackUrl = `${protocol}://${host}/api/paystack/verify`;
 
-    // 6. Initialize Paystack transaction
+    // 6. Fetch school subscription state to detect upgrades
+    const { data: school } = await supabase
+      .from('schools')
+      .select('subscription_status, paystack_subscription_code, current_period_start, current_period_end')
+      .eq('id', profile.school_id)
+      .single();
+
+    const metadata = {
+      school_id: profile.school_id,
+      tier,
+      billing_cycle: billingCycle,
+    };
+
+    // If they already have an active subscription, flag this as an upgrade for prorated refund later
+    if (school && school.subscription_status === 'active' && school.paystack_subscription_code) {
+      metadata.is_upgrade = true;
+      metadata.old_subscription_code = school.paystack_subscription_code;
+      metadata.old_period_start = school.current_period_start;
+      metadata.old_period_end = school.current_period_end;
+    }
+
+    // 7. Initialize Paystack transaction
     const transaction = await initializeTransaction(
       profile.email || user.email,
       amountKobo,
-      {
-        school_id: profile.school_id,
-        tier,
-        billing_cycle: billingCycle,
-      },
+      metadata,
       callbackUrl
     );
 
