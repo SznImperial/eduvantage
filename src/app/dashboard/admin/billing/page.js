@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useTransition } from 'react';
+import Script from 'next/script';
 import { createClient } from '@/lib/supabaseClient';
 import { 
   CreditCard, 
@@ -127,8 +128,23 @@ export default function AdminBillingPage() {
         return;
       }
 
-      // Redirect to Paystack checkout
-      if (data.authorization_url) {
+      // Redirect to Paystack checkout using Inline Popup
+      if (data.access_code) {
+        const handler = window.PaystackPop.setup({
+          key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
+          access_code: data.access_code,
+          onClose: function() {
+            setProcessingTier(null);
+            setError('Payment was cancelled.');
+          },
+          callback: function(response) {
+            // Success! Safely redirect to our verifier using standard local navigation
+            window.location.href = `/api/paystack/verify?reference=${response.reference}`;
+          }
+        });
+        handler.openIframe();
+      } else if (data.authorization_url) {
+        // Fallback for older standard checkout format
         window.location.href = data.authorization_url;
       } else {
         setError('No payment URL received. Please try again.');
@@ -211,6 +227,8 @@ export default function AdminBillingPage() {
 
   return (
     <div className="animate-fade-in" style={{ paddingBottom: '3rem' }}>
+      <Script src="https://js.paystack.co/v1/inline.js" strategy="lazyOnload" />
+      
       <div className="page-header">
         <h1>Subscription & Billing</h1>
         <p>Monitor school capacity limits, upgrade plans, and manage platform invoices.</p>
