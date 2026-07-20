@@ -6,7 +6,6 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { logoutUser } from '@/app/actions';
 import {
-  GraduationCap,
   LayoutDashboard,
   Users,
   BookOpen,
@@ -21,7 +20,7 @@ import {
   CheckSquare,
   Menu,
   X,
-  Settings
+  Settings,
 } from 'lucide-react';
 
 export default function Sidebar({ role, schoolName, userName, userInitials }) {
@@ -29,7 +28,10 @@ export default function Sidebar({ role, schoolName, userName, userInitials }) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   function isActive(href) {
-    return pathname === href || (pathname.startsWith(href) && href !== '/dashboard');
+    if (href === '/dashboard') {
+      return pathname === '/dashboard';
+    }
+    return pathname === href || pathname.startsWith(`${href}/`);
   }
 
   function linkClass(href) {
@@ -40,192 +42,206 @@ export default function Sidebar({ role, schoolName, userName, userInitials }) {
     setMobileOpen(false);
   }
 
+  const roleLabel = {
+    super_admin: 'Super admin',
+    admin: 'Administrator',
+    teacher: 'Teacher',
+    student: 'Student',
+    parent: 'Parent',
+  }[role] || role;
+
   return (
     <>
-      {/* Mobile hamburger button */}
       <button
         className="mobile-menu-btn"
         onClick={() => setMobileOpen(true)}
         aria-label="Open navigation menu"
       >
-        <Menu size={24} />
+        <Menu size={20} />
       </button>
 
-      {/* Overlay backdrop */}
       <div
         className={`sidebar-overlay${mobileOpen ? ' open' : ''}`}
         onClick={() => setMobileOpen(false)}
+        aria-hidden={!mobileOpen}
       />
 
-      {/* Sidebar */}
       <aside className={`sidebar${mobileOpen ? ' mobile-open' : ''}`}>
         <div className="sidebar-header flex items-start justify-between">
           <div className="w-full overflow-hidden pr-xs">
-            <div className="nav-logo text-lg text-truncate flex items-center gap-2" title={schoolName}>
-              <Image src="/imperial-edu-logo.svg" alt="IMP3RIAL EDU Logo" width={48} height={48} className="shrink-0" />
-              <span className="font-extrabold">{schoolName}</span>
+            <div className="nav-logo text-truncate" title={schoolName}>
+              <Image
+                src="/imperial-edu-logo.svg"
+                alt=""
+                width={32}
+                height={32}
+                className="shrink-0"
+              />
+              <span className="text-sm font-bold text-truncate">{schoolName}</span>
             </div>
           </div>
 
-          {/* Close button for mobile */}
           <button
             className="mobile-menu-btn mt-xs"
             onClick={() => setMobileOpen(false)}
             aria-label="Close navigation menu"
           >
-            <X size={24} />
+            <X size={20} />
           </button>
         </div>
 
-        <nav className="sidebar-menu">
+        <nav className="sidebar-menu" aria-label="Main">
           <Link href="/dashboard" className={linkClass('/dashboard')} onClick={handleNavClick}>
-            <LayoutDashboard size={18} />
-            Dashboard Home
+            <LayoutDashboard size={17} strokeWidth={1.75} />
+            Overview
           </Link>
 
           {role === 'super_admin' && (
             <>
+              <div className="sidebar-section-label">Platform</div>
               <Link href="/dashboard/super-admin" className={linkClass('/dashboard/super-admin')} onClick={handleNavClick}>
-                <Layers size={18} />
-                SaaS Control Plane
+                <Layers size={17} strokeWidth={1.75} />
+                Control plane
               </Link>
             </>
           )}
 
           {role === 'admin' && (
             <>
+              <div className="sidebar-section-label">School</div>
               <Link href="/dashboard/admin/users" className={linkClass('/dashboard/admin/users')} onClick={handleNavClick}>
-                <Users size={18} />
-                User Accounts
+                <Users size={17} strokeWidth={1.75} />
+                Users
               </Link>
               <Link href="/dashboard/admin/classes" className={linkClass('/dashboard/admin/classes')} onClick={handleNavClick}>
-                <BookOpen size={18} />
-                Classes &amp; Subjects
+                <BookOpen size={17} strokeWidth={1.75} />
+                Classes &amp; subjects
               </Link>
               <Link href="/dashboard/admin/timetable" className={linkClass('/dashboard/admin/timetable')} onClick={handleNavClick}>
-                <Clock size={18} />
-                Timetable Builder
+                <Clock size={17} strokeWidth={1.75} />
+                Timetable
               </Link>
-              <Link href="/dashboard/admin/fees" className={linkClass('/dashboard/admin/fees')} onClick={handleNavClick}>
-                <CreditCard size={18} />
-                Student Fees
-              </Link>
+
+              <div className="sidebar-section-label">Academics</div>
               <Link href="/dashboard/admin/cbt" className={linkClass('/dashboard/admin/cbt')} onClick={handleNavClick}>
-                <Award size={18} />
-                CBT Audits
+                <Award size={17} strokeWidth={1.75} />
+                CBT audits
               </Link>
               <Link href="/dashboard/admin/broadsheet" className={linkClass('/dashboard/admin/broadsheet')} onClick={handleNavClick}>
-                <FileSpreadsheet size={18} />
-                Academic Broadsheet
+                <FileSpreadsheet size={17} strokeWidth={1.75} />
+                Broadsheet
               </Link>
               <Link href="/dashboard/admin/announcements" className={linkClass('/dashboard/admin/announcements')} onClick={handleNavClick}>
-                <Megaphone size={18} />
+                <Megaphone size={17} strokeWidth={1.75} />
                 Announcements
               </Link>
+
+              <div className="sidebar-section-label">Finance</div>
+              <Link href="/dashboard/admin/fees" className={linkClass('/dashboard/admin/fees')} onClick={handleNavClick}>
+                <CreditCard size={17} strokeWidth={1.75} />
+                Student fees
+              </Link>
               <Link href="/dashboard/admin/billing" className={linkClass('/dashboard/admin/billing')} onClick={handleNavClick}>
-                <CreditCard size={18} />
-                Billing &amp; Limits
+                <CreditCard size={17} strokeWidth={1.75} />
+                Billing
               </Link>
             </>
           )}
 
           {role === 'teacher' && (
             <>
+              <div className="sidebar-section-label">Classroom</div>
               <Link href="/dashboard/teacher/attendance" className={linkClass('/dashboard/teacher/attendance')} onClick={handleNavClick}>
-                <Calendar size={18} />
-                Daily Attendance
+                <Calendar size={17} strokeWidth={1.75} />
+                Attendance
               </Link>
               <Link href="/dashboard/teacher/assignments" className={linkClass('/dashboard/teacher/assignments')} onClick={handleNavClick}>
-                <CheckSquare size={18} />
-                Assignments Desk
+                <CheckSquare size={17} strokeWidth={1.75} />
+                Assignments
               </Link>
               <Link href="/dashboard/teacher/grades" className={linkClass('/dashboard/teacher/grades')} onClick={handleNavClick}>
-                <FileSpreadsheet size={18} />
-                Academic Grades
+                <FileSpreadsheet size={17} strokeWidth={1.75} />
+                Grades
               </Link>
               <Link href="/dashboard/teacher/cbt" className={linkClass('/dashboard/teacher/cbt')} onClick={handleNavClick}>
-                <Award size={18} />
-                CBT Exams
+                <Award size={17} strokeWidth={1.75} />
+                CBT exams
               </Link>
               <Link href="/dashboard/teacher/timetable" className={linkClass('/dashboard/teacher/timetable')} onClick={handleNavClick}>
-                <Clock size={18} />
-                My Timetable
+                <Clock size={17} strokeWidth={1.75} />
+                Timetable
               </Link>
             </>
           )}
 
           {role === 'parent' && (
             <>
+              <div className="sidebar-section-label">Family</div>
               <Link href="/dashboard/parent" className={linkClass('/dashboard/parent')} onClick={handleNavClick}>
-                <FileSpreadsheet size={18} />
-                Child Portal
+                <FileSpreadsheet size={17} strokeWidth={1.75} />
+                Child portal
               </Link>
             </>
           )}
 
           {role === 'student' && (
             <>
+              <div className="sidebar-section-label">My work</div>
               <Link href="/dashboard/student/grades" className={linkClass('/dashboard/student/grades')} onClick={handleNavClick}>
-                <FileSpreadsheet size={18} />
-                My Report Card
+                <FileSpreadsheet size={17} strokeWidth={1.75} />
+                Report card
               </Link>
               <Link href="/dashboard/student/assignments" className={linkClass('/dashboard/student/assignments')} onClick={handleNavClick}>
-                <CheckSquare size={18} />
-                My Assignments
+                <CheckSquare size={17} strokeWidth={1.75} />
+                Assignments
               </Link>
               <Link href="/dashboard/student/cbt" className={linkClass('/dashboard/student/cbt')} onClick={handleNavClick}>
-                <Award size={18} />
-                CBT Lobby
+                <Award size={17} strokeWidth={1.75} />
+                CBT exams
               </Link>
               <Link href="/dashboard/student/timetable" className={linkClass('/dashboard/student/timetable')} onClick={handleNavClick}>
-                <Clock size={18} />
-                My Timetable
+                <Clock size={17} strokeWidth={1.75} />
+                Timetable
               </Link>
               <Link href="/dashboard/student/attendance" className={linkClass('/dashboard/student/attendance')} onClick={handleNavClick}>
-                <Calendar size={18} />
-                My Attendance
+                <Calendar size={17} strokeWidth={1.75} />
+                Attendance
               </Link>
               <Link href="/dashboard/student/fees" className={linkClass('/dashboard/student/fees')} onClick={handleNavClick}>
-                <CreditCard size={18} />
-                My Fees
+                <CreditCard size={17} strokeWidth={1.75} />
+                Fees
               </Link>
             </>
           )}
 
+          <div className="sidebar-section-label">Account</div>
           <Link href="/dashboard/settings" className={linkClass('/dashboard/settings')} onClick={handleNavClick}>
-            <Settings size={18} />
-            Account Settings
+            <Settings size={17} strokeWidth={1.75} />
+            Settings
           </Link>
         </nav>
 
-        {/* User profile section */}
-        <div className="mt-auto pt-lg border-b">
-          <div className="flex items-center gap-sm mb-md px-xs">
-            {/* Gradient ring avatar */}
-            <div className="auth-card-icon rounded-full shrink-0 p-0.5 w-10 h-10 mb-0">
-              <div className="w-full h-full flex items-center justify-center font-bold text-xs bg-card text-primary rounded-full tracking-tight">
-                {userInitials}
-              </div>
+        <div className="sidebar-footer">
+          <div className="sidebar-user">
+            <div className="sidebar-avatar" aria-hidden="true">
+              {userInitials}
             </div>
             <div className="overflow-hidden min-w-0">
               <div className="text-sm font-bold text-foreground text-truncate leading-tight">
                 {userName}
               </div>
-              <div className="text-xs font-medium text-muted capitalize tracking-wide">
-                {role}
+              <div className="text-xs text-muted">
+                {roleLabel}
               </div>
             </div>
           </div>
 
           <form action={logoutUser}>
-            <button className="btn btn-ghost w-full justify-start gap-sm">
-              <LogOut size={18} />
-              Sign Out
+            <button type="submit" className="btn btn-ghost w-full justify-start gap-sm">
+              <LogOut size={16} strokeWidth={1.75} />
+              Sign out
             </button>
           </form>
-          <div className="text-center text-xs text-muted mt-lg opacity-70 tracking-wide">
-            Powered by IMP3RIAL EDU
-          </div>
         </div>
       </aside>
     </>

@@ -44,7 +44,7 @@ export default function RootLayout({ children }) {
           }}
         />
       </head>
-      <body>
+      <body className={inter.className}>
         <ToastProvider>
           {children}
         </ToastProvider>

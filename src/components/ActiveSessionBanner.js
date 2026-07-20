@@ -11,7 +11,7 @@ export default function ActiveSessionBanner({ role }) {
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    async function fetch() {
+    async function fetchSession() {
       const { data } = await supabase
         .from('academic_years')
         .select('name, start_date, end_date')
@@ -20,7 +20,8 @@ export default function ActiveSessionBanner({ role }) {
       setSession(data);
       setLoaded(true);
     }
-    fetch();
+    fetchSession();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (!loaded) return null;
@@ -32,23 +33,12 @@ export default function ActiveSessionBanner({ role }) {
 
   if (!session) {
     return (
-      <div style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: '0.5rem',
-        padding: '0.3rem 0.75rem',
-        borderRadius: '9999px',
-        fontSize: '0.75rem',
-        fontWeight: 650,
-        backgroundColor: 'hsl(40 90% 95%)',
-        color: 'hsl(35 80% 35%)',
-        border: '1px solid hsl(40 70% 85%)',
-      }}>
-        <AlertTriangle size={13} />
-        <span>No Active Session</span>
+      <div className="session-chip session-chip-warn">
+        <AlertTriangle size={12} strokeWidth={2} />
+        <span>No active session</span>
         {role === 'admin' && (
-          <Link href="/dashboard/admin/classes" style={{ color: 'hsl(var(--primary))', fontWeight: 700, marginLeft: '0.25rem' }}>
-            Set up now →
+          <Link href="/dashboard/admin/classes" className="text-primary font-bold">
+            Set up →
           </Link>
         )}
       </div>
@@ -56,22 +46,17 @@ export default function ActiveSessionBanner({ role }) {
   }
 
   return (
-    <div style={{
-      display: 'inline-flex',
-      alignItems: 'center',
-      gap: '0.4rem',
-      padding: '0.3rem 0.75rem',
-      borderRadius: '9999px',
-      fontSize: '0.725rem',
-      fontWeight: 650,
-      backgroundColor: 'hsl(var(--primary) / 0.08)',
-      color: 'hsl(var(--primary))',
-      border: '1px solid hsl(var(--primary) / 0.15)',
-    }}>
-      <Calendar size={12} />
+    <div className="session-chip">
+      <Calendar size={12} strokeWidth={1.75} />
       <span>{session.name}</span>
-      <span style={{ opacity: 0.5 }}>•</span>
-      <span style={{ fontWeight: 550 }}>{formatDate(session.start_date)} – {formatDate(session.end_date)}</span>
+      {(session.start_date || session.end_date) && (
+        <>
+          <span className="session-chip-muted">·</span>
+          <span className="session-chip-muted">
+            {formatDate(session.start_date)} – {formatDate(session.end_date)}
+          </span>
+        </>
+      )}
     </div>
   );
 }

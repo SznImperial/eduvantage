@@ -4,20 +4,23 @@ import { ShieldCheck, UserCheck, BarChart3, Users } from 'lucide-react';
 export default function UserPortals() {
   const portals = [
     {
-      text: "Administrators manage academic cycles, configure courses, track tuition billings, and register staff.",
+      title: 'Administrators',
+      text: 'Manage academic cycles, configure courses, track tuition billing, and register staff.',
       icon: UserCheck,
-      colorClass: "stat-icon-indigo"
+      colorClass: 'stat-icon-indigo',
     },
     {
-      text: "Teachers record daily attendance, manage grade sheets, post assignments, and print term sheets in seconds.",
+      title: 'Teachers',
+      text: 'Record attendance, manage grade sheets, post assignments, and publish term results.',
       icon: BarChart3,
-      colorClass: "stat-icon-violet"
+      colorClass: 'stat-icon-violet',
     },
     {
-      text: "Students & Parents access report cards, check attendance summaries, and stay aligned with course progress.",
+      title: 'Students & parents',
+      text: 'Access report cards, review attendance, and stay aligned with course progress.',
       icon: Users,
-      colorClass: "stat-icon-emerald"
-    }
+      colorClass: 'stat-icon-emerald',
+    },
   ];
 
   return (
@@ -26,40 +29,45 @@ export default function UserPortals() {
         <div className="grid-auto-fit-lg items-center">
           <div>
             <h2 className="text-section-title-md mb-lg">
-              Tailored portals for every stakeholder
+              Portals tailored to every role
             </h2>
-            <div className="flex flex-col gap-lg">
-              {portals.map((portal, idx) => (
-                <div key={idx} className="flex gap-md items-center">
+            <div className="flex flex-col">
+              {portals.map((portal) => (
+                <div key={portal.title} className="portal-row">
                   <div className={`stat-icon ${portal.colorClass}`}>
-                    <portal.icon size={18} />
+                    <portal.icon size={18} strokeWidth={1.75} />
                   </div>
-                  <span className="text-sm-medium">{portal.text}</span>
+                  <div>
+                    <h3 className="text-sm font-bold mb-xs">{portal.title}</h3>
+                    <p>{portal.text}</p>
+                  </div>
                 </div>
               ))}
             </div>
           </div>
 
-          <div id="security" className="card glass-panel">
+          <div id="security" className="card">
             <h3 className="text-sm-medium font-bold mb-md flex items-center gap-sm">
-              <ShieldCheck size={20} style={{ color: 'hsl(var(--primary))' }} /> School Safety & Trust
+              <ShieldCheck size={18} className="text-primary" strokeWidth={1.75} />
+              Safety &amp; trust
             </h3>
-            <div className="flex flex-col gap-sm my-sm">
-              <div className="flex justify-between py-sm border-b">
-                <span className="font-medium text-foreground">Student Record Privacy</span>
-                <span className="text-muted">Only authorized views</span>
+            <div className="flex flex-col">
+              <div className="security-row">
+                <span className="font-medium text-foreground text-sm">Student record privacy</span>
+                <span className="text-muted text-xs">Authorized access only</span>
               </div>
-              <div className="flex justify-between py-sm border-b">
-                <span className="font-medium text-foreground">Safe Invoicing & Fees</span>
-                <span className="text-muted">Bank-level encryption</span>
+              <div className="security-row">
+                <span className="font-medium text-foreground text-sm">Fees &amp; invoicing</span>
+                <span className="text-muted text-xs">Encrypted payments</span>
               </div>
-              <div className="flex justify-between py-sm">
-                <span className="font-medium text-foreground">Daily Automatic Backups</span>
-                <span className="text-muted">Zero risk of score loss</span>
+              <div className="security-row">
+                <span className="font-medium text-foreground text-sm">Daily backups</span>
+                <span className="text-muted text-xs">Protected academic data</span>
               </div>
             </div>
-            <p className="text-xs mt-md text-muted" style={{ lineHeight: '1.6' }}>
-              We protect your school's records like a bank protects accounts. Grades, student profiles, and billing logs are kept private, locked from outsiders, and backed up automatically every single night.
+            <p className="text-xs mt-md text-muted leading-relaxed">
+              Grades, profiles, and billing logs stay private to your school, locked from outsiders,
+              and backed up automatically every night.
             </p>
           </div>
         </div>

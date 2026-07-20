@@ -580,14 +580,6 @@ export async function createAcademicYearAction(name, startDate, endDate) {
 
     if (error) return { error: getFriendlyError(error) };
 
-    // Create default terms for the new year
-    const terms = [
-      { school_id: schoolId, academic_year_id: yearData.id, name: '1st Term' },
-      { school_id: schoolId, academic_year_id: yearData.id, name: '2nd Term' },
-      { school_id: schoolId, academic_year_id: yearData.id, name: '3rd Term' }
-    ];
-    await supabase.from('academic_terms').insert(terms);
-
     return { success: true };
   } catch (err) {
     return { error: getFriendlyError(err) };
@@ -636,6 +628,30 @@ export async function createClassAction(name, gradeLevel) {
 
     if (error) return { error: getFriendlyError(error) };
     if (rpcData && !rpcData.success) return { error: rpcData.error };
+    return { success: true };
+  } catch (err) {
+    return { error: getFriendlyError(err) };
+  }
+}
+
+/**
+ * Deletes a Class section. Admin only.
+ * Cascading deletes handle class_subjects, enrollments, and attendance automatically.
+ */
+export async function deleteClassAction(classId) {
+  try {
+    const { supabase, schoolId, role } = await getAuthContext();
+    if (role !== 'admin' && role !== 'super_admin') return { error: 'Unauthorized.' };
+
+    await verifyTenantOwnership([{ table: 'classes', id: classId }], schoolId, supabase);
+
+    const { error } = await supabase
+      .from('classes')
+      .delete()
+      .eq('id', classId)
+      .eq('school_id', schoolId);
+
+    if (error) return { error: getFriendlyError(error) };
     return { success: true };
   } catch (err) {
     return { error: getFriendlyError(err) };

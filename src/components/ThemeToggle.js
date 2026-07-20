@@ -7,7 +7,6 @@ export default function ThemeToggle() {
   const [theme, setTheme] = useState('light');
 
   useEffect(() => {
-    // Read the current attribute value set by our non-blocking script
     const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
     setTheme(currentTheme);
   }, []);
@@ -21,33 +20,12 @@ export default function ThemeToggle() {
 
   return (
     <button
+      type="button"
       onClick={toggleTheme}
-      style={{
-        padding: '0.5rem',
-        borderRadius: '12px',
-        width: '38px',
-        height: '38px',
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        border: '1.5px solid hsl(var(--border))',
-        backgroundColor: 'hsl(var(--card))',
-        cursor: 'pointer',
-        color: 'hsl(var(--muted-foreground))',
-        transition: 'all 0.2s ease',
-        outline: 'none'
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = 'hsl(var(--muted-foreground) / 0.3)';
-        e.currentTarget.style.color = 'hsl(var(--foreground))';
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.borderColor = 'hsl(var(--border))';
-        e.currentTarget.style.color = 'hsl(var(--muted-foreground))';
-      }}
-      aria-label="Toggle theme"
+      className="theme-toggle"
+      aria-label={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
     >
-      {theme === 'light' ? <Moon size={17} /> : <Sun size={17} />}
+      {theme === 'light' ? <Moon size={16} strokeWidth={1.75} /> : <Sun size={16} strokeWidth={1.75} />}
     </button>
   );
 }

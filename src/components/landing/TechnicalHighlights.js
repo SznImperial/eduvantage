@@ -1,82 +1,82 @@
 import React from 'react';
 import FeatureCard from './FeatureCard';
-import { Database, LayoutGrid, CheckCircle2, Award, Calendar, CreditCard, Laptop } from 'lucide-react';
+import { Database, CheckCircle2, Award, Calendar, CreditCard, Laptop } from 'lucide-react';
 
 export default function TechnicalHighlights() {
   const features = [
     {
-      title: "Academic Grading System",
-      description: "Automate exam and test records, compute class rankings, and compile report cards instantly.",
+      title: 'Academic grading',
+      description: 'Record exams and continuous assessment, compute rankings, and compile report cards.',
       icon: Award,
-      colorClass: "stat-icon-indigo",
-      animationClass: "stagger-1",
+      colorClass: 'stat-icon-indigo',
+      animationClass: 'stagger-1',
       bullets: [
-        "One-click term sheet compilation",
-        "Subject grade-weight configurations",
-        "Student transcript track records"
-      ]
+        'Term sheet compilation',
+        'Subject weight configuration',
+        'Student transcript history',
+      ],
     },
     {
-      title: "Real-time Attendance Logs",
-      description: "Ditch manual sheets with our digital classroom checks and check-in rosters.",
+      title: 'Attendance tracking',
+      description: 'Replace paper registers with digital classroom rolls and monthly summaries.',
       icon: CheckCircle2,
-      colorClass: "stat-icon-emerald",
-      animationClass: "stagger-2",
+      colorClass: 'stat-icon-emerald',
+      animationClass: 'stagger-2',
       bullets: [
-        "Daily digital attendance rolls",
-        "Monthly attendance statistics",
-        "Absent indicators & logs"
-      ]
+        'Daily digital attendance',
+        'Monthly attendance stats',
+        'Absence indicators & logs',
+      ],
     },
     {
-      title: "Computer-Based Testing (CBT)",
-      description: "Administer online exams directly inside portals with secure immediate scoring.",
+      title: 'Computer-based testing',
+      description: 'Create, schedule, and score online exams inside the student portal.',
       icon: Laptop,
-      colorClass: "stat-icon-violet",
-      animationClass: "stagger-3",
-      tag: "Active Module",
+      colorClass: 'stat-icon-violet',
+      animationClass: 'stagger-3',
+      tag: 'Included',
       bullets: [
-        "Online exam creator & scheduling",
-        "Immediate auto-grading scores",
-        "Interactive test candidate portal"
-      ]
+        'Exam builder & scheduling',
+        'Automatic scoring',
+        'Candidate exam lobby',
+      ],
     },
     {
-      title: "Tuition & Fees Dashboard",
-      description: "Invoice classes, track student payments, and generate transaction summaries.",
+      title: 'Tuition & fees',
+      description: 'Invoice by class, track payments, and review collection progress.',
       icon: CreditCard,
-      colorClass: "stat-icon-amber",
-      animationClass: "stagger-1",
+      colorClass: 'stat-icon-amber',
+      animationClass: 'stagger-1',
       bullets: [
-        "Class-based tuition invoicing",
-        "Pending balance notifications",
-        "Income stats & collections ledger"
-      ]
+        'Class-based invoicing',
+        'Outstanding balance tracking',
+        'Collections overview',
+      ],
     },
     {
-      title: "Class Schedules & Planner",
-      description: "Plan campus timetables, select courses, and outline teacher work hours.",
+      title: 'Timetable planner',
+      description: 'Build campus schedules, assign subjects, and coordinate teacher hours.',
       icon: Calendar,
-      colorClass: "stat-icon-rose",
-      animationClass: "stagger-2",
+      colorClass: 'stat-icon-rose',
+      animationClass: 'stagger-2',
       bullets: [
-        "Interactive timetable editor",
-        "Subject-to-classroom mapping",
-        "Teacher assignment planners"
-      ]
+        'Interactive timetable editor',
+        'Subject-to-class mapping',
+        'Teacher assignment views',
+      ],
     },
     {
-      title: "Institutional-Grade Privacy",
-      description: "Keep records secure with isolated databases and automated daily backups.",
+      title: 'Institutional privacy',
+      description: 'Keep records isolated per school with role-based access and regular backups.',
       icon: Database,
-      colorClass: "stat-icon-indigo",
-      animationClass: "stagger-3",
+      colorClass: 'stat-icon-indigo',
+      animationClass: 'stagger-3',
       bullets: [
-        "Supabase Row-Level Security (RLS)",
-        "Daily automated database backups",
-        "Role-based privilege permissions"
-      ]
-    }
+        'Row-level data isolation',
+        'Daily database backups',
+        'Role-based permissions',
+      ],
+    },
   ];
 
   return (
@@ -84,16 +84,16 @@ export default function TechnicalHighlights() {
       <div className="container">
         <div className="text-center mb-3xl">
           <h2 className="text-section-title mb-sm">
-            Everything your school needs, in one portal
+            Everything your school needs in one place
           </h2>
           <p className="text-section-subtitle max-w-subtitle mx-auto">
-            A comprehensive suite of academic tools designed to save time, eliminate paper clutter, and keep student records safe.
+            Academic tools designed to reduce paperwork, save staff time, and keep student records secure.
           </p>
         </div>
 
         <div className="grid-auto-fit">
-          {features.map((feature, index) => (
-            <FeatureCard key={index} {...feature} />
+          {features.map((feature) => (
+            <FeatureCard key={feature.title} {...feature} />
           ))}
         </div>
       </div>

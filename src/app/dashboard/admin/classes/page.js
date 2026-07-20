@@ -2,10 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabaseClient';
-import { BookOpen, Calendar, Plus, Users, Library, Award, CheckCircle2, ShieldAlert } from 'lucide-react';
+import { BookOpen, Calendar, Plus, Users, Library, Award, CheckCircle2, ShieldAlert, Trash2 } from 'lucide-react';
 import { 
   createAcademicYearAction, 
   createClassAction, 
+  deleteClassAction,
   createSubjectAction, 
   allocateCourseAction, 
   enrollStudentAction,
@@ -365,6 +366,7 @@ export default function AdminClassesPage() {
                       <tr>
                         <th>Class Name</th>
                         <th>Grade Level</th>
+                        <th style={{ width: '80px', textAlign: 'center' }}>Actions</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -372,6 +374,27 @@ export default function AdminClassesPage() {
                         <tr key={cls.id}>
                           <td style={{ fontWeight: 600 }}>{cls.name}</td>
                           <td>Grade {cls.grade_level}</td>
+                          <td style={{ textAlign: 'center' }}>
+                            <button
+                              className="btn btn-ghost"
+                              style={{ padding: '0.25rem 0.5rem', color: 'hsl(var(--destructive, 0 84% 60%))' }}
+                              title="Delete class"
+                              onClick={async () => {
+                                if (!window.confirm(`Are you sure you want to delete "${cls.name}"? This will also remove all enrollments, subjects, and attendance records for this class.`)) return;
+                                setError('');
+                                setSuccess('');
+                                const res = await deleteClassAction(cls.id);
+                                if (res?.error) {
+                                  setError(res.error);
+                                } else {
+                                  setSuccess(`Class "${cls.name}" deleted successfully.`);
+                                  fetchData();
+                                }
+                              }}
+                            >
+                              <Trash2 size={15} />
+                            </button>
+                          </td>
                         </tr>
                       ))}
                     </tbody>
