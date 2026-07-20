@@ -71,7 +71,7 @@ export default function LandingFooter() {
         </div>
 
         <div className="footer-bottom">
-          <p>© {new Date().getFullYear()} IMP3RIAL EDU. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Imp3rial.dev. All rights reserved.</p>
           <div className="footer-bottom-links">
             <a href="#" className="text-muted text-xs">Security</a>
             <a href="#" className="text-muted text-xs">Status</a>
