@@ -17,28 +17,24 @@ export default function StudentGradesPage() {
   const [loadingGrades, setLoadingGrades] = useState(false);
   const [error, setError] = useState('');
 
-  // Fetch initial academic years
+  // Fetch initial academic years and terms
   useEffect(() => {
     const fetchYears = async () => {
       setLoading(true);
       const { data: years, error: yErr } = await supabase
         .from('academic_years')
-        .select(`id, name, is_active, academic_terms(id, name, is_active)`)
-        .order('start_date', { ascending: false });
+        .select('*, academic_terms(*)')
+        .order('name', { ascending: false });
 
       if (!yErr && years) {
         setAcademicYears(years);
-        const active = years.find(y => y.is_active);
+        const active = years.find(y => y.is_active) || years[0];
         if (active) {
           setSelectedYearId(active.id);
-          setAcademicTerms(active.academic_terms || []);
-          const activeTerm = (active.academic_terms || []).find(t => t.is_active);
-          if (activeTerm) setSelectedTermId(activeTerm.id);
-          else if (active.academic_terms?.length > 0) setSelectedTermId(active.academic_terms[0].id);
-        } else if (years.length > 0) {
-          setSelectedYearId(years[0].id);
-          setAcademicTerms(years[0].academic_terms || []);
-          if (years[0].academic_terms?.length > 0) setSelectedTermId(years[0].academic_terms[0].id);
+          if (active.academic_terms?.length > 0) {
+            setAcademicTerms(active.academic_terms);
+            setSelectedTermId(active.academic_terms[0].id);
+          }
         }
       }
       setLoading(false);
@@ -47,6 +43,7 @@ export default function StudentGradesPage() {
     fetchYears();
   }, [supabase]);
 
+  // Handle Year Change
   const handleYearChange = (yearId) => {
     setSelectedYearId(yearId);
     const year = academicYears.find(y => y.id === yearId);
@@ -152,7 +149,9 @@ export default function StudentGradesPage() {
               value={selectedTermId} 
               onChange={(e) => setSelectedTermId(e.target.value)}
               style={{ margin: 0 }}
+              disabled={academicTerms.length === 0}
             >
+              <option value="">Select term...</option>
               {academicTerms.map(t => (
                 <option key={t.id} value={t.id}>{t.name}</option>
               ))}
