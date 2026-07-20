@@ -63,6 +63,8 @@ export default function AdminUsersPage() {
   // Student form parent registration type
   const [parentType, setParentType] = useState('new');
   const [parentSearchTerm, setParentSearchTerm] = useState('');
+  const [selectedParentId, setSelectedParentId] = useState('');
+  const [showParentDropdown, setShowParentDropdown] = useState(false);
 
   const fetchData = async () => {
     setLoading(true);
@@ -797,32 +799,73 @@ export default function AdminUsersPage() {
                 </div>
 
                 {parentType === 'existing' ? (
-                  <div className="form-group" style={{ marginBottom: '1rem' }}>
+                  <div className="form-group" style={{ marginBottom: '1rem', position: 'relative' }}>
                     <label className="form-label">Search & Select Existing Parent Profile</label>
                     <input 
                       type="text" 
                       className="input" 
                       placeholder="Search parent by name or email..." 
                       value={parentSearchTerm}
-                      onChange={(e) => setParentSearchTerm(e.target.value)}
+                      onChange={(e) => {
+                        setParentSearchTerm(e.target.value);
+                        setSelectedParentId('');
+                        setShowParentDropdown(true);
+                      }}
+                      onFocus={() => setShowParentDropdown(true)}
+                      onBlur={() => setTimeout(() => setShowParentDropdown(false), 200)}
                       disabled={isPending}
-                      style={{ marginBottom: '0.5rem' }}
                     />
-                    <select className="input" name="parentId" required disabled={isPending}>
-                      <option value="">Choose parent profile...</option>
-                      {profiles
-                        .filter(p => p.role === 'parent')
-                        .filter(p => {
-                          if (!parentSearchTerm) return true;
-                          const term = parentSearchTerm.toLowerCase();
-                          const fullName = `${p.first_name} ${p.last_name}`.toLowerCase();
-                          const email = p.email?.toLowerCase() || '';
-                          return fullName.includes(term) || email.includes(term);
-                        })
-                        .map(p => (
-                          <option key={p.id} value={p.id}>{p.first_name} {p.last_name} ({p.email})</option>
-                        ))}
-                    </select>
+                    <input type="hidden" name="parentId" value={selectedParentId} required={parentType === 'existing'} />
+                    
+                    {showParentDropdown && (
+                      <div style={{ 
+                        position: 'absolute', top: 'calc(100% - 4px)', left: 0, right: 0, 
+                        backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', 
+                        borderRadius: '0 0 6px 6px', zIndex: 10, maxHeight: '200px', overflowY: 'auto', 
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.1)' 
+                      }}>
+                        {(() => {
+                          const filtered = profiles
+                            .filter(p => p.role === 'parent')
+                            .filter(p => {
+                              if (!parentSearchTerm || selectedParentId) return true;
+                              const term = parentSearchTerm.toLowerCase();
+                              const fullName = `${p.first_name} ${p.last_name}`.toLowerCase();
+                              const email = p.email?.toLowerCase() || '';
+                              return fullName.includes(term) || email.includes(term);
+                            });
+                            
+                          if (filtered.length === 0) {
+                            return (
+                              <div style={{ padding: '0.75rem', textAlign: 'center', color: 'hsl(var(--muted-foreground))', fontSize: '0.85rem' }}>
+                                No parents found matching "{parentSearchTerm}"
+                              </div>
+                            );
+                          }
+                          
+                          return filtered.map(p => (
+                            <div 
+                              key={p.id} 
+                              onMouseDown={() => {
+                                setSelectedParentId(p.id);
+                                setParentSearchTerm(`${p.first_name} ${p.last_name} (${p.email})`);
+                                setShowParentDropdown(false);
+                              }}
+                              style={{ 
+                                padding: '0.5rem 0.75rem', cursor: 'pointer', 
+                                borderBottom: '1px solid hsl(var(--border))',
+                                backgroundColor: selectedParentId === p.id ? 'hsl(var(--accent))' : 'transparent'
+                              }}
+                              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'hsl(var(--accent))'}
+                              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = selectedParentId === p.id ? 'hsl(var(--accent))' : 'transparent'}
+                            >
+                              <div style={{ fontWeight: 600 }}>{p.first_name} {p.last_name}</div>
+                              <div style={{ fontSize: '0.75rem', color: 'hsl(var(--muted-foreground))' }}>{p.email}</div>
+                            </div>
+                          ));
+                        })()}
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
