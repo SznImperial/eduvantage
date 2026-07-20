@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useTransition } from 'react';
+import { createPortal } from 'react-dom';
 import { createClient } from '@/lib/supabaseClient';
 import { 
   createUserAccount, 
@@ -722,8 +723,8 @@ export default function AdminUsersPage() {
       )}
 
       {/* STUDENT REGISTRATION MODAL */}
-      {showStudentModal && (
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 100, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '1rem' }}>
+      {showStudentModal && typeof document !== 'undefined' && createPortal(
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '1rem' }}>
           <div className="card glass-panel" style={{ maxWidth: '550px', width: '100%', maxHeight: '90vh', overflowY: 'auto', position: 'relative' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid hsl(var(--border))', paddingBottom: '0.75rem', marginBottom: '1.25rem' }}>
               <h3 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0 }}>Register New Student</h3>
@@ -899,12 +900,13 @@ export default function AdminUsersPage() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* TEACHER HIRING MODAL */}
-      {showTeacherModal && (
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 100, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '1rem' }}>
+      {showTeacherModal && typeof document !== 'undefined' && createPortal(
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '1rem' }}>
           <div className="card glass-panel" style={{ maxWidth: '500px', width: '100%', position: 'relative' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid hsl(var(--border))', paddingBottom: '0.75rem', marginBottom: '1.25rem' }}>
               <h3 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0 }}>Hire / Register Teacher</h3>
@@ -963,12 +965,13 @@ export default function AdminUsersPage() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* REISSUE CONFIRMATION MODAL */}
-      {showReissueModal && (
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 101, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '1rem' }}>
+      {showReissueModal && typeof document !== 'undefined' && createPortal(
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '1rem' }}>
           <div className="card glass-panel" style={{ maxWidth: '400px', width: '100%', textAlign: 'center', padding: '2rem' }}>
             <div className="stat-icon stat-icon-emerald" style={{ width: '48px', height: '48px', borderRadius: '12px', margin: '0 auto 1.25rem' }}>
               <BadgeCheck size={24} />
