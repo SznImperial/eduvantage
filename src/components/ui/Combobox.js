@@ -105,12 +105,13 @@ export default function Combobox({
                 style={{ 
                   padding: '0.5rem 0.75rem', cursor: 'pointer', 
                   borderBottom: '1px solid hsl(var(--border))',
-                  backgroundColor: selectedValue === o.value ? 'hsl(var(--accent))' : 'transparent',
+                  backgroundColor: selectedValue === o.value ? 'hsl(var(--primary) / 0.1)' : 'transparent',
                   fontSize: '0.9rem',
-                  color: 'hsl(var(--foreground))'
+                  color: selectedValue === o.value ? 'hsl(var(--primary))' : 'hsl(var(--foreground))',
+                  fontWeight: selectedValue === o.value ? '500' : 'normal'
                 }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'hsl(var(--accent))'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = selectedValue === o.value ? 'hsl(var(--accent))' : 'transparent'}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = selectedValue === o.value ? 'hsl(var(--primary) / 0.1)' : 'hsl(var(--secondary))'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = selectedValue === o.value ? 'hsl(var(--primary) / 0.1)' : 'transparent'}
               >
                 {o.label}
               </div>
