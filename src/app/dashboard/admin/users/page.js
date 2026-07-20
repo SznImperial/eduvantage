@@ -62,6 +62,7 @@ export default function AdminUsersPage() {
 
   // Student form parent registration type
   const [parentType, setParentType] = useState('new');
+  const [parentSearchTerm, setParentSearchTerm] = useState('');
 
   const fetchData = async () => {
     setLoading(true);
@@ -797,11 +798,27 @@ export default function AdminUsersPage() {
 
                 {parentType === 'existing' ? (
                   <div className="form-group" style={{ marginBottom: '1rem' }}>
-                    <label className="form-label">Select Existing Parent Profile</label>
+                    <label className="form-label">Search & Select Existing Parent Profile</label>
+                    <input 
+                      type="text" 
+                      className="input" 
+                      placeholder="Search parent by name or email..." 
+                      value={parentSearchTerm}
+                      onChange={(e) => setParentSearchTerm(e.target.value)}
+                      disabled={isPending}
+                      style={{ marginBottom: '0.5rem' }}
+                    />
                     <select className="input" name="parentId" required disabled={isPending}>
                       <option value="">Choose parent profile...</option>
                       {profiles
                         .filter(p => p.role === 'parent')
+                        .filter(p => {
+                          if (!parentSearchTerm) return true;
+                          const term = parentSearchTerm.toLowerCase();
+                          const fullName = `${p.first_name} ${p.last_name}`.toLowerCase();
+                          const email = p.email?.toLowerCase() || '';
+                          return fullName.includes(term) || email.includes(term);
+                        })
                         .map(p => (
                           <option key={p.id} value={p.id}>{p.first_name} {p.last_name} ({p.email})</option>
                         ))}
