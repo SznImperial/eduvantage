@@ -14,6 +14,7 @@ import {
   setActiveSessionAction,
   createAcademicTermAction
 } from '@/app/actions';
+import Combobox from '@/components/ui/Combobox';
 
 export default function AdminClassesPage() {
   const supabase = createClient();
@@ -600,12 +601,11 @@ export default function AdminClassesPage() {
 
               <div className="form-group" style={{ marginBottom: '1.5rem' }}>
                 <label className="form-label">Teacher (Optional)</label>
-                <select className="input" name="teacher_id">
-                  <option value="">Leave Unassigned / Select Teacher...</option>
-                  {teachers.map(t => (
-                    <option key={t.id} value={t.id}>{t.first_name} {t.last_name}</option>
-                  ))}
-                </select>
+                <Combobox 
+                  name="teacher_id"
+                  placeholder="Search and select teacher..."
+                  options={teachers.map(t => ({ value: t.id, label: `${t.first_name} ${t.last_name}` }))}
+                />
               </div>
 
               <button className="btn btn-primary" type="submit" style={{ width: '100%' }}>
@@ -650,12 +650,12 @@ export default function AdminClassesPage() {
             <form onSubmit={handleEnrollStudent}>
               <div className="form-group">
                 <label className="form-label">Student</label>
-                <select className="input" name="student_id" required>
-                  <option value="">Select student...</option>
-                  {students.map(s => (
-                    <option key={s.id} value={s.id}>{s.first_name} {s.last_name} ({s.email})</option>
-                  ))}
-                </select>
+                <Combobox 
+                  name="student_id"
+                  placeholder="Search student by name or email..."
+                  required={true}
+                  options={students.map(s => ({ value: s.id, label: `${s.first_name} ${s.last_name} (${s.email})` }))}
+                />
               </div>
 
               <div className="form-group" style={{ marginBottom: '1.5rem' }}>
@@ -700,15 +700,20 @@ export default function AdminClassesPage() {
             {electiveClassId && (
               <div className="form-group" style={{ marginTop: '1rem' }}>
                 <label className="form-label">Student</label>
-                <select className="input" value={electiveStudentId} onChange={(e) => setElectiveStudentId(e.target.value)}>
-                  <option value="">Select student...</option>
-                  {enrollments.filter(en => en.class_id === electiveClassId).map(en => {
-                    const std = students.find(s => s.id === en.student_id);
-                    return std ? (
-                      <option key={std.id} value={std.id}>{std.first_name} {std.last_name}</option>
-                    ) : null;
-                  })}
-                </select>
+                <Combobox 
+                  name="electiveStudentId"
+                  placeholder="Search and select student..."
+                  defaultValue={electiveStudentId}
+                  onChange={setElectiveStudentId}
+                  options={enrollments
+                    .filter(en => en.class_id === electiveClassId)
+                    .map(en => {
+                      const std = students.find(s => s.id === en.student_id);
+                      return std ? { value: std.id, label: `${std.first_name} ${std.last_name}` } : null;
+                    })
+                    .filter(Boolean)
+                  }
+                />
               </div>
             )}
           </div>
