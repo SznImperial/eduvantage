@@ -94,7 +94,7 @@ export default function TeacherGradesPage() {
 
   // Fetch students and existing grade records when selected mapping, year, or term changes
   useEffect(() => {
-    if (!selectedMapping || !selectedYearId || !selectedTerm) {
+    if (!selectedMapping || !selectedYearId || !selectedTermId) {
       setStudents([]);
       return;
     }
