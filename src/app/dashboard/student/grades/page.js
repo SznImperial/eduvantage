@@ -9,8 +9,9 @@ export default function StudentGradesPage() {
   
   // Data states
   const [academicYears, setAcademicYears] = useState([]);
+  const [academicTerms, setAcademicTerms] = useState([]);
   const [selectedYearId, setSelectedYearId] = useState('');
-  const [selectedTerm, setSelectedTerm] = useState('1st Term');
+  const [selectedTermId, setSelectedTermId] = useState('');
   const [grades, setGrades] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingGrades, setLoadingGrades] = useState(false);
@@ -22,16 +23,22 @@ export default function StudentGradesPage() {
       setLoading(true);
       const { data: years, error: yErr } = await supabase
         .from('academic_years')
-        .select('*')
-        .order('name', { ascending: false });
+        .select(`id, name, is_active, academic_terms(id, name, is_active)`)
+        .order('start_date', { ascending: false });
 
       if (!yErr && years) {
         setAcademicYears(years);
         const active = years.find(y => y.is_active);
         if (active) {
           setSelectedYearId(active.id);
+          setAcademicTerms(active.academic_terms || []);
+          const activeTerm = (active.academic_terms || []).find(t => t.is_active);
+          if (activeTerm) setSelectedTermId(activeTerm.id);
+          else if (active.academic_terms?.length > 0) setSelectedTermId(active.academic_terms[0].id);
         } else if (years.length > 0) {
           setSelectedYearId(years[0].id);
+          setAcademicTerms(years[0].academic_terms || []);
+          if (years[0].academic_terms?.length > 0) setSelectedTermId(years[0].academic_terms[0].id);
         }
       }
       setLoading(false);
@@ -40,9 +47,21 @@ export default function StudentGradesPage() {
     fetchYears();
   }, [supabase]);
 
+  const handleYearChange = (yearId) => {
+    setSelectedYearId(yearId);
+    const year = academicYears.find(y => y.id === yearId);
+    if (year && year.academic_terms?.length > 0) {
+      setAcademicTerms(year.academic_terms);
+      setSelectedTermId(year.academic_terms[0].id);
+    } else {
+      setAcademicTerms([]);
+      setSelectedTermId('');
+    }
+  };
+
   // Fetch grades when selected year or term changes
   useEffect(() => {
-    if (!selectedYearId || !selectedTerm) return;
+    if (!selectedYearId || !selectedTermId) return;
 
     const fetchGrades = async () => {
       setLoadingGrades(true);
@@ -63,7 +82,7 @@ export default function StudentGradesPage() {
         `)
         .eq('student_id', user.id)
         .eq('academic_year_id', selectedYearId)
-        .eq('term', selectedTerm)
+        .eq('academic_term_id', selectedTermId)
         .order('created_at', { ascending: false });
 
       if (gErr) {
@@ -75,7 +94,7 @@ export default function StudentGradesPage() {
     };
 
     fetchGrades();
-  }, [selectedYearId, selectedTerm, supabase]);
+  }, [selectedYearId, selectedTermId, supabase]);
 
   // Calculate Average GPA/Score
   let averageGrade = 'N/A';
@@ -115,7 +134,7 @@ export default function StudentGradesPage() {
               <select 
                 className="input" 
                 value={selectedYearId} 
-                onChange={(e) => setSelectedYearId(e.target.value)}
+                onChange={(e) => handleYearChange(e.target.value)}
                 style={{ margin: 0 }}
               >
                 <option value="">Select session...</option>
@@ -130,13 +149,13 @@ export default function StudentGradesPage() {
             <label className="form-label">Academic Term</label>
             <select 
               className="input" 
-              value={selectedTerm} 
-              onChange={(e) => setSelectedTerm(e.target.value)}
+              value={selectedTermId} 
+              onChange={(e) => setSelectedTermId(e.target.value)}
               style={{ margin: 0 }}
             >
-              <option value="1st Term">1st Term</option>
-              <option value="2nd Term">2nd Term</option>
-              <option value="3rd Term">3rd Term</option>
+              {academicTerms.map(t => (
+                <option key={t.id} value={t.id}>{t.name}</option>
+              ))}
             </select>
           </div>
         </div>
