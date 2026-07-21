@@ -123,8 +123,7 @@ export default function TeacherNotesPage() {
         const { data: enr } = await supabase
           .from('enrollments')
           .select('student_id, profiles(first_name, last_name, email)')
-          .eq('class_id', classId)
-          .eq('academic_year_id', selectedYearId);
+          .eq('class_id', classId);
         if (enr) {
           totalEnrolled = enr.length;
           enrollmentsData = enr;

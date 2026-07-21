@@ -66,13 +66,13 @@ export default function StudentNotesPage() {
       setError('');
       const { data: { user } } = await supabase.auth.getUser();
 
-      // Get student's enrolled class for the selected year
-      const { data: enrollments } = await supabase
+      // Get student's enrolled class
+      const { data: enrolls } = await supabase
         .from('enrollments')
-        .select('class_id')
-        .eq('student_id', user.id)
-        .eq('academic_year_id', selectedYearId)
-        .single();
+        .select('class_id, academic_year_id')
+        .eq('student_id', user.id);
+
+      const enrollments = enrolls?.find(e => e.academic_year_id === selectedYearId) || enrolls?.[0];
 
       if (!enrollments) {
         setMaterials([]);
@@ -110,12 +110,12 @@ export default function StudentNotesPage() {
       } else {
         const formatted = mats.map(m => {
           const subjectInfo = classSubjects.find(cs => cs.id === m.class_subject_id);
-          const isCompleted = m.material_completions.some(mc => mc.student_id === user.id);
+          const isCompleted = m.material_completions && m.material_completions.some(mc => mc.student_id === user.id);
           return {
             ...m,
             subject: subjectInfo?.subjects,
             teacher: subjectInfo?.teacher,
-            isCompleted
+            isCompleted: !!isCompleted
           };
         });
         setMaterials(formatted);
