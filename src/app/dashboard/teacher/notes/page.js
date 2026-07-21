@@ -43,8 +43,7 @@ export default function TeacherNotesPage() {
           classes(id, name, level),
           subjects(id, name, code)
         `)
-        .eq('teacher_id', user.id)
-        .order('classes(level)', { ascending: true });
+        .eq('teacher_id', user.id);
 
       if (mappings) {
         setClassSubjects(mappings);
