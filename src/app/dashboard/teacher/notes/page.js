@@ -36,14 +36,18 @@ export default function TeacherNotesPage() {
       const { data: profile } = await supabase.from('profiles').select('school_id').eq('id', user.id).single();
 
       // Get teacher's assigned subjects
-      const { data: mappings } = await supabase
+      const { data: mappings, error: mappingErr } = await supabase
         .from('class_subjects')
         .select(`
           id,
-          classes(id, name, level),
+          classes(id, name),
           subjects(id, name, code)
         `)
         .eq('teacher_id', user.id);
+
+      if (mappingErr) {
+        console.error("Error fetching mappings:", mappingErr);
+      }
 
       if (mappings) {
         setClassSubjects(mappings);
@@ -215,9 +219,9 @@ export default function TeacherNotesPage() {
               <Combobox 
                 options={classSubjects.map(cs => ({
                   value: cs.id,
-                  label: `${cs.classes.name} - ${cs.subjects.name}`
+                  label: `${cs.classes?.name || 'Unknown'} - ${cs.subjects?.name || 'Unknown'}`
                 }))}
-                value={selectedMapping}
+                defaultValue={selectedMapping}
                 onChange={setSelectedMapping}
                 placeholder="Select subject..."
               />
