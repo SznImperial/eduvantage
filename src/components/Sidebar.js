@@ -18,6 +18,7 @@ import {
   Clock,
   Award,
   CheckSquare,
+  FileText,
   Menu,
   X,
   Settings,
@@ -159,6 +160,10 @@ export default function Sidebar({ role, schoolName, userName, userInitials }) {
                 <CheckSquare size={17} strokeWidth={1.75} />
                 Assignments
               </Link>
+              <Link href="/dashboard/teacher/notes" className={linkClass('/dashboard/teacher/notes')} onClick={handleNavClick}>
+                <FileText size={17} strokeWidth={1.75} />
+                Class Notes
+              </Link>
               <Link href="/dashboard/teacher/grades" className={linkClass('/dashboard/teacher/grades')} onClick={handleNavClick}>
                 <FileSpreadsheet size={17} strokeWidth={1.75} />
                 Grades
@@ -194,6 +199,10 @@ export default function Sidebar({ role, schoolName, userName, userInitials }) {
               <Link href="/dashboard/student/assignments" className={linkClass('/dashboard/student/assignments')} onClick={handleNavClick}>
                 <CheckSquare size={17} strokeWidth={1.75} />
                 Assignments
+              </Link>
+              <Link href="/dashboard/student/notes" className={linkClass('/dashboard/student/notes')} onClick={handleNavClick}>
+                <FileText size={17} strokeWidth={1.75} />
+                Class Notes
               </Link>
               <Link href="/dashboard/student/cbt" className={linkClass('/dashboard/student/cbt')} onClick={handleNavClick}>
                 <Award size={17} strokeWidth={1.75} />

@@ -1589,3 +1589,100 @@ export async function changePasswordAction(newPassword) {
   }
 }
 
+/**
+ * Uploads a study material file (notes) to storage and saves metadata.
+ */
+export async function uploadMaterialAction(formData) {
+  try {
+    const { supabase, schoolId, user } = await getAuthContext();
+    const classSubjectId = formData.get('class_subject_id');
+    const academicTermId = formData.get('academic_term_id');
+    const title = formData.get('title');
+    const description = formData.get('description');
+    const file = formData.get('file');
+
+    if (!file || !title || !classSubjectId || !academicTermId) {
+      return { error: 'Missing required fields.' };
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      return { error: 'File size exceeds 10MB limit.' };
+    }
+
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${schoolId}/${classSubjectId}/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+    const { error: uploadError, data: uploadData } = await supabase.storage
+      .from('study_materials')
+      .upload(fileName, file);
+
+    if (uploadError) return { error: getFriendlyError(uploadError) };
+
+    const { data: publicUrlData } = supabase.storage
+      .from('study_materials')
+      .getPublicUrl(fileName);
+
+    const { error: dbError } = await supabase.from('study_materials').insert({
+      school_id: schoolId,
+      class_subject_id: classSubjectId,
+      academic_term_id: academicTermId,
+      title,
+      description,
+      file_url: publicUrlData.publicUrl,
+      file_type: file.type || 'application/octet-stream',
+      file_size_bytes: file.size,
+      created_by: user.id
+    });
+
+    if (dbError) return { error: getFriendlyError(dbError) };
+
+    revalidatePath('/dashboard/teacher/notes');
+    return { success: true };
+  } catch (err) {
+    return { error: getFriendlyError(err) };
+  }
+}
+
+/**
+ * Deletes a study material from the database.
+ */
+export async function deleteMaterialAction(id) {
+  try {
+    const { supabase } = await getAuthContext();
+    const { error } = await supabase.from('study_materials').delete().eq('id', id);
+    if (error) return { error: getFriendlyError(error) };
+    
+    revalidatePath('/dashboard/teacher/notes');
+    return { success: true };
+  } catch (err) {
+    return { error: getFriendlyError(err) };
+  }
+}
+
+/**
+ * Toggles a study material completion status for the current student.
+ */
+export async function toggleMaterialCompletionAction(materialId, isCompleted) {
+  try {
+    const { supabase, schoolId, user } = await getAuthContext();
+    
+    if (isCompleted) {
+      const { error } = await supabase.from('material_completions').insert({
+        school_id: schoolId,
+        material_id: materialId,
+        student_id: user.id
+      });
+      if (error && error.code !== '23505') return { error: getFriendlyError(error) };
+    } else {
+      const { error } = await supabase.from('material_completions').delete()
+        .eq('material_id', materialId)
+        .eq('student_id', user.id);
+      if (error) return { error: getFriendlyError(error) };
+    }
+
+    revalidatePath('/dashboard/student/notes');
+    return { success: true };
+  } catch (err) {
+    return { error: getFriendlyError(err) };
+  }
+}
