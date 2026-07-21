@@ -4,8 +4,6 @@ import React, { useState, useEffect, useTransition } from 'react';
 import { createClient } from '@/lib/supabaseClient';
 import { uploadMaterialAction, deleteMaterialAction } from '@/app/actions';
 import { FileText, Upload, Trash2, CheckCircle, Clock, File, Download } from 'lucide-react';
-import { createPortal } from 'react-dom';
-import Combobox from '@/components/ui/Combobox';
 
 export default function TeacherNotesPage() {
   const supabase = createClient();
@@ -216,15 +214,22 @@ export default function TeacherNotesPage() {
             {loading ? (
               <div style={{ fontSize: '0.875rem', color: 'hsl(var(--muted-foreground))' }}>Loading subjects...</div>
             ) : (
-              <Combobox 
-                options={classSubjects.map(cs => ({
-                  value: cs.id,
-                  label: `${cs.classes?.name || 'Unknown'} - ${cs.subjects?.name || 'Unknown'}`
-                }))}
-                defaultValue={selectedMapping}
-                onChange={setSelectedMapping}
-                placeholder="Select subject..."
-              />
+              <select 
+                className="input" 
+                value={selectedMapping} 
+                onChange={(e) => setSelectedMapping(e.target.value)} 
+                style={{ margin: 0 }}
+              >
+                {classSubjects.length === 0 ? (
+                  <option value="" disabled>No subjects assigned</option>
+                ) : (
+                  classSubjects.map(cs => (
+                    <option key={cs.id} value={cs.id}>
+                      {cs.classes?.name || 'Unknown'} - {cs.subjects?.name || 'Unknown'}
+                    </option>
+                  ))
+                )}
+              </select>
             )}
           </div>
           <div className="form-group" style={{ marginBottom: 0 }}>
@@ -310,7 +315,7 @@ export default function TeacherNotesPage() {
         )}
       </div>
 
-      {showUploadModal && typeof document !== 'undefined' && createPortal(
+      {showUploadModal && (
         <div className="modal-overlay">
           <div className="modal-content animate-scale-in">
             <h2 className="modal-title">Upload Study Material</h2>
@@ -342,11 +347,10 @@ export default function TeacherNotesPage() {
               </div>
             </form>
           </div>
-        </div>,
-        document.body
+        </div>
       )}
 
-      {viewingCompletionsFor && typeof document !== 'undefined' && createPortal(
+      {viewingCompletionsFor && (
         <div className="modal-overlay">
           <div className="modal-content animate-scale-in" style={{ maxWidth: '500px' }}>
             <h2 className="modal-title">Completion Tracker</h2>
@@ -381,8 +385,7 @@ export default function TeacherNotesPage() {
               <button className="btn btn-primary" onClick={() => setViewingCompletionsFor(null)}>Close</button>
             </div>
           </div>
-        </div>,
-        document.body
+        </div>
       )}
     </div>
   );
