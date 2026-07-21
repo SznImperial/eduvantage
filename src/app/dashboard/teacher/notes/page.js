@@ -316,9 +316,12 @@ export default function TeacherNotesPage() {
       </div>
 
       {showUploadModal && (
-        <div className="modal-overlay">
-          <div className="modal-content animate-scale-in">
-            <h2 className="modal-title">Upload Study Material</h2>
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem' }}>
+          <div className="card animate-scale-in" style={{ maxWidth: '520px', width: '100%', padding: '2rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)', paddingBottom: '1rem', marginBottom: '1.5rem' }}>
+              <h3 style={{ fontSize: '1.15rem', fontWeight: 700 }}>Upload Study Material</h3>
+              <button type="button" onClick={() => setShowUploadModal(false)} style={{ background: 'none', border: 'none', fontSize: '1.25rem', cursor: 'pointer', color: 'hsl(var(--muted-foreground))' }}>✕</button>
+            </div>
             <form onSubmit={handleUpload}>
               <div className="form-group">
                 <label className="form-label">Material Title</label>
@@ -351,12 +354,17 @@ export default function TeacherNotesPage() {
       )}
 
       {viewingCompletionsFor && (
-        <div className="modal-overlay">
-          <div className="modal-content animate-scale-in" style={{ maxWidth: '500px' }}>
-            <h2 className="modal-title">Completion Tracker</h2>
-            <p style={{ color: 'hsl(var(--muted-foreground))', fontSize: '0.875rem', marginBottom: '1.5rem' }}>
-              {viewingCompletionsFor.title}
-            </p>
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem' }}>
+          <div className="card animate-scale-in" style={{ maxWidth: '500px', width: '100%', padding: '2rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)', paddingBottom: '1rem', marginBottom: '1.5rem' }}>
+              <div>
+                <h3 style={{ fontSize: '1.15rem', fontWeight: 700 }}>Completion Tracker</h3>
+                <p style={{ color: 'hsl(var(--muted-foreground))', fontSize: '0.875rem', marginTop: '0.25rem' }}>
+                  {viewingCompletionsFor.title}
+                </p>
+              </div>
+              <button type="button" onClick={() => setViewingCompletionsFor(null)} style={{ background: 'none', border: 'none', fontSize: '1.25rem', cursor: 'pointer', color: 'hsl(var(--muted-foreground))' }}>✕</button>
+            </div>
             
             <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
               {viewingCompletionsFor.completionsList.length === 0 ? (
