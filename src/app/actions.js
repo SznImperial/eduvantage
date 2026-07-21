@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabaseServer';
 import { createAdminClient } from '@/lib/supabaseAdmin';
 import { redirect } from 'next/navigation';
+import { revalidatePath } from 'next/cache';
 
 /**
  * Normalizes internal and database exceptions to a simple, generic user message
