@@ -51,7 +51,7 @@ export default async function AdminUserProfilePage({ params }) {
 
   return (
     <div className="dashboard-container">
-      <div className="dashboard-header" style={{ marginBottom: '1.5rem' }}>
+      <div style={{ marginBottom: '1.5rem' }}>
         <div>
           <Link href="/dashboard/admin/users" className="text-muted" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', marginBottom: '0.5rem', fontSize: '0.9rem', textDecoration: 'none' }}>
             <ArrowLeft size={16} /> Back to Users

@@ -40,7 +40,7 @@ export default async function StudentProfilePage() {
 
   return (
     <div className="dashboard-container">
-      <div className="dashboard-header" style={{ marginBottom: '1.5rem' }}>
+      <div style={{ marginBottom: '1.5rem' }}>
         <div>
           <h1 className="dashboard-title">My Profile</h1>
           <p className="dashboard-subtitle">Track your progress and performance metrics to see where you can improve.</p>

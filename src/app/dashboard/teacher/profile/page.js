@@ -40,7 +40,7 @@ export default async function TeacherProfilePage() {
 
   return (
     <div className="dashboard-container">
-      <div className="dashboard-header" style={{ marginBottom: '1.5rem' }}>
+      <div style={{ marginBottom: '1.5rem' }}>
         <div>
           <h1 className="dashboard-title">My Profile</h1>
           <p className="dashboard-subtitle">Track your engagement metrics and educator status.</p>

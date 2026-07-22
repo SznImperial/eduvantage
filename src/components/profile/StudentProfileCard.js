@@ -5,26 +5,41 @@ import { Award, BookOpen, CheckCircle, Clock, FileText, Percent, BrainCircuit } 
 
 export default function StudentProfileCard({ profile, metrics }) {
   // Badge Logic
-  let badgeName = "Developing Learner";
-  let badgeColor = "var(--warning)";
-  let badgeIconColor = "var(--warning-foreground)";
-  let badgeBg = "var(--warning)";
+  let badgeName = "Poor Learner (F)";
+  let badgeColor = "var(--danger)";
+  let badgeIconColor = "var(--danger)";
+  let badgeBg = "var(--danger)";
   
-  if (metrics.gradeAverage > 85 && metrics.attendanceRate > 90) {
+  if (metrics.gradeAverage >= 90) {
     badgeName = "Outstanding Scholar (A+)";
     badgeColor = "var(--primary)";
     badgeIconColor = "var(--primary)";
     badgeBg = "var(--primary)";
-  } else if (metrics.gradeAverage > 70 && metrics.attendanceRate > 75) {
+  } else if (metrics.gradeAverage >= 80) {
     badgeName = "Consistent Achiever (A)";
     badgeColor = "var(--success)";
     badgeIconColor = "var(--success)";
     badgeBg = "var(--success)";
+  } else if (metrics.gradeAverage >= 70) {
+    badgeName = "Good Learner (B)";
+    badgeColor = "var(--success-foreground)";
+    badgeIconColor = "var(--success-foreground)";
+    badgeBg = "var(--success-light)";
   } else if (metrics.gradeAverage >= 60) {
-    badgeName = "Good (B)";
+    badgeName = "Average Learner (C)";
     badgeColor = "var(--accent-amber-text)";
     badgeIconColor = "var(--accent-amber-text)";
     badgeBg = "var(--accent-amber)";
+  } else if (metrics.gradeAverage >= 50) {
+    badgeName = "Developing Learner (D)";
+    badgeColor = "var(--warning)";
+    badgeIconColor = "var(--warning)";
+    badgeBg = "var(--warning)";
+  } else if (metrics.gradeAverage >= 40) {
+    badgeName = "Needs Improvement (E)";
+    badgeColor = "var(--destructive)";
+    badgeIconColor = "var(--destructive)";
+    badgeBg = "var(--destructive-light)";
   }
 
   return (
