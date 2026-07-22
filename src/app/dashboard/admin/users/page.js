@@ -23,8 +23,10 @@ import {
   Key, 
   ClipboardCopy, 
   Search,
-  UserCheck
+  UserCheck,
+  Eye
 } from 'lucide-react';
+import Link from 'next/link';
 
 export default function AdminUsersPage() {
   const supabase = createClient();
@@ -42,6 +44,7 @@ export default function AdminUsersPage() {
 
   // Search/Filter states
   const [searchQuery, setSearchQuery] = useState('');
+  const [classFilter, setClassFilter] = useState('');
 
   // Modals & Form states
   const [showStudentModal, setShowStudentModal] = useState(false);
@@ -255,6 +258,9 @@ export default function AdminUsersPage() {
     const enroll = getStudentActiveEnrollment(p.id);
     const className = enroll?.classes?.name || 'Unassigned';
     
+    // Check class filter
+    if (classFilter && enroll?.class_id !== classFilter) return false;
+
     // Find parent details
     const pLink = parentLinks.find(link => link.student_id === p.id);
     const parentProfile = pLink ? profiles.find(pr => pr.id === pLink.parent_id) : null;
@@ -367,6 +373,14 @@ export default function AdminUsersPage() {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
+            <div style={{ flex: '0 0 200px' }}>
+              <select className="input" style={{ margin: 0 }} value={classFilter} onChange={e => setClassFilter(e.target.value)}>
+                <option value="">All Classes</option>
+                {classes.map(c => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+            </div>
           </div>
 
           <div className="table-container">
@@ -424,10 +438,18 @@ export default function AdminUsersPage() {
                             <span style={{ fontStyle: 'italic', color: 'hsl(var(--muted-foreground))', fontSize: '0.75rem' }}>No linked parent</span>
                           )}
                         </td>
-                        <td style={{ textAlign: 'right' }}>
+                        <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                          <Link 
+                            href={`/dashboard/admin/users/student/${student.id}`}
+                            className="btn btn-ghost" 
+                            style={{ padding: '0.3rem', marginRight: '0.5rem', display: 'inline-flex', alignItems: 'center' }}
+                            title="View Profile"
+                          >
+                            <Eye size={15} />
+                          </Link>
                           <button 
                             className="btn btn-ghost" 
-                            style={{ color: 'hsl(var(--destructive))', padding: '0.3rem' }}
+                            style={{ color: 'hsl(var(--destructive))', padding: '0.3rem', display: 'inline-flex', alignItems: 'center' }}
                             onClick={() => handleDeleteUser(student.id, `${student.first_name} ${student.last_name}`)}
                           >
                             <Trash2 size={15} />
@@ -497,10 +519,18 @@ export default function AdminUsersPage() {
                           )}
                         </td>
                         <td>{meta?.qualification || 'N/A'}</td>
-                        <td style={{ textAlign: 'right' }}>
+                        <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                          <Link 
+                            href={`/dashboard/admin/users/teacher/${teacher.id}`}
+                            className="btn btn-ghost" 
+                            style={{ padding: '0.3rem', marginRight: '0.5rem', display: 'inline-flex', alignItems: 'center' }}
+                            title="View Profile"
+                          >
+                            <Eye size={15} />
+                          </Link>
                           <button 
                             className="btn btn-ghost" 
-                            style={{ color: 'hsl(var(--destructive))', padding: '0.3rem' }}
+                            style={{ color: 'hsl(var(--destructive))', padding: '0.3rem', display: 'inline-flex', alignItems: 'center' }}
                             onClick={() => handleDeleteUser(teacher.id, `${teacher.first_name} ${teacher.last_name}`)}
                           >
                             <Trash2 size={15} />

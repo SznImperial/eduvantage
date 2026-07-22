@@ -22,6 +22,7 @@ import {
   Menu,
   X,
   Settings,
+  User,
 } from 'lucide-react';
 
 export default function Sidebar({ role, schoolName, userName, userInitials }) {
@@ -224,6 +225,12 @@ export default function Sidebar({ role, schoolName, userName, userInitials }) {
           )}
 
           <div className="sidebar-section-label">Account</div>
+          {(role === 'student' || role === 'teacher') && (
+            <Link href={`/dashboard/${role}/profile`} className={linkClass(`/dashboard/${role}/profile`)} onClick={handleNavClick}>
+              <User size={17} strokeWidth={1.75} />
+              My Profile
+            </Link>
+          )}
           <Link href="/dashboard/settings" className={linkClass('/dashboard/settings')} onClick={handleNavClick}>
             <Settings size={17} strokeWidth={1.75} />
             Settings

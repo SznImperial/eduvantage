@@ -1687,3 +1687,158 @@ export async function toggleMaterialCompletionAction(materialId, isCompleted) {
     return { error: getFriendlyError(err) };
   }
 }
+
+/**
+ * Fetch aggregated metrics for a user profile (Student or Teacher)
+ * Enforces RLS strictly via the authenticated Supabase client.
+ */
+export async function getUserProfileMetrics(targetUserId) {
+  try {
+    const { supabase, schoolId, role, user, activeYearId, activeTermId } = await getAuthContext();
+    
+    // Check auth: Must be admin, or the user themselves
+    if (role !== 'admin' && user.id !== targetUserId) {
+      return { error: 'Unauthorized to view this profile.' };
+    }
+
+    // Identify target user role
+    const { data: targetProfile, error: pErr } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', targetUserId)
+      .single();
+
+    if (pErr || !targetProfile) return { error: 'User profile not found.' };
+
+    const targetRole = targetProfile.role;
+
+    if (targetRole === 'student') {
+      // 1. Notes Completed
+      const { count: notesCount } = await supabase
+        .from('material_completions')
+        .select('*', { count: 'exact', head: true })
+        .eq('student_id', targetUserId);
+
+      // 2. Assignments Submitted
+      const { count: submissionCount } = await supabase
+        .from('submissions')
+        .select('*', { count: 'exact', head: true })
+        .eq('student_id', targetUserId);
+
+      // 3. CBT Scores (average)
+      const { data: cbtSubs } = await supabase
+        .from('cbt_submissions')
+        .select('score')
+        .eq('student_id', targetUserId);
+      
+      let cbtAvg = 0;
+      if (cbtSubs && cbtSubs.length > 0) {
+        cbtAvg = cbtSubs.reduce((acc, sub) => acc + (sub.score || 0), 0) / cbtSubs.length;
+      }
+
+      // 4. Term Report Card (average from grades)
+      const { data: grades } = await supabase
+        .from('grades')
+        .select('marks_obtained, total_marks')
+        .eq('student_id', targetUserId);
+
+      let gradeAvg = 0;
+      if (grades && grades.length > 0) {
+        let totalObtained = 0;
+        let totalPossible = 0;
+        grades.forEach(g => {
+          totalObtained += (g.marks_obtained || 0);
+          totalPossible += (g.total_marks || 100);
+        });
+        gradeAvg = totalPossible > 0 ? (totalObtained / totalPossible) * 100 : 0;
+      }
+
+      // 5. Attendance Rate
+      const { data: attendance } = await supabase
+        .from('attendance')
+        .select('status')
+        .eq('student_id', targetUserId);
+      
+      let attendanceRate = 0;
+      if (attendance && attendance.length > 0) {
+        const presentCount = attendance.filter(a => a.status === 'present').length;
+        attendanceRate = (presentCount / attendance.length) * 100;
+      }
+
+      return {
+        success: true,
+        role: 'student',
+        metrics: {
+          notesCompleted: notesCount || 0,
+          assignmentsSubmitted: submissionCount || 0,
+          cbtAverage: Math.round(cbtAvg * 10) / 10,
+          gradeAverage: Math.round(gradeAvg * 10) / 10,
+          attendanceRate: Math.round(attendanceRate * 10) / 10,
+        }
+      };
+    } else if (targetRole === 'teacher') {
+      // 1. Get Teacher's class_subjects
+      const { data: classSubjects } = await supabase
+        .from('class_subjects')
+        .select('id, class_id')
+        .eq('teacher_id', targetUserId);
+      
+      const classSubIds = classSubjects?.map(cs => cs.id) || [];
+      const classIds = classSubjects?.map(cs => cs.class_id) || [];
+
+      // 2. Assignments Given
+      let assignmentsGiven = 0;
+      if (classSubIds.length > 0) {
+        const { count } = await supabase
+          .from('assignments')
+          .select('*', { count: 'exact', head: true })
+          .in('class_subject_id', classSubIds);
+        assignmentsGiven = count || 0;
+      }
+
+      // 3. Notes Uploaded
+      const { count: notesUploaded } = await supabase
+        .from('study_materials')
+        .select('*', { count: 'exact', head: true })
+        .eq('created_by', targetUserId);
+
+      // 4. Last Attendance Marked
+      let lastAttendanceMarked = null;
+      if (classIds.length > 0) {
+        const { data: att } = await supabase
+          .from('attendance')
+          .select('created_at')
+          .in('class_id', classIds)
+          .order('created_at', { ascending: false })
+          .limit(1);
+        if (att && att.length > 0) lastAttendanceMarked = att[0].created_at;
+      }
+
+      // 5. Last CBT Organized
+      const { data: exams } = await supabase
+        .from('cbt_exams')
+        .select('created_at')
+        .eq('created_by', targetUserId)
+        .order('created_at', { ascending: false })
+        .limit(1);
+      
+      const lastCbtOrganized = exams && exams.length > 0 ? exams[0].created_at : null;
+
+      return {
+        success: true,
+        role: 'teacher',
+        metrics: {
+          assignmentsGiven,
+          notesUploaded: notesUploaded || 0,
+          lastAttendanceMarked,
+          lastCbtOrganized,
+        }
+      };
+    }
+
+    return { error: 'User is not a student or teacher.' };
+
+  } catch (err) {
+    return { error: getFriendlyError(err) };
+  }
+}
