@@ -4,42 +4,30 @@ import React from 'react';
 import { Award, BookOpen, CheckCircle, Clock, FileText, Percent, BrainCircuit } from 'lucide-react';
 
 export default function StudentProfileCard({ profile, metrics }) {
-  // Badge Logic
-  let badgeName = "Poor Learner (F)";
-  let badgeColor = "var(--danger)";
-  let badgeIconColor = "var(--danger)";
-  let badgeBg = "var(--danger)";
+  let badgeName = "Poor Learner";
+  let badgeLetter = "F";
+  let badgeColor = "#dc2626"; // Red
   
-  if (metrics.gradeAverage >= 90) {
-    badgeName = "Outstanding Scholar (A+)";
-    badgeColor = "var(--primary)";
-    badgeIconColor = "var(--primary)";
-    badgeBg = "var(--primary)";
-  } else if (metrics.gradeAverage >= 80) {
-    badgeName = "Consistent Achiever (A)";
-    badgeColor = "var(--success)";
-    badgeIconColor = "var(--success)";
-    badgeBg = "var(--success)";
+  if (metrics.gradeAverage >= 80) {
+    badgeName = "Outstanding Scholar";
+    badgeLetter = "A";
+    badgeColor = "#16a34a"; // Bright Green
   } else if (metrics.gradeAverage >= 70) {
-    badgeName = "Good Learner (B)";
-    badgeColor = "var(--success-foreground)";
-    badgeIconColor = "var(--success-foreground)";
-    badgeBg = "var(--success-light)";
+    badgeName = "Consistent Achiever";
+    badgeLetter = "B";
+    badgeColor = "#84cc16"; // Light Green
   } else if (metrics.gradeAverage >= 60) {
-    badgeName = "Average Learner (C)";
-    badgeColor = "var(--accent-amber-text)";
-    badgeIconColor = "var(--accent-amber-text)";
-    badgeBg = "var(--accent-amber)";
+    badgeName = "Good Learner";
+    badgeLetter = "C";
+    badgeColor = "#eab308"; // Yellow
   } else if (metrics.gradeAverage >= 50) {
-    badgeName = "Developing Learner (D)";
-    badgeColor = "var(--warning)";
-    badgeIconColor = "var(--warning)";
-    badgeBg = "var(--warning)";
+    badgeName = "Average Learner";
+    badgeLetter = "D";
+    badgeColor = "#f97316"; // Orange
   } else if (metrics.gradeAverage >= 40) {
-    badgeName = "Needs Improvement (E)";
-    badgeColor = "var(--destructive)";
-    badgeIconColor = "var(--destructive)";
-    badgeBg = "var(--destructive-light)";
+    badgeName = "Developing Learner";
+    badgeLetter = "E";
+    badgeColor = "#ef4444"; // Red-Orange
   }
 
   return (
@@ -94,7 +82,7 @@ export default function StudentProfileCard({ profile, metrics }) {
         <div style={{
           background: 'rgba(255, 255, 255, 0.15)',
           backdropFilter: 'blur(12px)',
-          padding: '0.75rem 1.5rem',
+          padding: '0.5rem 1.25rem 0.5rem 0.5rem',
           borderRadius: '2rem',
           border: '1px solid rgba(255,255,255,0.3)',
           display: 'flex',
@@ -102,8 +90,20 @@ export default function StudentProfileCard({ profile, metrics }) {
           gap: '0.75rem',
           boxShadow: '0 4px 15px rgba(0,0,0,0.1)'
         }}>
-          <div style={{ background: '#fff', color: badgeColor, padding: '0.4rem', borderRadius: '50%' }}>
-            <Award size={20} strokeWidth={2.5} />
+          <div style={{ 
+            background: badgeColor, 
+            color: '#fff', 
+            width: '36px', 
+            height: '36px', 
+            borderRadius: '50%', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            fontWeight: '900', 
+            fontSize: '1.25rem',
+            boxShadow: 'inset 0 0 0 2px rgba(255,255,255,0.2)'
+          }}>
+            {badgeLetter}
           </div>
           <span style={{ fontWeight: '700', fontSize: '1.05rem', color: '#fff' }}>{badgeName}</span>
         </div>
