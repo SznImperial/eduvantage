@@ -195,7 +195,7 @@ export default function AdminTimetablePage() {
             value={selectedClassId}
             onChange={e => { setSelectedClassId(e.target.value); setError(''); setSuccess(''); }}
             className="input"
-            style={{ width: '200px', padding: '0.4rem 0.75rem' }}
+            style={{ width: '100%', maxWidth: '240px', padding: '0.4rem 0.75rem' }}
           >
             {classes.map(c => (
               <option key={c.id} value={c.id}>{c.name}</option>
@@ -207,10 +207,10 @@ export default function AdminTimetablePage() {
         </span>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '2rem' }}>
+      <div className="split-layout-1-2">
         {/* Left Form Panel */}
         <div>
-          <div className="card" style={{ position: 'sticky', top: '100px' }}>
+          <div className="card" style={{ position: 'sticky', top: '4.5rem' }}>
             <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <Plus size={18} /> Add New Slot
             </h3>

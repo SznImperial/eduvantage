@@ -278,7 +278,7 @@ export default function TeacherCbtPage() {
         </div>
       ) : activeTab === 'exams' ? (
         /* Exams Grid */
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.25rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))', gap: '1.25rem' }}>
           {exams.length > 0 ? (
             exams.map(exam => {
               const badge = getStatusBadge(exam.status);
@@ -386,14 +386,14 @@ export default function TeacherCbtPage() {
 
       {/* Create CBT Exam Modal */}
       {showCreateModal && (
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem' }}>
-          <form className="card" onSubmit={handleCreateCbtExam} style={{ maxWidth: '850px', width: '100%', padding: '2rem', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)', paddingBottom: '1rem', marginBottom: '1rem' }}>
+        <div className="modal-backdrop">
+          <form className="card modal-sheet" onSubmit={handleCreateCbtExam} style={{ display: 'flex', flexDirection: 'column' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)', paddingBottom: '1rem', marginBottom: '1rem', gap: '0.75rem' }}>
               <h3 style={{ fontSize: '1.15rem', fontWeight: 700 }}>Author CBT Online Quiz</h3>
-              <button type="button" onClick={() => setShowCreateModal(false)} style={{ background: 'none', border: 'none', fontSize: '1.25rem', cursor: 'pointer', color: 'hsl(var(--muted-foreground))' }}>✕</button>
+              <button type="button" onClick={() => setShowCreateModal(false)} style={{ background: 'none', border: 'none', fontSize: '1.25rem', cursor: 'pointer', color: 'hsl(var(--muted-foreground))', flexShrink: 0 }} aria-label="Close">✕</button>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '1.5rem', flex: 1, overflow: 'hidden' }}>
+            <div className="split-layout-3-2-rev" style={{ flex: 1, overflow: 'auto' }}>
               {/* Left Side: Active Question Editor */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', overflowY: 'auto', paddingRight: '0.5rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>
@@ -512,7 +512,7 @@ export default function TeacherCbtPage() {
 
       {/* View Questions Modal */}
       {viewQuestionsModal && selectedExam && (
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem' }}>
+        <div className="modal-backdrop">
           <div className="card" style={{ maxWidth: '640px', width: '100%', padding: '2rem', maxHeight: '85vh', display: 'flex', flexDirection: 'column' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)', paddingBottom: '1rem', marginBottom: '1rem' }}>
               <h3 style={{ fontSize: '1.15rem', fontWeight: 700 }}>Questionnaire: {selectedExam.title}</h3>

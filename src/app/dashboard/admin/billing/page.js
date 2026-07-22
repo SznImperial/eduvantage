@@ -431,12 +431,7 @@ export default function AdminBillingPage() {
         </div>
       </div>
 
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-        gap: '1.5rem',
-        alignItems: 'stretch'
-      }}>
+      <div className="pricing-grid" style={{ alignItems: 'stretch' }}>
         {plans.map((plan) => {
           const isCurrent = currentTier === plan.id;
           const isDowngrade = tierOrder[plan.id] < tierOrder[currentTier];

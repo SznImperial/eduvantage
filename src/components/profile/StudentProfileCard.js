@@ -40,7 +40,7 @@ export default function StudentProfileCard({ profile, metrics }) {
     }}>
       {/* Premium Header Profile Section */}
       <div style={{ 
-        padding: '3rem 2rem', 
+        padding: 'clamp(1.25rem, 4vw, 3rem) clamp(1rem, 3vw, 2rem)', 
         background: 'var(--primary-gradient)',
         color: '#fff',
         position: 'relative',
@@ -48,32 +48,33 @@ export default function StudentProfileCard({ profile, metrics }) {
         alignItems: 'center',
         justifyContent: 'space-between',
         flexWrap: 'wrap',
-        gap: '1.5rem'
+        gap: '1.25rem'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'clamp(0.75rem, 3vw, 1.5rem)', minWidth: 0, flex: '1 1 220px' }}>
           <div style={{
-            width: '80px',
-            height: '80px',
+            width: 'clamp(56px, 12vw, 80px)',
+            height: 'clamp(56px, 12vw, 80px)',
             borderRadius: '50%',
             background: 'rgba(255, 255, 255, 0.2)',
             backdropFilter: 'blur(10px)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontSize: '2rem',
+            fontSize: 'clamp(1.25rem, 4vw, 2rem)',
             fontWeight: 'bold',
             border: '2px solid rgba(255,255,255,0.4)',
-            color: '#fff'
+            color: '#fff',
+            flexShrink: 0
           }}>
             {profile.first_name[0]}{profile.last_name[0]}
           </div>
-          <div>
-            <h2 style={{ margin: '0 0 0.5rem 0', fontSize: '1.75rem', fontWeight: '800', letterSpacing: '-0.02em', color: '#fff' }}>
+          <div style={{ minWidth: 0 }}>
+            <h2 style={{ margin: '0 0 0.5rem 0', fontSize: 'clamp(1.2rem, 4.5vw, 1.75rem)', fontWeight: '800', letterSpacing: '-0.02em', color: '#fff', wordBreak: 'break-word' }}>
               {profile.first_name} {profile.last_name}
             </h2>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', fontSize: '0.95rem', opacity: 0.9 }}>
-              <span>{profile.email}</span>
-              <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'currentColor' }} />
+            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.5rem 1rem', fontSize: '0.875rem', opacity: 0.9 }}>
+              <span style={{ wordBreak: 'break-all' }}>{profile.email}</span>
+              <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'currentColor', flexShrink: 0 }} />
               <span>Admission No: {profile.admission_no || 'N/A'}</span>
             </div>
           </div>
@@ -110,12 +111,12 @@ export default function StudentProfileCard({ profile, metrics }) {
       </div>
 
       {/* Metrics Grid */}
-      <div style={{ padding: '2.5rem 2rem', background: 'var(--background)' }}>
-        <h3 style={{ margin: '0 0 1.5rem 0', fontSize: '1.25rem', fontWeight: 600 }}>Performance Dashboard</h3>
+      <div style={{ padding: 'clamp(1.25rem, 4vw, 2.5rem) clamp(1rem, 3vw, 2rem)', background: 'var(--background)' }}>
+        <h3 style={{ margin: '0 0 1.25rem 0', fontSize: '1.15rem', fontWeight: 600 }}>Performance Dashboard</h3>
         
         <div style={{ 
           display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', 
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', 
           gap: '1.25rem' 
         }}>
           

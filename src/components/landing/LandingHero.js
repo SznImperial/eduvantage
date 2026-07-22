@@ -21,7 +21,7 @@ export default function LandingHero() {
               into one secure workspace — grading, attendance, fees, and exams included.
             </p>
 
-            <div className="flex flex-wrap gap-sm">
+            <div className="hero-cta-row">
               <Link href="/register" className="btn btn-primary btn-pill">
                 Register your school
                 <ArrowRight size={16} />

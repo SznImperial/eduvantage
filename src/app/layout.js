@@ -22,6 +22,17 @@ export const metadata = {
   }
 };
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f4f6f9" },
+    { media: "(prefers-color-scheme: dark)", color: "#0c1017" },
+  ],
+};
+
 import ToastProvider from "@/components/ToastProvider";
 
 export default function RootLayout({ children }) {

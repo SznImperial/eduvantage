@@ -292,12 +292,12 @@ export default function AdminUsersPage() {
 
   return (
     <div className="animate-fade-in" style={{ paddingBottom: '3rem' }}>
-      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
+      <div className="page-header-row">
+        <div className="page-header">
           <h1>Tenant Records & Registry</h1>
           <p>Hire staff, sync academic qualifications, map parent linkages, and promote student classrooms.</p>
         </div>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
+        <div className="page-header-actions">
           {activeTab === 'students' && (
             <button className="btn btn-primary" onClick={() => setShowStudentModal(true)}>
               <UserPlus size={16} /> Register Student
@@ -362,9 +362,9 @@ export default function AdminUsersPage() {
       {/* STUDENTS TAB */}
       {activeTab === 'students' && (
         <div className="card">
-          <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.25rem', alignItems: 'center' }}>
-            <div style={{ position: 'relative', flex: 1 }}>
-              <Search style={{ position: 'absolute', left: '10px', top: '10px', color: 'hsl(var(--muted-foreground))' }} size={16} />
+          <div className="toolbar-row">
+            <div className="toolbar-grow" style={{ position: 'relative' }}>
+              <Search style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'hsl(var(--muted-foreground))' }} size={16} />
               <input 
                 className="input" 
                 style={{ paddingLeft: '2.25rem', margin: 0 }}
@@ -373,7 +373,7 @@ export default function AdminUsersPage() {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <div style={{ flex: '0 0 200px' }}>
+            <div style={{ width: '100%', maxWidth: '240px', minWidth: 0 }}>
               <select className="input" style={{ margin: 0 }} value={classFilter} onChange={e => setClassFilter(e.target.value)}>
                 <option value="">All Classes</option>
                 {classes.map(c => (
@@ -473,9 +473,9 @@ export default function AdminUsersPage() {
       {/* TEACHERS TAB */}
       {activeTab === 'teachers' && (
         <div className="card">
-          <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.25rem', alignItems: 'center' }}>
-            <div style={{ position: 'relative', flex: 1 }}>
-              <Search style={{ position: 'absolute', left: '10px', top: '10px', color: 'hsl(var(--muted-foreground))' }} size={16} />
+          <div className="toolbar-row">
+            <div className="toolbar-grow" style={{ position: 'relative' }}>
+              <Search style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'hsl(var(--muted-foreground))' }} size={16} />
               <input 
                 className="input" 
                 style={{ paddingLeft: '2.25rem', margin: 0 }}
@@ -754,9 +754,9 @@ export default function AdminUsersPage() {
 
       {/* STUDENT REGISTRATION MODAL */}
       {showStudentModal && typeof document !== 'undefined' && createPortal(
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '1rem' }}>
-          <div className="card glass-panel" style={{ maxWidth: '550px', width: '100%', maxHeight: '90vh', overflowY: 'auto', position: 'relative' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid hsl(var(--border))', paddingBottom: '0.75rem', marginBottom: '1.25rem' }}>
+        <div className="modal-backdrop" style={{ zIndex: 9999 }}>
+          <div className="card glass-panel modal-sheet" style={{ maxWidth: '550px', position: 'relative' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid hsl(var(--border))', paddingBottom: '0.75rem', marginBottom: '1.25rem', gap: '0.75rem' }}>
               <h3 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0 }}>Register New Student</h3>
               <button 
                 onClick={() => setShowStudentModal(false)}
@@ -936,7 +936,7 @@ export default function AdminUsersPage() {
 
       {/* TEACHER HIRING MODAL */}
       {showTeacherModal && typeof document !== 'undefined' && createPortal(
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '1rem' }}>
+        <div className="modal-backdrop" style={{ zIndex: 9999 }}>
           <div className="card glass-panel" style={{ maxWidth: '500px', width: '100%', position: 'relative' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid hsl(var(--border))', paddingBottom: '0.75rem', marginBottom: '1.25rem' }}>
               <h3 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0 }}>Hire / Register Teacher</h3>
@@ -1001,7 +1001,7 @@ export default function AdminUsersPage() {
 
       {/* REISSUE CONFIRMATION MODAL */}
       {showReissueModal && typeof document !== 'undefined' && createPortal(
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '1rem' }}>
+        <div className="modal-backdrop" style={{ zIndex: 9999 }}>
           <div className="card glass-panel" style={{ maxWidth: '400px', width: '100%', textAlign: 'center', padding: '2rem' }}>
             <div className="stat-icon stat-icon-emerald" style={{ width: '48px', height: '48px', borderRadius: '12px', margin: '0 auto 1.25rem' }}>
               <BadgeCheck size={24} />

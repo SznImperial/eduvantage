@@ -82,7 +82,7 @@ export default function AdminAnnouncementsPage() {
         <p>Publish alerts, school news, and calendar updates visible to all users.</p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '3fr 2fr', gap: '2rem' }}>
+      <div className="split-layout-3-2">
         {/* Announcements List */}
         <div>
           {loading ? (

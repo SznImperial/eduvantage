@@ -323,7 +323,7 @@ export default function TeacherAssignmentsPage() {
 
       {/* Create Assignment Modal */}
       {createModalOpen && (
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', zIndex: 100, display: 'flex', alignItems: 'center', justifycenter: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem' }}>
+        <div className="modal-backdrop">
           <form className="card" onSubmit={handleCreateAssignment} style={{ maxWidth: '520px', width: '100%', padding: '2rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)', paddingBottom: '1rem', marginBottom: '1.5rem' }}>
               <h3 style={{ fontSize: '1.15rem', fontWeight: 700 }}>Create New Coursework Task</h3>
@@ -354,7 +354,7 @@ export default function TeacherAssignmentsPage() {
 
       {/* Submissions Grading Modal (Side-by-Side Panel) */}
       {submissionsModalOpen && activeAssignment && (
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem' }}>
+        <div className="modal-backdrop">
           <div className="card" style={{ maxWidth: selectedSubmission ? '1100px' : '750px', width: '100%', padding: '2rem', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)', paddingBottom: '1rem', marginBottom: '1rem' }}>
               <div>
@@ -365,7 +365,7 @@ export default function TeacherAssignmentsPage() {
             </div>
 
             {/* Side-by-side or simple list grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: selectedSubmission ? '1.5fr 1fr' : '1fr', gap: '1.5rem', flex: 1, overflow: 'hidden' }}>
+            <div className={selectedSubmission ? 'split-layout-3-2-rev' : ''} style={{ display: selectedSubmission ? undefined : 'grid', gridTemplateColumns: selectedSubmission ? undefined : '1fr', gap: '1.5rem', flex: 1, overflow: 'auto' }}>
               {/* Left Panel: Submissions list or submission content */}
               <div style={{ display: 'flex', flexDirection: 'column', overflowY: 'auto', paddingRight: '0.5rem' }}>
                 {selectedSubmission ? (

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import ThemeToggle from '@/components/ThemeToggle';
@@ -10,17 +10,33 @@ export default function LandingNavbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+  const closeMenu = useCallback(() => setIsMenuOpen(false), []);
+
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 12);
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const closeMenu = () => setIsMenuOpen(false);
+  useEffect(() => {
+    if (!isMenuOpen) return undefined;
+
+    document.body.classList.add('menu-open');
+
+    const onKeyDown = (event) => {
+      if (event.key === 'Escape') closeMenu();
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.body.classList.remove('menu-open');
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [isMenuOpen, closeMenu]);
 
   return (
     <header className={`navbar ${isScrolled ? 'navbar-scrolled' : ''}`}>
-      <Link href="/" className="nav-logo">
+      <Link href="/" className="nav-logo" onClick={closeMenu}>
         <Image
           src="/imperial-edu-logo.svg"
           alt="IMP3RIAL EDU"
@@ -32,15 +48,23 @@ export default function LandingNavbar() {
       </Link>
 
       <button
+        type="button"
         className="mobile-nav-toggle"
-        onClick={() => setIsMenuOpen(!isMenuOpen)}
+        onClick={() => setIsMenuOpen((open) => !open)}
         aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
         aria-expanded={isMenuOpen}
+        aria-controls="landing-nav"
       >
         {isMenuOpen ? <X size={22} /> : <Menu size={22} />}
       </button>
 
-      <nav className={`nav-links ${isMenuOpen ? 'mobile-open' : ''}`}>
+      <div
+        className={`nav-overlay${isMenuOpen ? ' open' : ''}`}
+        onClick={closeMenu}
+        aria-hidden={!isMenuOpen}
+      />
+
+      <nav id="landing-nav" className={`nav-links ${isMenuOpen ? 'mobile-open' : ''}`}>
         <a href="#features" className="nav-link" onClick={closeMenu}>Features</a>
         <a href="#portals" className="nav-link" onClick={closeMenu}>Portals</a>
         <a href="#pricing" className="nav-link" onClick={closeMenu}>Pricing</a>

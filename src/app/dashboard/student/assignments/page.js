@@ -290,7 +290,7 @@ export default function StudentAssignmentsPage() {
 
       {/* Hand In Solution Modal */}
       {submitModalOpen && selectedAssignment && (
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem' }}>
+        <div className="modal-backdrop">
           <form className="card" onSubmit={handleHandIn} style={{ maxWidth: '520px', width: '100%', padding: '2rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)', paddingBottom: '1rem', marginBottom: '1.5rem' }}>
               <h3 style={{ fontSize: '1.15rem', fontWeight: 700 }}>Hand In Solution: {selectedAssignment.title}</h3>
@@ -342,7 +342,7 @@ export default function StudentAssignmentsPage() {
 
       {/* View Evaluation Feedback Modal */}
       {gradeModalOpen && activeSubmission && (
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem' }}>
+        <div className="modal-backdrop">
           <div className="card" style={{ maxWidth: '480px', width: '100%', padding: '2rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)', paddingBottom: '1rem', marginBottom: '1.5rem' }}>
               <h3 style={{ fontSize: '1.15rem', fontWeight: 700 }}>Instructor Grade: {activeAssignmentTitle}</h3>

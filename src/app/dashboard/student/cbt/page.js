@@ -114,7 +114,7 @@ export default function StudentCbtLobbyPage() {
           </div>
 
           {/* Exam Cards */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.25rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))', gap: '1.25rem' }}>
             {exams.length > 0 ? (
               exams.map(exam => {
                 const isTaken = !!exam.submission;

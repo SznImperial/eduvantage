@@ -402,7 +402,7 @@ export default function AdminFeesPage() {
 
       {/* Invoice Details & Payment Recording Modal */}
       {showModal && selectedStudent && (
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem' }}>
+        <div className="modal-backdrop">
           <form className="card" onSubmit={handleSavePayment} style={{ maxWidth: '480px', width: '100%', padding: '2rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)', paddingBottom: '1rem', marginBottom: '1.5rem' }}>
               <h3 style={{ fontSize: '1.15rem', fontWeight: 700 }}>Record Payment: {selectedStudent.first_name} {selectedStudent.last_name}</h3>
@@ -464,7 +464,7 @@ export default function AdminFeesPage() {
 
       {/* Class Bill Allocation Modal */}
       {showAllocModal && (
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem' }}>
+        <div className="modal-backdrop">
           <form className="card" onSubmit={handleAllocateFees} style={{ maxWidth: '480px', width: '100%', padding: '2rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)', paddingBottom: '1rem', marginBottom: '1.5rem' }}>
               <h3 style={{ fontSize: '1.15rem', fontWeight: 700 }}>Allocate Class Bill</h3>
