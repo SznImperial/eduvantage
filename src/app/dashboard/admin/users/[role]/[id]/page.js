@@ -8,7 +8,7 @@ import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
 export default async function AdminUserProfilePage({ params }) {
-  const { role, id } = params;
+  const { role, id } = await params;
   
   if (role !== 'student' && role !== 'teacher') {
     redirect('/dashboard/admin/users');
