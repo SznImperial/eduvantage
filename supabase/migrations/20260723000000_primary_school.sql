@@ -46,8 +46,8 @@ BEGIN
     END IF;
 
     -- Insert Class
-    INSERT INTO public.classes (school_id, academic_year_id, name, grade_level, class_type, class_teacher_id)
-    VALUES (p_school_id, v_active_year_id, p_name, p_grade_level, p_class_type, p_class_teacher_id)
+    INSERT INTO public.classes (school_id, name, grade_level, class_type, class_teacher_id)
+    VALUES (p_school_id, p_name, p_grade_level, p_class_type, p_class_teacher_id)
     RETURNING id INTO v_new_id;
 
     RETURN json_build_object('success', true, 'id', v_new_id);
