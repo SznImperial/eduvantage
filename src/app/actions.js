@@ -88,6 +88,7 @@ export async function signUpSchool(prevState, formData) {
   const lastName = formData.get('lastName');
   const email = formData.get('email');
   const password = formData.get('password');
+  const schoolType = formData.get('schoolType') || 'secondary';
   const tier = formData.get('subscriptionTier') || 'free';
   const cycle = formData.get('billingCycle') || 'annual';
 
@@ -134,7 +135,8 @@ export async function signUpSchool(prevState, formData) {
       subscription_tier: 'free', // Always start as free until payment is verified
       subscription_status: status,
       max_student_limit: maxStudentLimit,
-      max_class_limit: maxClassLimit
+      max_class_limit: maxClassLimit,
+      school_type: schoolType
     }])
     .select()
     .single();
@@ -615,7 +617,7 @@ export async function createAcademicTermAction(academicYearId, name, startDate, 
 /**
  * Creates a Class section. Admin only.
  */
-export async function createClassAction(name, gradeLevel) {
+export async function createClassAction(name, gradeLevel, classType = 'secondary', classTeacherId = null) {
   try {
     const { supabase, schoolId, role } = await getAuthContext();
     if (role !== 'admin' && role !== 'super_admin') return { error: 'Unauthorized.' };
@@ -624,7 +626,9 @@ export async function createClassAction(name, gradeLevel) {
     const { data: rpcData, error } = await supabase.rpc('create_class_atomic', {
       p_school_id: schoolId,
       p_name: name,
-      p_grade_level: gradeLevel
+      p_grade_level: gradeLevel,
+      p_class_type: classType,
+      p_class_teacher_id: classTeacherId
     });
 
     if (error) return { error: getFriendlyError(error) };

@@ -83,6 +83,21 @@ export default function RegisterPage() {
                 disabled={isPending || success}
               />
             </div>
+
+            <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+              <label className="form-label" htmlFor="schoolType">School Operations Type</label>
+              <select
+                className="input"
+                id="schoolType"
+                name="schoolType"
+                required
+                disabled={isPending || success}
+              >
+                <option value="secondary">Secondary School (Subject Teachers)</option>
+                <option value="primary">Primary School (Class Teachers)</option>
+                <option value="both">Both Primary & Secondary</option>
+              </select>
+            </div>
           </div>
 
           <div className="badge-pill mb-md">

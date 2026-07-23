@@ -29,6 +29,7 @@ export default function AdminClassesPage() {
   const [enrollments, setEnrollments] = useState([]);
   const [activeSchoolYearId, setActiveSchoolYearId] = useState(null);
   const [activeSchoolTermId, setActiveSchoolTermId] = useState(null);
+  const [schoolType, setSchoolType] = useState('secondary');
   
   // Tabs: 'classes' or 'assign' or 'enroll'
   const [activeTab, setActiveTab] = useState('classes');
@@ -42,6 +43,11 @@ export default function AdminClassesPage() {
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
 
+  // UI interaction states
+  const [newClassType, setNewClassType] = useState('');
+  const [assignClassId, setAssignClassId] = useState('');
+  const assignSelectedClass = classes.find(c => c.id === assignClassId);
+
   // Fetch all necessary data for dropdowns/tables
   const fetchData = async () => {
     // 1. Academic years and active sessions
@@ -49,13 +55,14 @@ export default function AdminClassesPage() {
     
     const [yearsRes, profileRes] = await Promise.all([
       supabase.from('academic_years').select('*, academic_terms(*)').order('name', { ascending: false }),
-      supabase.from('profiles').select('schools(active_academic_year_id, active_academic_term_id)').eq('id', user.id).single()
+      supabase.from('profiles').select('schools(active_academic_year_id, active_academic_term_id, school_type)').eq('id', user.id).single()
     ]);
 
     if (yearsRes.data) setAcademicYears(yearsRes.data);
     if (profileRes.data) {
       setActiveSchoolYearId(profileRes.data.schools?.active_academic_year_id);
       setActiveSchoolTermId(profileRes.data.schools?.active_academic_term_id);
+      setSchoolType(profileRes.data.schools?.school_type || 'secondary');
     }
 
     // 2. Classes
@@ -154,8 +161,13 @@ export default function AdminClassesPage() {
     const formData = new FormData(e.target);
     const name = formData.get('name');
     const grade_level = formData.get('grade_level');
+    let class_type = formData.get('class_type');
+    const class_teacher_id = formData.get('class_teacher_id');
 
-    const result = await createClassAction(name, grade_level);
+    if (schoolType === 'primary') class_type = 'primary';
+    if (schoolType === 'secondary') class_type = 'secondary';
+
+    const result = await createClassAction(name, grade_level, class_type, class_teacher_id);
 
     if (result?.error) {
       setError(result.error);
@@ -192,7 +204,14 @@ export default function AdminClassesPage() {
     const formData = new FormData(e.target);
     const class_id = formData.get('class_id');
     const subject_id = formData.get('subject_id');
-    const teacher_id = formData.get('teacher_id') || '';
+    const selectedClass = classes.find(c => c.id === class_id);
+    
+    let teacher_id = formData.get('teacher_id') || '';
+    
+    // Auto-assign class teacher if it's a primary class
+    if (selectedClass && selectedClass.class_type === 'primary') {
+      teacher_id = selectedClass.class_teacher_id || '';
+    }
 
     const result = await allocateCourseAction(class_id, subject_id, teacher_id);
 
@@ -502,6 +521,29 @@ export default function AdminClassesPage() {
                   <label className="form-label">Grade Level</label>
                   <input className="input" name="grade_level" type="text" placeholder="e.g. 10" required />
                 </div>
+                
+                {schoolType === 'both' && (
+                  <div className="form-group">
+                    <label className="form-label">Class Type</label>
+                    <select className="input" name="class_type" onChange={(e) => setNewClassType(e.target.value)} required>
+                      <option value="">Select...</option>
+                      <option value="primary">Primary (Class Teacher)</option>
+                      <option value="secondary">Secondary (Subject Teachers)</option>
+                    </select>
+                  </div>
+                )}
+
+                {(schoolType === 'primary' || newClassType === 'primary') && (
+                  <div className="form-group">
+                    <label className="form-label">Class Teacher</label>
+                    <Combobox 
+                      name="class_teacher_id"
+                      placeholder="Search and select class teacher..."
+                      options={teachers.map(t => ({ value: t.id, label: `${t.first_name} ${t.last_name}` }))}
+                    />
+                  </div>
+                )}
+
                 <button className="btn btn-primary" type="submit" style={{ width: '100%', marginTop: '0.25rem' }}>
                   <Plus size={16} /> Create Class
                 </button>
@@ -581,7 +623,7 @@ export default function AdminClassesPage() {
             <form onSubmit={handleMapSubject}>
               <div className="form-group">
                 <label className="form-label">Class Section</label>
-                <select className="input" name="class_id" required>
+                <select className="input" name="class_id" required onChange={(e) => setAssignClassId(e.target.value)}>
                   <option value="">Select class...</option>
                   {classes.map(c => (
                     <option key={c.id} value={c.id}>{c.name}</option>
@@ -599,14 +641,23 @@ export default function AdminClassesPage() {
                 </select>
               </div>
 
-              <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-                <label className="form-label">Teacher (Optional)</label>
-                <Combobox 
-                  name="teacher_id"
-                  placeholder="Search and select teacher..."
-                  options={teachers.map(t => ({ value: t.id, label: `${t.first_name} ${t.last_name}` }))}
-                />
-              </div>
+              {assignSelectedClass?.class_type === 'primary' ? (
+                <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+                   <label className="form-label">Teacher</label>
+                   <div className="input" style={{ backgroundColor: 'var(--surface-sunken)', color: 'var(--muted-foreground)', display: 'flex', alignItems: 'center' }}>
+                     Assigned automatically to Class Teacher
+                   </div>
+                </div>
+              ) : (
+                <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+                  <label className="form-label">Teacher (Optional)</label>
+                  <Combobox 
+                    name="teacher_id"
+                    placeholder="Search and select teacher..."
+                    options={teachers.map(t => ({ value: t.id, label: `${t.first_name} ${t.last_name}` }))}
+                  />
+                </div>
+              )}
 
               <button className="btn btn-primary" type="submit" style={{ width: '100%' }}>
                 <Award size={16} /> Allocate Course
