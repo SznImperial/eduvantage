@@ -178,6 +178,12 @@ export default function Sidebar({ role, schoolName, userName, userInitials }) {
                 <CreditCard size={17} strokeWidth={1.75} />
                 Billing
               </Link>
+
+              <div className="sidebar-section-label">System</div>
+              <Link href="/dashboard/admin/settings" className={linkClass('/dashboard/admin/settings')} onClick={closeMenu}>
+                <Settings size={17} strokeWidth={1.75} />
+                Account Settings
+              </Link>
             </>
           )}
 
