@@ -1846,3 +1846,21 @@ export async function getUserProfileMetrics(targetUserId) {
     return { error: getFriendlyError(err) };
   }
 }
+
+export async function deleteSchoolAction() {
+  const { supabase, schoolId, role } = await getAuthContext();
+  if (role !== 'admin') return { error: 'Unauthorized.' };
+
+  // Note: the SQL trigger on profiles will automatically delete the auth.users records for the cascading profiles
+  const adminClient = createAdminClient();
+  const { error } = await adminClient
+    .from('schools')
+    .delete()
+    .eq('id', schoolId);
+
+  if (error) return { error: getFriendlyError(error) };
+  
+  // Sign out the current user session entirely
+  await supabase.auth.signOut();
+  return { success: true };
+}
