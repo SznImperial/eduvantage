@@ -49,6 +49,28 @@ export default async function AdminUserProfilePage({ params }) {
     );
   }
 
+  let classes = [];
+  let currentClassId = '';
+  let guardianEmail = '';
+
+  if (role === 'student') {
+    const { data: classData } = await supabase.from('classes').select('id, name, grade_level').order('name');
+    classes = classData || [];
+
+    const { data: enrollData } = await supabase.from('enrollments').select('class_id').eq('student_id', id).limit(1).maybeSingle();
+    if (enrollData?.class_id) {
+      currentClassId = enrollData.class_id;
+    }
+
+    const { data: parentLink } = await supabase.from('parent_student').select('parent_id').eq('student_id', id).limit(1).maybeSingle();
+    if (parentLink?.parent_id) {
+      const { data: parentProfile } = await supabase.from('profiles').select('email').eq('id', parentLink.parent_id).single();
+      if (parentProfile?.email) {
+        guardianEmail = parentProfile.email;
+      }
+    }
+  }
+
   return (
     <div className="dashboard-container">
       <div style={{ marginBottom: '1.5rem' }}>
@@ -62,7 +84,14 @@ export default async function AdminUserProfilePage({ params }) {
       </div>
 
       {role === 'student' ? (
-        <StudentProfileCard profile={targetProfile} metrics={metricsRes.metrics} />
+        <StudentProfileCard 
+          profile={targetProfile} 
+          metrics={metricsRes.metrics}
+          isAdmin={true}
+          availableClasses={classes}
+          initialClassId={currentClassId}
+          initialGuardianEmail={guardianEmail}
+        />
       ) : (
         <TeacherProfileCard profile={targetProfile} metrics={metricsRes.metrics} />
       )}

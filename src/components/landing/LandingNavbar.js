@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import ThemeToggle from '@/components/ThemeToggle';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, Sparkles } from 'lucide-react';
 
 export default function LandingNavbar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -36,15 +36,15 @@ export default function LandingNavbar() {
 
   return (
     <header className={`navbar ${isScrolled ? 'navbar-scrolled' : ''}`}>
-      <Link href="/" className="nav-logo" onClick={closeMenu}>
+      <Link href="/" className="nav-logo flex items-center gap-xs" onClick={closeMenu}>
         <Image
           src="/imperial-edu-logo.svg"
-          alt="IMP3RIAL EDU"
+          alt="EduVantage IMP3RIAL EDU"
           width={36}
           height={36}
           className="shrink-0"
         />
-        <span>IMP3RIAL EDU</span>
+        <span className="font-black text-lg tracking-tight">IMP3RIAL EDU</span>
       </Link>
 
       <button
@@ -65,14 +65,18 @@ export default function LandingNavbar() {
       />
 
       <nav id="landing-nav" className={`nav-links ${isMenuOpen ? 'mobile-open' : ''}`}>
-        <a href="#features" className="nav-link" onClick={closeMenu}>Features</a>
-        <a href="#portals" className="nav-link" onClick={closeMenu}>Portals</a>
+        <a href="#calculator" className="nav-link font-semibold text-primary" onClick={closeMenu}>
+          ROI Savings
+        </a>
+        <a href="#features" className="nav-link" onClick={closeMenu}>Capabilities</a>
+        <a href="#portals" className="nav-link" onClick={closeMenu}>Live Sandbox</a>
+        <a href="#comparison" className="nav-link" onClick={closeMenu}>Comparison</a>
         <a href="#pricing" className="nav-link" onClick={closeMenu}>Pricing</a>
-        <a href="#security" className="nav-link" onClick={closeMenu}>Security</a>
+        <a href="#faq" className="nav-link" onClick={closeMenu}>FAQ</a>
         <Link href="/login" className="nav-link" onClick={closeMenu}>Sign in</Link>
         <ThemeToggle />
-        <Link href="/register" className="btn btn-primary btn-pill-sm" onClick={closeMenu}>
-          Get started
+        <Link href="/register" className="btn btn-primary btn-pill-sm font-bold shadow-md" onClick={closeMenu}>
+          <Sparkles size={14} /> Start Pilot
         </Link>
       </nav>
     </header>

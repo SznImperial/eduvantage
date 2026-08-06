@@ -35,10 +35,24 @@ export async function proxy(request) {
   const url = new URL(request.url);
   const isDashboard = url.pathname.startsWith('/dashboard');
   const isAuthPage = url.pathname.startsWith('/login') || url.pathname.startsWith('/register');
+  const isForceResetPage = url.pathname === '/dashboard/force-password-reset';
 
   // Redirect unauthenticated users attempting to access protected dashboards
   if (isDashboard && !user) {
     return NextResponse.redirect(new URL('/login', request.url));
+  }
+
+  // Check mandatory password reset gate for authenticated dashboard access
+  if (isDashboard && user) {
+    const mustChangePassword = user.user_metadata?.must_change_password === true;
+
+    if (mustChangePassword && !isForceResetPage) {
+      return NextResponse.redirect(new URL('/dashboard/force-password-reset', request.url));
+    }
+
+    if (!mustChangePassword && isForceResetPage) {
+      return NextResponse.redirect(new URL('/dashboard', request.url));
+    }
   }
 
   // Redirect authenticated users trying to access login/register pages back to dashboard

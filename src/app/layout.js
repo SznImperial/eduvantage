@@ -1,5 +1,6 @@
 import { Inter, Outfit } from "next/font/google";
 import "./globals.css";
+import ToastProvider from "@/components/ToastProvider";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -12,12 +13,12 @@ const outfit = Outfit({
 });
 
 export const metadata = {
-  title: "IMP3RIAL EDU | Next-Gen Multi-Tenant School Management SaaS",
-  description: "IMP3RIAL EDU centralizes administrative workflows, school registrations, academic grading, and student attendance tracking under a secure multi-tenant model powered by Supabase RLS.",
+  title: "EduVantage | Next-Gen Multi-Tenant School Operating System",
+  description: "EduVantage centralizes administrative workflows, school registrations, academic grading, tuition tracking, and proctored CBT exams under a secure multi-tenant model.",
   metadataBase: new URL("https://imp3rialedu-saas.vercel.app"),
   openGraph: {
-    title: "IMP3RIAL EDU | School Management SaaS",
-    description: "Centralized workflows and academic tracking powered by Next.js and Supabase.",
+    title: "EduVantage | School Operating System & CBT Platform",
+    description: "Centralized workflows, proctored CBT exams, and academic tracking.",
     type: "website",
   }
 };
@@ -27,34 +28,12 @@ export const viewport = {
   initialScale: 1,
   maximumScale: 5,
   viewportFit: "cover",
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f4f6f9" },
-    { media: "(prefers-color-scheme: dark)", color: "#0c1017" },
-  ],
+  themeColor: "#F7F6F1",
 };
-
-import ToastProvider from "@/components/ToastProvider";
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${inter.variable} ${outfit.variable}`} data-theme="light" suppressHydrationWarning>
-      <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function() {
-                try {
-                  var theme = localStorage.getItem('theme');
-                  if (!theme) {
-                    theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-                  }
-                  document.documentElement.setAttribute('data-theme', theme);
-                } catch (e) {}
-              })();
-            `,
-          }}
-        />
-      </head>
+    <html lang="en" className={`${inter.variable} ${outfit.variable}`} data-theme="light">
       <body className={inter.className}>
         <ToastProvider>
           {children}

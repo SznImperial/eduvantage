@@ -5,8 +5,8 @@ import { Database, CheckCircle2, Award, Calendar, CreditCard, Laptop } from 'luc
 export default function TechnicalHighlights() {
   const features = [
     {
-      title: 'Academic grading',
-      description: 'Record exams and continuous assessment, compute rankings, and compile report cards.',
+      title: 'Academic Grading',
+      description: 'Record exams and continuous assessment, compute rankings, and compile report cards automatically.',
       icon: Award,
       colorClass: 'stat-icon-indigo',
       animationClass: 'stagger-1',
@@ -17,8 +17,8 @@ export default function TechnicalHighlights() {
       ],
     },
     {
-      title: 'Attendance tracking',
-      description: 'Replace paper registers with digital classroom rolls and monthly summaries.',
+      title: 'Attendance Tracking',
+      description: 'Replace paper registers with digital classroom rolls and monthly attendance summaries.',
       icon: CheckCircle2,
       colorClass: 'stat-icon-emerald',
       animationClass: 'stagger-2',
@@ -29,12 +29,12 @@ export default function TechnicalHighlights() {
       ],
     },
     {
-      title: 'Computer-based testing',
-      description: 'Create, schedule, and score online exams inside the student portal.',
+      title: 'Computer-Based Testing',
+      description: 'Create, schedule, and score online exams with built-in anti-cheat proctoring metrics.',
       icon: Laptop,
       colorClass: 'stat-icon-violet',
       animationClass: 'stagger-3',
-      tag: 'Included',
+      tag: 'Anti-Cheat CBT',
       bullets: [
         'Exam builder & scheduling',
         'Automatic scoring',
@@ -42,8 +42,8 @@ export default function TechnicalHighlights() {
       ],
     },
     {
-      title: 'Tuition & fees',
-      description: 'Invoice by class, track payments, and review collection progress.',
+      title: 'Tuition & Fees',
+      description: 'Invoice by class, track student payments, and review outstanding collection progress.',
       icon: CreditCard,
       colorClass: 'stat-icon-amber',
       animationClass: 'stagger-1',
@@ -54,8 +54,8 @@ export default function TechnicalHighlights() {
       ],
     },
     {
-      title: 'Timetable planner',
-      description: 'Build campus schedules, assign subjects, and coordinate teacher hours.',
+      title: 'Timetable Planner',
+      description: 'Build campus schedules, assign subjects, and coordinate teacher classroom hours.',
       icon: Calendar,
       colorClass: 'stat-icon-rose',
       animationClass: 'stagger-2',
@@ -66,8 +66,8 @@ export default function TechnicalHighlights() {
       ],
     },
     {
-      title: 'Institutional privacy',
-      description: 'Keep records isolated per school with role-based access and regular backups.',
+      title: 'Institutional Data Isolation',
+      description: 'Keep student records isolated per school with strict PostgreSQL Row-Level Security (RLS).',
       icon: Database,
       colorClass: 'stat-icon-indigo',
       animationClass: 'stagger-3',
@@ -80,18 +80,22 @@ export default function TechnicalHighlights() {
   ];
 
   return (
-    <section id="features" className="py-5xl px-lg">
+    <section id="features" className="py-5xl px-lg border-b border-border bg-card">
       <div className="container">
         <div className="text-center mb-3xl">
-          <h2 className="text-section-title mb-sm">
-            Everything your school needs in one place
+          <span className="executive-badge mb-sm">
+            <span className="gold-dot" />
+            <span>Institutional Capabilities</span>
+          </span>
+          <h2 className="text-section-title mb-sm text-foreground">
+            Everything Your School Needs in One Platform
           </h2>
-          <p className="text-section-subtitle max-w-subtitle mx-auto">
-            Academic tools designed to reduce paperwork, save staff time, and keep student records secure.
+          <p className="text-section-subtitle max-w-subtitle mx-auto text-muted-foreground font-normal">
+            Academic tools designed to eliminate paperwork, save staff hours, and secure student records.
           </p>
         </div>
 
-        <div className="grid-auto-fit">
+        <div className="grid-auto-fit gap-lg">
           {features.map((feature) => (
             <FeatureCard key={feature.title} {...feature} />
           ))}

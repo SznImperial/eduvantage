@@ -1585,9 +1585,19 @@ export async function submitCbtExamAction(examId, answers, score, totalQuestions
  */
 export async function changePasswordAction(newPassword) {
   try {
-    const { supabase } = await getAuthContext();
-    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    const { supabase, user } = await getAuthContext();
+    const { error } = await supabase.auth.updateUser({ 
+      password: newPassword,
+      data: { must_change_password: false }
+    });
     if (error) return { error: getFriendlyError(error) };
+
+    const adminClient = createAdminClient();
+    await adminClient.from('profiles').update({ 
+      must_change_password: false, 
+      password_set_at: new Date().toISOString() 
+    }).eq('id', user.id);
+
     return { success: true };
   } catch (err) {
     return { error: getFriendlyError(err) };
@@ -1863,4 +1873,255 @@ export async function deleteSchoolAction() {
   // Sign out the current user session entirely
   await supabase.auth.signOut();
   return { success: true };
+}
+
+/**
+ * Bulk imports students into a target class. Enforces SaaS limits and sets mandatory password reset.
+ */
+export async function bulkCreateStudentsAction(classId, students) {
+  try {
+    const { schoolId, role: currentRole } = await getAuthContext();
+    if (currentRole !== 'admin' && currentRole !== 'super_admin') {
+      return { error: 'Unauthorized: Only administrators can perform bulk student onboarding.' };
+    }
+
+    const adminClient = createAdminClient();
+    await verifyTenantOwnership([{ table: 'classes', id: classId }], schoolId, adminClient);
+
+    // Fetch school details for email suffix generation
+    const { data: school } = await adminClient.from('schools').select('name').eq('id', schoolId).single();
+    const slug = (school?.name || 'school').toLowerCase().replace(/[^a-z0-9]/g, '') || 'school';
+
+    // Pre-fetch all existing email addresses to handle collisions without guessing
+    const { data: existingProfiles } = await adminClient.from('profiles').select('email');
+    const emailSet = new Set((existingProfiles || []).map(p => (p.email || '').toLowerCase()));
+
+    const created = [];
+    const failed = [];
+    const chunkSize = 20;
+
+    for (let i = 0; i < students.length; i += chunkSize) {
+      const chunk = students.slice(i, i + chunkSize);
+      for (const student of chunk) {
+        try {
+          const firstName = (student.firstName || student.firstname || student.first_name || '').trim();
+          const lastName = (student.lastName || student.lastname || student.last_name || '').trim();
+
+          if (!firstName && !lastName) {
+            failed.push({ row: student, reason: 'Missing student name.' });
+            continue;
+          }
+
+          // Generate email address
+          let baseEmail = '';
+          if (firstName && lastName) {
+            baseEmail = `${firstName.toLowerCase().replace(/[^a-z0-9]/g, '')}.${lastName.toLowerCase().replace(/[^a-z0-9]/g, '')}@${slug}.edu.ng`;
+          } else {
+            const singleName = (firstName || lastName).toLowerCase().replace(/[^a-z0-9]/g, '');
+            baseEmail = `${singleName}@${slug}.edu.ng`;
+          }
+
+          let candidateEmail = baseEmail;
+          let counter = 2;
+          while (emailSet.has(candidateEmail)) {
+            const [local, domain] = baseEmail.split('@');
+            candidateEmail = `${local}${counter}@${domain}`;
+            counter++;
+          }
+          emailSet.add(candidateEmail);
+
+          // Generate temporary password (last name, or single name, padded to >= 6 chars with sequential digits)
+          let tempPassword = lastName ? lastName.toLowerCase().replace(/[^a-z0-9]/g, '') : firstName.toLowerCase().replace(/[^a-z0-9]/g, '');
+          if (!tempPassword) tempPassword = 'student';
+          if (tempPassword.length < 6) {
+            const needed = 6 - tempPassword.length;
+            const padDigits = '123456'.slice(0, needed);
+            tempPassword = `${tempPassword}${padDigits}`;
+          }
+
+          // 1. Create Supabase Auth User
+          const { data: authData, error: authErr } = await adminClient.auth.admin.createUser({
+            email: candidateEmail,
+            password: tempPassword,
+            email_confirm: true,
+            user_metadata: {
+              role: 'student',
+              school_id: schoolId,
+              must_change_password: true
+            }
+          });
+
+          if (authErr) {
+            failed.push({ row: student, reason: getFriendlyError(authErr) });
+            continue;
+          }
+
+          const userId = authData.user.id;
+          const admissionNo = student.admissionNo || `IMP-${Date.now()}-${Math.floor(Math.random()*1000)}`;
+
+          // 2. Insert profile atomically (enforcing SaaS tier limits)
+          const { data: rpcData, error: rpcErr } = await adminClient.rpc('create_student_profile_atomic', {
+            p_id: userId,
+            p_school_id: schoolId,
+            p_first_name: firstName || lastName,
+            p_last_name: lastName || '',
+            p_email: candidateEmail,
+            p_admission_no: admissionNo
+          });
+
+          if (rpcErr || (rpcData && !rpcData.success)) {
+            await adminClient.auth.admin.deleteUser(userId);
+            const errMsg = rpcErr ? rpcErr.message : (rpcData?.error || 'Failed to create student profile.');
+            failed.push({ row: student, reason: errMsg });
+            continue;
+          }
+
+          // 3. Flag mandatory password change
+          await adminClient.from('profiles').update({
+            must_change_password: true
+          }).eq('id', userId);
+
+          // 4. Enroll student in class
+          await adminClient.from('enrollments').insert([{
+            school_id: schoolId,
+            student_id: userId,
+            class_id: classId
+          }]);
+
+          // 5. Link guardian if parent account exists
+          const gEmail = (student.guardianEmail || student.guardian_email || '').trim().toLowerCase();
+          if (gEmail) {
+            const { data: parentProfile } = await adminClient
+              .from('profiles')
+              .select('id')
+              .eq('email', gEmail)
+              .maybeSingle();
+            if (parentProfile?.id) {
+              await adminClient.from('parent_student').insert([{
+                school_id: schoolId,
+                parent_id: parentProfile.id,
+                student_id: userId
+              }]);
+            }
+          }
+
+          created.push({
+            firstName: firstName || lastName,
+            lastName: lastName || '',
+            email: candidateEmail,
+            tempPassword: tempPassword,
+            admissionNo
+          });
+        } catch (err) {
+          failed.push({ row: student, reason: err.message || 'Unexpected row failure.' });
+        }
+      }
+
+      // Small throttle between chunks if importing large rosters
+      if (i + chunkSize < students.length) {
+        await new Promise(r => setTimeout(r, 150));
+      }
+    }
+
+    return { success: true, created, failed };
+  } catch (err) {
+    return { error: getFriendlyError(err) };
+  }
+}
+
+/**
+ * Updates a student's profile bio-data, class enrollment, guardian linkage, or resets their temporary password.
+ */
+export async function updateStudentDetailsAction(studentId, updates) {
+  try {
+    const { schoolId, role: currentRole } = await getAuthContext();
+    if (currentRole !== 'admin' && currentRole !== 'super_admin') {
+      return { error: 'Unauthorized: Only administrators can update student details.' };
+    }
+
+    const adminClient = createAdminClient();
+    await verifyTenantOwnership([{ table: 'profiles', id: studentId }], schoolId, adminClient);
+
+    // 1. Update basic profile info
+    const profileUpdates = {};
+    if (updates.firstName !== undefined) profileUpdates.first_name = updates.firstName;
+    if (updates.lastName !== undefined) profileUpdates.last_name = updates.lastName;
+    if (updates.admissionNo !== undefined) profileUpdates.admission_no = updates.admissionNo;
+
+    if (Object.keys(profileUpdates).length > 0) {
+      const { error: pErr } = await adminClient
+        .from('profiles')
+        .update(profileUpdates)
+        .eq('id', studentId);
+      if (pErr) return { error: getFriendlyError(pErr) };
+    }
+
+    // 2. Update Class Enrollment
+    if (updates.classId) {
+      await verifyTenantOwnership([{ table: 'classes', id: updates.classId }], schoolId, adminClient);
+      const { data: existingEnroll } = await adminClient
+        .from('enrollments')
+        .select('id')
+        .eq('student_id', studentId)
+        .eq('school_id', schoolId)
+        .maybeSingle();
+
+      if (existingEnroll) {
+        await adminClient.from('enrollments').update({ class_id: updates.classId }).eq('id', existingEnroll.id);
+      } else {
+        await adminClient.from('enrollments').insert([{ school_id: schoolId, student_id: studentId, class_id: updates.classId }]);
+      }
+    }
+
+    // 3. Guardian Linking by Email
+    if (updates.guardianEmail) {
+      const { data: parentProfile } = await adminClient
+        .from('profiles')
+        .select('id, role')
+        .eq('email', updates.guardianEmail.trim().toLowerCase())
+        .maybeSingle();
+
+      if (parentProfile?.id && parentProfile.role === 'parent') {
+        const { data: existingLink } = await adminClient
+          .from('parent_student')
+          .select('id')
+          .eq('student_id', studentId)
+          .eq('parent_id', parentProfile.id)
+          .maybeSingle();
+
+        if (!existingLink) {
+          await adminClient.from('parent_student').insert([{
+            school_id: schoolId,
+            parent_id: parentProfile.id,
+            student_id: studentId
+          }]);
+        }
+      } else {
+        return { success: true, warning: 'Student details updated, but no registered Parent account found with that guardian email.' };
+      }
+    }
+
+    // 4. Force Temporary Password Reset (if requested)
+    let newTempPassword = null;
+    if (updates.resetTempPassword) {
+      const { data: studProfile } = await adminClient.from('profiles').select('last_name, first_name').eq('id', studentId).single();
+      let tempPass = (studProfile?.last_name || studProfile?.first_name || 'student').toLowerCase().replace(/[^a-z0-9]/g, '');
+      while (tempPass.length < 6) tempPass += tempPass;
+      if (tempPass.length < 6) tempPass = tempPass.padEnd(6, '1');
+      newTempPassword = `${tempPass}-${Math.floor(100 + Math.random() * 900)}`;
+
+      await adminClient.auth.admin.updateUserById(studentId, {
+        password: newTempPassword,
+        user_metadata: { must_change_password: true }
+      });
+      await adminClient.from('profiles').update({
+        must_change_password: true,
+        password_set_at: null
+      }).eq('id', studentId);
+    }
+
+    return { success: true, newTempPassword };
+  } catch (err) {
+    return { error: getFriendlyError(err) };
+  }
 }

@@ -27,6 +27,7 @@ import {
   Eye
 } from 'lucide-react';
 import Link from 'next/link';
+import BulkStudentImportModal from '@/components/dashboard/BulkStudentImportModal';
 
 export default function AdminUsersPage() {
   const supabase = createClient();
@@ -50,6 +51,7 @@ export default function AdminUsersPage() {
   const [showStudentModal, setShowStudentModal] = useState(false);
   const [showTeacherModal, setShowTeacherModal] = useState(false);
   const [showReissueModal, setShowReissueModal] = useState(false);
+  const [showBulkModal, setShowBulkModal] = useState(false);
   
   const [generatedTempPassword, setGeneratedTempPassword] = useState('');
   const [reissueTargetEmail, setReissueTargetEmail] = useState('');
@@ -299,9 +301,14 @@ export default function AdminUsersPage() {
         </div>
         <div className="page-header-actions">
           {activeTab === 'students' && (
-            <button className="btn btn-primary" onClick={() => setShowStudentModal(true)}>
-              <UserPlus size={16} /> Register Student
-            </button>
+            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+              <button className="btn btn-secondary" onClick={() => setShowBulkModal(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span>📥</span> Bulk CSV Onboard
+              </button>
+              <button className="btn btn-primary" onClick={() => setShowStudentModal(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
+                <UserPlus size={16} /> Register Student
+              </button>
+            </div>
           )}
           {activeTab === 'teachers' && (
             <button className="btn btn-primary" onClick={() => setShowTeacherModal(true)}>
@@ -1028,6 +1035,18 @@ export default function AdminUsersPage() {
           </div>
         </div>
       )}
+
+      {/* BULK STUDENT IMPORT MODAL */}
+      <BulkStudentImportModal
+        isOpen={showBulkModal}
+        onClose={() => setShowBulkModal(false)}
+        classes={classes}
+        onSuccess={() => {
+          setShowBulkModal(false);
+          setSuccess('Bulk onboarding completed successfully!');
+          fetchData();
+        }}
+      />
     </div>
   );
 }
