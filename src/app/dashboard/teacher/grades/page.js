@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabaseClient';
-import { FileSpreadsheet, Save, CheckCircle2, ShieldAlert, Loader2, Award } from 'lucide-react';
+import { FileSpreadsheet, Save, CheckCircle2, ShieldAlert, Loader2, Award, Info } from 'lucide-react';
 import { saveGradesAction } from '@/app/actions';
 
 export default function TeacherGradesPage() {
@@ -10,7 +10,7 @@ export default function TeacherGradesPage() {
   const [classSubjects, setClassSubjects] = useState([]);
   const [selectedMapping, setSelectedMapping] = useState(''); // class_subject_id
   const [students, setStudents] = useState([]);
-  const [gradeRecords, setGradeRecords] = useState({}); // studentId -> { gradeValue, remarks }
+  const [gradeRecords, setGradeRecords] = useState({}); // studentId -> { ca1, ca2, exam, gradeValue, remarks, status }
   
   // Academic Session States
   const [academicYears, setAcademicYears] = useState([]);
@@ -127,7 +127,7 @@ export default function TeacherGradesPage() {
       // 2. Fetch existing grade records for this class_subject and term
       const { data: existingGrades, error: gradeError } = await supabase
         .from('grades')
-        .select('student_id, grade_value, remarks')
+        .select('student_id, grade_value, ca1_score, ca2_score, exam_score, remarks, status')
         .eq('class_subject_id', selectedMapping)
         .eq('academic_term_id', selectedTermId);
 
@@ -142,8 +142,12 @@ export default function TeacherGradesPage() {
       classStudents.forEach(st => {
         const existing = existingGrades.find(g => g.student_id === st.id);
         records[st.id] = {
+          ca1: existing ? existing.ca1_score : '',
+          ca2: existing ? existing.ca2_score : '',
+          exam: existing ? existing.exam_score : '',
           gradeValue: existing ? existing.grade_value : '',
-          remarks: existing ? (existing.remarks || '') : ''
+          remarks: existing ? (existing.remarks || '') : '',
+          status: existing ? existing.status : 'draft'
         };
       });
 
@@ -154,14 +158,33 @@ export default function TeacherGradesPage() {
     fetchStudentsAndGrades();
   }, [selectedMapping, selectedYearId, selectedTermId, classSubjects, supabase]);
 
-  const handleGradeChange = (studentId, gradeValue) => {
-    setGradeRecords(prev => ({
-      ...prev,
-      [studentId]: {
-        ...prev[studentId],
-        gradeValue
+  const handleComponentChange = (studentId, field, value) => {
+    let numericVal = parseFloat(value);
+    
+    // Clamp values visually as the user types
+    if (!isNaN(numericVal)) {
+      if (field === 'ca1' || field === 'ca2') {
+        if (numericVal > 20) value = '20';
+      } else if (field === 'exam') {
+        if (numericVal > 60) value = '60';
       }
-    }));
+    }
+
+    setGradeRecords(prev => {
+      const rec = { ...prev[studentId] };
+      rec[field] = value;
+      
+      // Auto-calculate Total (gradeValue)
+      const ca1 = parseFloat(rec.ca1) || 0;
+      const ca2 = parseFloat(rec.ca2) || 0;
+      const exam = parseFloat(rec.exam) || 0;
+      rec.gradeValue = (ca1 + ca2 + exam).toFixed(2).replace(/\.00$/, ''); // nice formatting
+      
+      return {
+        ...prev,
+        [studentId]: rec
+      };
+    });
   };
 
   const handleRemarksChange = (studentId, remarks) => {
@@ -185,10 +208,14 @@ export default function TeacherGradesPage() {
 
     for (let st of students) {
       const rec = gradeRecords[st.id];
-      if (!rec || rec.gradeValue === '') continue; // Skip empty fields
+      if (!rec || (rec.ca1 === '' && rec.ca2 === '' && rec.exam === '')) continue; 
 
-      const val = parseFloat(rec.gradeValue);
-      if (isNaN(val) || val < 0 || val > 100) {
+      const ca1Val = parseFloat(rec.ca1) || 0;
+      const ca2Val = parseFloat(rec.ca2) || 0;
+      const examVal = parseFloat(rec.exam) || 0;
+      const totalVal = parseFloat(rec.gradeValue) || 0;
+
+      if (ca1Val < 0 || ca1Val > 20 || ca2Val < 0 || ca2Val > 20 || examVal < 0 || examVal > 60) {
         hasValidationError = true;
         break;
       }
@@ -196,19 +223,22 @@ export default function TeacherGradesPage() {
       studentIds.push(st.id);
       upsertRecords.push({
         student_id: st.id,
-        grade_value: val,
+        ca1_score: ca1Val,
+        ca2_score: ca2Val,
+        exam_score: examVal,
+        grade_value: totalVal,
         remarks: rec.remarks || null
       });
     }
 
     if (hasValidationError) {
-      setError('Grade values must be valid numeric values between 0.00 and 100.00.');
+      setError('Invalid scores detected! CA1 & CA2 must be 0-20. Exam must be 0-60.');
       setSaving(false);
       return;
     }
 
     if (upsertRecords.length === 0) {
-      setError('Please input at least one grade value before saving.');
+      setError('Please input at least one score before saving.');
       setSaving(false);
       return;
     }
@@ -223,17 +253,17 @@ export default function TeacherGradesPage() {
     if (result?.error) {
       setError(`Failed to save: ${result.error}`);
     } else {
-      setSuccess('Class grades published to database successfully!');
+      setSuccess('Class grades drafted successfully! Admins must publish them before students can view.');
     }
     setSaving(false);
   };
 
   return (
-    <div className="animate-fade-in" style={{ maxWidth: '960px' }}>
+    <div className="animate-fade-in" style={{ maxWidth: '1200px' }}>
       <div className="page-header">
         <h1>Academic Gradebook</h1>
         <p>
-          Input terminal or course grade marks, publish results directly to student records.
+          Enter Continuous Assessment and Exam scores. Results are saved as Drafts until an Admin publishes them.
         </p>
       </div>
 
@@ -293,6 +323,14 @@ export default function TeacherGradesPage() {
         </div>
       </div>
 
+      {/* Helper Context Alert */}
+      <div className="alert alert-info" style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <Info size={16} />
+        <span style={{ fontSize: '0.9rem' }}>
+          <strong>Note:</strong> CBT exam and Assignment scores are <strong>not</strong> automatically imported. You may view them on their respective pages and manually enter the final scores here.
+        </span>
+      </div>
+
       {/* Feedback Alerts */}
       {error && (
         <div className="alert alert-error">
@@ -333,55 +371,89 @@ export default function TeacherGradesPage() {
                 {saving ? (
                   <>
                     <Loader2 size={14} className="animate-spin" />
-                    Publishing...
+                    Saving Drafts...
                   </>
                 ) : (
                   <>
-                    <Save size={14} /> Publish Grades
+                    <Save size={14} /> Save Drafts
                   </>
                 )}
               </button>
             </div>
 
             <div className="table-container">
-              <table className="table">
+              <table className="table" style={{ minWidth: '800px' }}>
                 <thead>
                   <tr>
                     <th>Student Name</th>
-                    <th>Grade Value (0 - 100)</th>
-                    <th>Remarks</th>
+                    <th style={{ width: '10%' }}>1st C.A. (20)</th>
+                    <th style={{ width: '10%' }}>2nd C.A. (20)</th>
+                    <th style={{ width: '10%' }}>Exam (60)</th>
+                    <th style={{ width: '10%', textAlign: 'center' }}>Total</th>
+                    <th style={{ width: '25%' }}>Remarks</th>
+                    <th style={{ width: '10%', textAlign: 'center' }}>Status</th>
                   </tr>
                 </thead>
                 <tbody>
                   {students.map((student) => {
-                    const record = gradeRecords[student.id] || { gradeValue: '', remarks: '' };
+                    const record = gradeRecords[student.id] || { ca1: '', ca2: '', exam: '', gradeValue: '', remarks: '', status: 'draft' };
                     return (
                       <tr key={student.id}>
-                        <td style={{ fontWeight: 600, width: '30%' }}>
+                        <td style={{ fontWeight: 600 }}>
                           {student.first_name} {student.last_name}
                         </td>
-                        <td style={{ width: '25%' }}>
+                        <td>
                           <input 
                             type="number" 
                             className="input" 
-                            placeholder="Score (e.g. 88.5)" 
-                            min="0"
-                            max="100"
-                            step="0.01"
-                            value={record.gradeValue}
-                            onChange={(e) => handleGradeChange(student.id, e.target.value)}
-                            style={{ padding: '0.35rem 0.5rem', fontSize: '0.825rem' }}
+                            placeholder="0" 
+                            min="0" max="20" step="0.01"
+                            value={record.ca1}
+                            onChange={(e) => handleComponentChange(student.id, 'ca1', e.target.value)}
+                            style={{ padding: '0.35rem', fontSize: '0.825rem', textAlign: 'center' }}
                           />
+                        </td>
+                        <td>
+                          <input 
+                            type="number" 
+                            className="input" 
+                            placeholder="0" 
+                            min="0" max="20" step="0.01"
+                            value={record.ca2}
+                            onChange={(e) => handleComponentChange(student.id, 'ca2', e.target.value)}
+                            style={{ padding: '0.35rem', fontSize: '0.825rem', textAlign: 'center' }}
+                          />
+                        </td>
+                        <td>
+                          <input 
+                            type="number" 
+                            className="input" 
+                            placeholder="0" 
+                            min="0" max="60" step="0.01"
+                            value={record.exam}
+                            onChange={(e) => handleComponentChange(student.id, 'exam', e.target.value)}
+                            style={{ padding: '0.35rem', fontSize: '0.825rem', textAlign: 'center' }}
+                          />
+                        </td>
+                        <td style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '0.9rem', color: 'var(--brand-color)' }}>
+                          {record.gradeValue || '-'}
                         </td>
                         <td>
                           <input 
                             type="text" 
                             className="input" 
-                            placeholder="Add teacher comment..." 
+                            placeholder="Teacher comment..." 
                             value={record.remarks} 
                             onChange={(e) => handleRemarksChange(student.id, e.target.value)}
                             style={{ padding: '0.35rem 0.5rem', fontSize: '0.825rem' }}
                           />
+                        </td>
+                        <td style={{ textAlign: 'center' }}>
+                          {record.status === 'published' ? (
+                            <span className="badge" style={{ backgroundColor: 'hsl(var(--success-muted))', color: 'hsl(var(--success))', fontSize: '0.75rem' }}>Published</span>
+                          ) : (
+                            <span className="badge" style={{ backgroundColor: 'hsl(var(--warning-muted))', color: 'hsl(var(--warning))', fontSize: '0.75rem' }}>Draft</span>
+                          )}
                         </td>
                       </tr>
                     );

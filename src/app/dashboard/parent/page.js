@@ -109,6 +109,7 @@ export default function ParentPortal() {
           )
         `)
         .eq('student_id', student.id)
+        .eq('status', 'published')
         .order('created_at', { ascending: false });
       if (gradeData) setGrades(gradeData);
 

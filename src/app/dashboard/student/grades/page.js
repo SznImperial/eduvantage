@@ -80,6 +80,7 @@ export default function StudentGradesPage() {
         .eq('student_id', user.id)
         .eq('academic_year_id', selectedYearId)
         .eq('academic_term_id', selectedTermId)
+        .eq('status', 'published')
         .order('created_at', { ascending: false });
 
       if (gErr) {

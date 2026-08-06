@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabaseClient';
+import { publishGradesAction } from '@/app/actions';
 import { 
   FileSpreadsheet, 
   Search, 
@@ -93,6 +94,30 @@ export default function AdminBroadsheetPage() {
   useEffect(() => {
     loadInitialData();
   }, []);
+
+
+
+  const [publishing, setPublishing] = useState(false);
+  const [publishMessage, setPublishMessage] = useState(null);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+
+  const handlePublish = async () => {
+    if (!selectedClassId || !selectedTermId) return;
+
+    setPublishing(true);
+    setPublishMessage(null);
+    
+    const res = await publishGradesAction(selectedClassId, selectedTermId);
+    if (res?.error) {
+      setPublishMessage({ type: 'error', text: res.error });
+    } else {
+      setPublishMessage({ type: 'success', text: 'Results published successfully!' });
+      // Refresh broadsheet data (and update the statuses if we were showing them)
+      loadBroadsheetData();
+    }
+    setPublishing(false);
+    setShowConfirmModal(false);
+  };
 
   const loadBroadsheetData = async () => {
     if (!selectedClassId || !selectedYearId || !selectedTermId) return;
@@ -276,7 +301,24 @@ export default function AdminBroadsheetPage() {
             <Search size={14} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'hsl(var(--muted-foreground))' }} />
           </div>
         </div>
+
+        <div className="form-group" style={{ margin: 0, display: 'flex', alignItems: 'flex-end' }}>
+          <button 
+            className="btn btn-primary" 
+            onClick={() => setShowConfirmModal(true)}
+            disabled={publishing || loading}
+            style={{ padding: '0.45rem 1rem', height: '36px' }}
+          >
+            {publishing ? 'Publishing...' : 'Publish Results'}
+          </button>
+        </div>
       </div>
+      
+      {publishMessage && (
+        <div className={`alert alert-${publishMessage.type}`} style={{ marginBottom: '1.5rem' }}>
+          {publishMessage.text}
+        </div>
+      )}
 
       {loading ? (
         <div className="card">
@@ -357,6 +399,33 @@ export default function AdminBroadsheetPage() {
               <AlertCircle size={24} />
             </div>
             <p>No enrollment or academic grade records found for the selected parameters.</p>
+          </div>
+        </div>
+      )}
+
+      {showConfirmModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="card animate-fade-in" style={{ width: '90%', maxWidth: '450px', padding: '1.5rem' }}>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="hsl(var(--warning))" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+              Publish Results?
+            </h3>
+            <p style={{ color: 'hsl(var(--muted-foreground))', fontSize: '0.9rem', marginBottom: '1.5rem', lineHeight: 1.5 }}>
+              Are you sure you want to officially publish these grades? This will lock them in and instantly make them visible to both students and parents on their portals.
+            </p>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+              <button 
+                className="btn" 
+                style={{ backgroundColor: 'transparent', border: '1px solid hsl(var(--border))', color: 'hsl(var(--foreground))' }} 
+                onClick={() => setShowConfirmModal(false)} 
+                disabled={publishing}
+              >
+                Cancel
+              </button>
+              <button className="btn btn-primary" onClick={handlePublish} disabled={publishing}>
+                {publishing ? 'Publishing...' : 'Yes, Publish'}
+              </button>
+            </div>
           </div>
         </div>
       )}

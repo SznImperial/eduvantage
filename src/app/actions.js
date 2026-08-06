@@ -1008,6 +1008,7 @@ export async function saveGradesAction(classSubjectId, studentIds, upserts) {
 
     if (delError) return { error: getFriendlyError(delError) };
 
+    
     // 2. Format insert payloads
     const payloads = upserts.map(u => ({
       school_id: schoolId,
@@ -1015,9 +1016,13 @@ export async function saveGradesAction(classSubjectId, studentIds, upserts) {
       class_subject_id: classSubjectId,
       academic_year_id: activeYearId,
       academic_term_id: activeTermId,
-      grade_value: u.grade_value,
+      ca1_score: u.ca1_score || 0,
+      ca2_score: u.ca2_score || 0,
+      exam_score: u.exam_score || 0,
+      grade_value: u.grade_value || 0,
       remarks: u.remarks || null,
-      graded_by: user.id
+      graded_by: user.id,
+      status: 'draft'
     }));
 
     // 3. Perform inserts
@@ -1036,6 +1041,49 @@ export async function saveGradesAction(classSubjectId, studentIds, upserts) {
  * Updates the subscription tier for a School (Tenant).
  * Triggers changes in student and class limits.
  */
+
+
+/**
+ * Publishes all draft grades for a specific class and term.
+ */
+export async function publishGradesAction(classId, termId) {
+  try {
+    const { supabase, schoolId, role, user } = await getAuthContext();
+    if (role !== 'admin' && role !== 'super_admin') return { error: 'Unauthorized. Only administrators can publish grades.' };
+
+    await verifyTenantOwnership([{ table: 'classes', id: classId }], schoolId, supabase);
+
+    const { data: subjects, error: subjErr } = await supabase
+      .from('class_subjects')
+      .select('id')
+      .eq('class_id', classId)
+      .eq('school_id', schoolId);
+
+    if (subjErr) return { error: getFriendlyError(subjErr) };
+    if (!subjects || subjects.length === 0) return { error: 'No subjects found for this class.' };
+
+    const subjectIds = subjects.map(s => s.id);
+
+    const { error: updateError } = await supabase
+      .from('grades')
+      .update({
+        status: 'published',
+        published_at: new Date().toISOString(),
+        published_by: user.id
+      })
+      .in('class_subject_id', subjectIds)
+      .eq('academic_term_id', termId)
+      .eq('status', 'draft')
+      .eq('school_id', schoolId);
+
+    if (updateError) return { error: getFriendlyError(updateError) };
+
+    return { success: true };
+  } catch (err) {
+    return { error: getFriendlyError(err) };
+  }
+}
+
 export async function updateSubscriptionAction(schoolId, tier, billingCycle = 'annual') {
   try {
     const { supabase, role } = await getAuthContext();
