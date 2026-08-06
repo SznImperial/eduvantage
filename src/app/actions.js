@@ -2277,3 +2277,45 @@ async function upsertUsage(supabase, usage, schoolId, teacherId, studentId, term
     await supabase.from('ai_generation_logs').insert([{ school_id: schoolId, teacher_id: teacherId, student_id: studentId, academic_term_id: termId, generation_count: 1 }]);
   }
 }
+
+export async function resolveAttendanceFlagAction(flagId, status) {
+  try {
+    const { supabase, user, schoolId, role } = await getAuthContext();
+    if (!user || role !== 'admin') {
+      return { error: 'Unauthorized. Admin access required.' };
+    }
+
+    const { error } = await supabase
+      .from('attendance_flags')
+      .update({ status, updated_at: new Date().toISOString() })
+      .eq('id', flagId)
+      .eq('school_id', schoolId);
+
+    if (error) throw error;
+    
+    revalidatePath('/dashboard/admin');
+    return { success: true };
+  } catch (err) {
+    console.error("resolveAttendanceFlagAction Error:", err);
+    return { error: err.message || 'Failed to resolve flag.' };
+  }
+}
+
+export async function triggerAttendanceScanAction() {
+  try {
+    const { user, role } = await getAuthContext();
+    if (!user || role !== 'admin') return { error: 'Unauthorized' };
+
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+    await fetch(`${baseUrl}/api/cron/attendance-flags`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${process.env.CRON_SECRET}` }
+    });
+
+    revalidatePath('/dashboard/admin');
+    return { success: true };
+  } catch (err) {
+    console.error("triggerAttendanceScanAction Error:", err);
+    return { error: err.message || 'Failed to trigger scan.' };
+  }
+}

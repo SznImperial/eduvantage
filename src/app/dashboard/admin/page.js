@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import StatCard from '@/components/dashboard/StatCard';
 import NotificationCard from '@/components/dashboard/NotificationCard';
+import NeedsAttentionPanel from '@/components/dashboard/NeedsAttentionPanel';
 
 export default async function AdminDashboardPage() {
   const supabase = await createClient();
@@ -45,6 +46,12 @@ export default async function AdminDashboardPage() {
   const totalPaid = fees ? fees.reduce((sum, f) => sum + Number(f.amount_paid), 0) : 0;
   const collectionRate = totalOwed > 0 ? (totalPaid / totalOwed) * 100 : 0;
   const outstandingFees = totalOwed - totalPaid;
+
+  const { data: attendanceFlags } = await supabase
+    .from('attendance_flags')
+    .select('id, flag_type, reason, created_at, profiles(first_name, last_name)')
+    .eq('status', 'open')
+    .order('created_at', { ascending: false });
 
   const stats = [
     {
@@ -104,7 +111,9 @@ export default async function AdminDashboardPage() {
         ))}
       </div>
 
-      <div className="grid-auto-fit-lg">
+      <NeedsAttentionPanel flags={attendanceFlags} />
+
+      <div className="grid-auto-fit-lg mt-2xl">
         <div className="card flex flex-col gap-lg">
           <div className="flex justify-between items-center flex-wrap gap-sm">
             <h3 className="text-lg font-bold flex items-center gap-sm mb-0">
