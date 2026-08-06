@@ -2173,3 +2173,107 @@ export async function updateStudentDetailsAction(studentId, updates) {
     return { error: getFriendlyError(err) };
   }
 }
+
+
+/**
+ * Generates an AI-drafted report card comment using Groq API.
+ */
+export async function generateReportCommentAction(studentId, termId, subjectName, ca1, ca2, exam, gradeValue, optionalNote) {
+  try {
+    const { supabase, schoolId, role, user } = await getAuthContext();
+    if (role !== 'admin' && role !== 'teacher') return { error: 'Unauthorized.' };
+
+    await verifyTenantOwnership([{ table: 'profiles', id: studentId }], schoolId, supabase);
+
+    // 1. Check Rate Limits (Max 3 per student/term/teacher)
+    const { data: usage, error: usageErr } = await supabase
+      .from('ai_generation_logs')
+      .select('id, generation_count')
+      .eq('teacher_id', user.id)
+      .eq('student_id', studentId)
+      .eq('academic_term_id', termId)
+      .maybeSingle();
+
+    if (usageErr) return { error: getFriendlyError(usageErr) };
+
+    let currentCount = usage ? usage.generation_count : 0;
+    if (currentCount >= 5) {
+      return { error: 'You have reached the maximum of 5 AI comment generations for this student this term.' };
+    }
+
+    // 2. Fetch student details for personalization
+    const { data: student } = await supabase.from('profiles').select('first_name, last_name').eq('id', studentId).single();
+    const studentName = student ? student.first_name : 'the student';
+
+    // 3. Prepare Prompt for Groq
+    const apiKey = process.env.GROQ_API_KEY;
+    if (!apiKey) {
+      // Fallback engine if no API key
+      const fallbackComments = [
+        `${studentName} has shown great effort in ${subjectName} this term, achieving a total score of ${gradeValue}%.`,
+        `A solid performance from ${studentName} in ${subjectName}. Keeping up this momentum will lead to even greater success.`,
+        `${studentName} continues to make steady progress in ${subjectName}.`
+      ];
+      let draft = fallbackComments[Math.floor(Math.random() * fallbackComments.length)];
+      if (optionalNote) draft += ` Additional feedback: ${optionalNote}`;
+      
+      await upsertUsage(supabase, usage, schoolId, user.id, studentId, termId, currentCount);
+      return { success: true, draft, remaining: 5 - (currentCount + 1) };
+    }
+
+    const systemPrompt = "You are a professional, warm, and constructive teacher writing an extremely brief formal report card comment. Write exactly 1-2 concise sentences. Maximum 25 words. Do not include a greeting or sign-off. Do NOT use any emojis. STRICT STYLE RULES: 1. NEVER use cliché AI vocabulary (e.g., delve, testament, tapestry, crucial, vibrant, bustling, intricate, underscore, pivotal, foster). 2. Avoid negative parallelisms ('not X, but Y' or 'X rather than Y'). 3. Do NOT use the 'rule of three' (listing three adjectives or phrases). 4. Avoid promotional fluff ('showcasing', 'profound'). 5. Never start with 'In summary' or 'In conclusion'. Write like a real human teacher, using plain, natural academic language.";
+    let userPrompt = `Write a report card comment for my student, ${studentName}, in the subject of ${subjectName}. 
+`;
+    userPrompt += `Their grades are: 1st CA: ${ca1}/20, 2nd CA: ${ca2}/20, Exam: ${exam}/60, Total: ${gradeValue}%.
+`;
+    if (optionalNote) {
+      userPrompt += `Please incorporate this specific feedback seamlessly into the narrative: "${optionalNote}"`;
+    }
+
+    // 4. Call Groq API
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'llama-3.1-8b-instant',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt }
+        ],
+        temperature: 0.7,
+        max_tokens: 60
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error('Groq API Error:', errorData);
+      return { error: 'Failed to generate comment via AI provider. Please try again.' };
+    }
+
+    const data = await response.json();
+    const draft = data.choices?.[0]?.message?.content?.trim();
+
+    if (!draft) return { error: 'AI returned an empty response.' };
+
+    // 5. Upsert Usage
+    await upsertUsage(supabase, usage, schoolId, user.id, studentId, termId, currentCount);
+
+    return { success: true, draft, remaining: 5 - (currentCount + 1) };
+
+  } catch (err) {
+    console.error("AI Gen Error:", err);
+    return { error: err.stack || err.toString() };
+  }
+}
+
+async function upsertUsage(supabase, usage, schoolId, teacherId, studentId, termId, currentCount) {
+  if (usage) {
+    await supabase.from('ai_generation_logs').update({ generation_count: currentCount + 1, updated_at: new Date().toISOString() }).eq('id', usage.id);
+  } else {
+    await supabase.from('ai_generation_logs').insert([{ school_id: schoolId, teacher_id: teacherId, student_id: studentId, academic_term_id: termId, generation_count: 1 }]);
+  }
+}

@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabaseClient';
-import { FileSpreadsheet, Save, CheckCircle2, ShieldAlert, Loader2, Award, Info } from 'lucide-react';
+import { FileSpreadsheet, Save, CheckCircle2, ShieldAlert, Loader2, Award, Info, Sparkles } from 'lucide-react';
 import { saveGradesAction } from '@/app/actions';
+import AiCommentDraftModal from '@/components/dashboard/AiCommentDraftModal';
 
 export default function TeacherGradesPage() {
   const supabase = createClient();
@@ -24,6 +25,8 @@ export default function TeacherGradesPage() {
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+  const [aiModalOpen, setAiModalOpen] = useState(false);
+  const [activeStudentForAi, setActiveStudentForAi] = useState(null);
 
   // Fetch teacher's assigned subjects/classes & academic years
   useEffect(() => {
@@ -439,14 +442,28 @@ export default function TeacherGradesPage() {
                           {record.gradeValue || '-'}
                         </td>
                         <td>
-                          <input 
-                            type="text" 
-                            className="input" 
-                            placeholder="Teacher comment..." 
-                            value={record.remarks} 
-                            onChange={(e) => handleRemarksChange(student.id, e.target.value)}
-                            style={{ padding: '0.35rem 0.5rem', fontSize: '0.825rem' }}
-                          />
+                          <div style={{ display: 'flex', gap: '0.35rem', alignItems: 'center' }}>
+                            <input 
+                              type="text" 
+                              className="input" 
+                              placeholder="Teacher comment..." 
+                              value={record.remarks} 
+                              onChange={(e) => handleRemarksChange(student.id, e.target.value)}
+                              style={{ padding: '0.35rem 0.5rem', fontSize: '0.825rem', flex: 1 }}
+                            />
+                            <button
+                              className="btn"
+                              style={{ padding: '0.35rem 0.6rem', height: 'auto', minWidth: 'auto', backgroundColor: '#1e3a8a', color: '#ffffff', border: 'none', display: 'flex', alignItems: 'center', gap: '0.25rem', fontWeight: 600 }}
+                              title="Generate AI Draft"
+                              onClick={() => {
+                                setActiveStudentForAi(student);
+                                setAiModalOpen(true);
+                              }}
+                              disabled={!record.gradeValue}
+                            >
+                              <Sparkles size={14} /> AI
+                            </button>
+                          </div>
                         </td>
                         <td style={{ textAlign: 'center' }}>
                           {record.status === 'published' ? (
@@ -482,6 +499,29 @@ export default function TeacherGradesPage() {
           </div>
         </div>
       )}
+
+      <AiCommentDraftModal 
+        key={activeStudentForAi?.id || 'empty'}
+        isOpen={aiModalOpen}
+        onClose={() => {
+          setAiModalOpen(false);
+          setActiveStudentForAi(null);
+        }}
+        studentId={activeStudentForAi?.id}
+        termId={selectedTermId}
+        studentName={activeStudentForAi?.first_name}
+        subjectName={classSubjects.find(cs => cs.id === selectedMapping)?.subjects?.name}
+        ca1={activeStudentForAi ? gradeRecords[activeStudentForAi.id]?.ca1 : ''}
+        ca2={activeStudentForAi ? gradeRecords[activeStudentForAi.id]?.ca2 : ''}
+        exam={activeStudentForAi ? gradeRecords[activeStudentForAi.id]?.exam : ''}
+        gradeValue={activeStudentForAi ? gradeRecords[activeStudentForAi.id]?.gradeValue : ''}
+        currentRemarks={activeStudentForAi ? gradeRecords[activeStudentForAi.id]?.remarks : ''}
+        onApply={(newDraft) => {
+          if (activeStudentForAi) {
+            handleRemarksChange(activeStudentForAi.id, newDraft);
+          }
+        }}
+      />
     </div>
   );
 }
