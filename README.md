@@ -12,6 +12,11 @@
 
 ## 🌟 Key Highlights & Innovations
 
+- **🤖 AI-Powered Educational Intelligence:**
+  - **Auto-Generated Teacher Comments:** Teachers save hours at the end of the term using AI that analyzes continuous assessment and exam scores to draft constructive, personalized remarks.
+  - **Proactive Attendance Anomaly Detection:** A daily background cron job scans records and automatically flags sudden attendance spikes or slow declines on the Admin dashboard before they become crises.
+  - **Parent-Facing Term Summaries:** When grades are published, an asynchronous background webhook securely calls Groq's LLaMA 3.1 model to distill dense grade tables into warm, plain-language summaries for parents—dynamically handling partial grading periods.
+
 - **Hybrid Primary & Secondary School Architecture:** 
   - Supports both traditional multi-teacher systems (where teachers are assigned per subject in Secondary schools) and specialized **Primary School models**, where a single designated Class Teacher manages all academic activities, assignments, and subjects for their homeroom classroom.
   - Schools can register as *Primary*, *Secondary*, or *Both*, automatically tailoring the admin dashboard and staffing workflow to their institutional level.
@@ -34,7 +39,8 @@
 
 - **Framework:** [Next.js](https://nextjs.org/) (App Router, Server Actions, React Server Components)
 - **Frontend Library:** [React 19](https://react.dev/)
-- **Backend & Database:** [Supabase](https://supabase.com/) (PostgreSQL, Realtime APIs, Cloud Storage, RPC functions)
+- **Backend & Database:** [Supabase](https://supabase.com/) (PostgreSQL, Realtime APIs, Cloud Storage, RPC functions, pg_cron)
+- **AI & LLMs:** [Groq API](https://groq.com/) utilizing ultra-fast LLaMA 3.1 models for instantaneous text generation.
 - **Authentication & Security:** Supabase Auth, secure HTTP-only cookies, Custom Postgres Auth Triggers
 - **Payments & Billing:** [Paystack Integration](https://paystack.com/)
 - **Styling & Design System:** Vanilla CSS with scoped CSS variables, HSL color tokens, responsive micro-animations, glassmorphism UI accents, and seamless dark/light adaptation.
@@ -94,6 +100,10 @@
    # Paystack Configuration (SaaS Plans)
    PAYSTACK_SECRET_KEY=your_paystack_secret
    NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY=your_paystack_public_key
+
+   # AI Integration
+   GROQ_API_KEY=your_groq_api_key
+   CRON_SECRET=super_secret_cron_token
    ```
 
 4. **Apply Database Migrations & Triggers:**
