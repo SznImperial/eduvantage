@@ -1078,6 +1078,23 @@ export async function publishGradesAction(classId, termId) {
 
     if (updateError) return { error: getFriendlyError(updateError) };
 
+    // Trigger AI Parent Summary Generation
+    // We now await this because the webhook processes students in parallel (takes ~2 seconds).
+    // Awaiting ensures Next.js Server Actions don't kill the fetch mid-flight.
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://127.0.0.1:3000';
+    try {
+      await fetch(`${baseUrl}/api/webhooks/generate-summaries`, {
+        method: 'POST',
+        headers: { 
+          'Authorization': `Bearer ${process.env.CRON_SECRET}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ classId, termId, schoolId })
+      });
+    } catch (err) {
+      console.error("Failed to trigger summary generation webhook:", err);
+    }
+
     return { success: true };
   } catch (err) {
     return { error: getFriendlyError(err) };

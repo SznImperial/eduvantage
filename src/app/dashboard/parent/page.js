@@ -44,6 +44,9 @@ export default function ParentPortal() {
   // Parent sub-tabs: 'overview' | 'timetable' | 'cbt' | 'finance'
   const [activeTab, setActiveTab] = useState('overview');
 
+  // AI Summary State
+  const [reportSummary, setReportSummary] = useState(null);
+
   // 1. Fetch children links
   const fetchChildren = async () => {
     setLoading(true);
@@ -121,6 +124,17 @@ export default function ParentPortal() {
         .order('created_at', { ascending: false })
         .limit(5);
       if (annData) setAnnouncements(annData);
+
+      // Fetch AI Report Card Summary (latest)
+      const { data: summaryData } = await supabase
+        .from('report_card_summaries')
+        .select('summary, created_at')
+        .eq('student_id', student.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+      
+      setReportSummary(summaryData || null);
 
       // D. Fetch child's timetable
       const { data: enroll } = await supabase
@@ -336,7 +350,21 @@ export default function ParentPortal() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
                 {/* Report Card */}
                 <div className="card">
-                  <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '1.25rem' }}>Child Report Card</h3>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem' }}>
+                    <h3 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0 }}>Child Report Card</h3>
+                  </div>
+
+                  {reportSummary && (
+                    <div style={{ marginBottom: '1.5rem', backgroundColor: '#f0f5ff', padding: '1.25rem', borderRadius: '0.5rem', border: '1px solid #d6e4ff' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', color: '#1d3971' }}>
+                        <span style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>AI Term Summary</span>
+                      </div>
+                      <p style={{ margin: 0, fontSize: '0.9rem', color: '#15191D', lineHeight: 1.6 }}>
+                        {reportSummary.summary}
+                      </p>
+                    </div>
+                  )}
+
                   <div className="table-container">
                     {grades.length > 0 ? (
                       <table className="table" style={{ fontSize: '0.875rem' }}>
