@@ -4,6 +4,7 @@ import ThemeToggle from '@/components/ThemeToggle';
 import Sidebar from '@/components/Sidebar';
 import ActiveBreadcrumb from '@/components/ActiveBreadcrumb';
 import ActiveSessionBanner from '@/components/ActiveSessionBanner';
+import PushNotificationPrompt from '@/components/layout/PushNotificationPrompt';
 
 export default async function DashboardLayout({ children }) {
   const supabase = await createClient();
@@ -55,6 +56,7 @@ export default async function DashboardLayout({ children }) {
 
         {/* Dynamic Portal View */}
         <main className="dashboard-content">
+          <PushNotificationPrompt />
           {children}
         </main>
       </div>

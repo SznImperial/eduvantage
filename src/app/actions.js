@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabaseServer';
 import { createAdminClient } from '@/lib/supabaseAdmin';
+import { PUSH_EVENTS, triggerPushEvent } from '@/lib/push';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 
@@ -927,6 +928,15 @@ export async function createAnnouncementAction(title, content, audienceType = 'a
     }]);
 
     if (error) return { error: getFriendlyError(error) };
+
+    // Trigger push notification
+    await triggerPushEvent(PUSH_EVENTS.BROADCAST_SENT, {
+      audienceType,
+      audienceId,
+      schoolId,
+      title
+    });
+
     return { success: true };
   } catch (err) {
     return { error: getFriendlyError(err) };
@@ -1094,6 +1104,13 @@ export async function publishGradesAction(classId, termId) {
     } catch (err) {
       console.error("Failed to trigger summary generation webhook:", err);
     }
+
+    // Trigger push notifications
+    await triggerPushEvent(PUSH_EVENTS.RESULTS_PUBLISHED, {
+      classId,
+      termId,
+      schoolId
+    });
 
     return { success: true };
   } catch (err) {
@@ -1317,16 +1334,24 @@ export async function createAssignmentAction(classSubjectId, title, description,
 
     await verifyTenantOwnership([{ table: 'class_subjects', id: classSubjectId }], schoolId, supabase);
 
-    const { error } = await supabase.from('assignments').insert([{
+    const { data: assignment, error } = await supabase.from('assignments').insert([{
       school_id: schoolId,
       class_subject_id: classSubjectId,
       title,
       description,
       due_date: dueDate
-    }]);
+    }]).select().single();
 
     if (error) return { error: getFriendlyError(error) };
-    return { success: true };
+    
+    // Trigger push notification
+    await triggerPushEvent(PUSH_EVENTS.ASSIGNMENT_POSTED, {
+      classSubjectId,
+      schoolId,
+      title
+    });
+
+    return { success: true, assignment };
   } catch (err) {
     return { error: getFriendlyError(err) };
   }
@@ -1476,6 +1501,14 @@ export async function createCbtExamAction(title, classSubjectId, durationMinutes
         await supabase.from('cbt_exams').delete().eq('id', exam.id);
         return { error: getFriendlyError(qError) };
       }
+    }
+
+    // Trigger push notification for CBT Audit if it requires approval
+    if (role === 'teacher') {
+      await triggerPushEvent(PUSH_EVENTS.CBT_AUDIT, {
+        schoolId,
+        examTitle: title
+      });
     }
 
     return { success: true, examId: exam.id };
@@ -2334,5 +2367,31 @@ export async function triggerAttendanceScanAction() {
   } catch (err) {
     console.error("triggerAttendanceScanAction Error:", err);
     return { error: err.message || 'Failed to trigger scan.' };
+  }
+}
+
+/**
+ * Saves a user's web push subscription to the database.
+ */
+export async function savePushSubscriptionAction(subscription) {
+  try {
+    const { supabase, user } = await getAuthContext();
+    if (!user) return { error: 'Unauthorized.' };
+
+    const { error } = await supabase.from('push_subscriptions').insert([{
+      user_id: user.id,
+      endpoint: subscription.endpoint,
+      p256dh: subscription.keys.p256dh,
+      auth: subscription.keys.auth
+    }]);
+
+    // Ignore duplicate endpoint errors (code 23505)
+    if (error && error.code !== '23505') {
+       return { error: getFriendlyError(error) };
+    }
+
+    return { success: true };
+  } catch (err) {
+    return { error: getFriendlyError(err) };
   }
 }
