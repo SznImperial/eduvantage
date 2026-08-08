@@ -22,7 +22,7 @@ export default function LandingFaq() {
       category: 'security',
       categoryLabel: 'Data Privacy & Security',
       question: 'Is student data kept strictly private and isolated per school?',
-      answer: 'Yes! EduVantage is engineered with Supabase PostgreSQL Row-Level Security (RLS). Every school operates in complete database isolation. Cross-tenant data leakage is mathematically prevented at the database kernel level.',
+      answer: 'Yes! IMP3RIAL EDU is engineered with Supabase PostgreSQL Row-Level Security (RLS). Every school operates in complete database isolation. Cross-tenant data leakage is mathematically prevented at the database kernel level.',
       icon: Lock,
     },
     {
@@ -45,7 +45,7 @@ export default function LandingFaq() {
       id: 5,
       category: 'pricing',
       categoryLabel: 'Pilot Terms & Licensing',
-      question: 'Can we test EduVantage with a pilot program before committing?',
+      question: 'Can we test IMP3RIAL EDU with a pilot program before committing?',
       answer: 'Yes. We offer a 14-day free pilot program that allows school leaders to set up classrooms, run mock CBT exams, and test automated gradebook compilation with zero upfront cost and no credit card required.',
       icon: HelpCircle,
     },

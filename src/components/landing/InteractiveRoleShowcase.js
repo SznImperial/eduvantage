@@ -49,7 +49,7 @@ export default function InteractiveRoleShowcase() {
             Test Drive Roles &amp; CBT Anti-Cheat Proctored Exams
           </h2>
           <p className="text-section-subtitle max-w-subtitle mx-auto font-normal text-muted-foreground">
-            Experience how EduVantage operates live for School Principals, Teachers, Students, and Parents.
+            Experience how IMP3RIAL EDU operates live for School Principals, Teachers, Students, and Parents.
           </p>
         </div>
 

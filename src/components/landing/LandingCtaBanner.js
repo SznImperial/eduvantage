@@ -19,7 +19,7 @@ export default function LandingCtaBanner() {
             </h2>
 
             <p className="text-base sm:text-lg opacity-95 mb-xl leading-relaxed font-normal text-slate-200">
-              Join forward-thinking school principals and directors using EduVantage to streamline academic administration, automate gradebooks, and conduct proctored CBT exams.
+              Join forward-thinking school principals and directors using IMP3RIAL EDU to streamline academic administration, automate gradebooks, and conduct proctored CBT exams.
             </p>
 
             <div className="flex flex-col sm:flex-row justify-center gap-md mb-lg">

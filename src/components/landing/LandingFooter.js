@@ -12,12 +12,12 @@ export default function LandingFooter() {
             <div className="nav-logo flex items-center gap-xs">
               <Image
                 src="/imperial-edu-logo.svg"
-                alt="EduVantage IMP3RIAL EDU"
+                alt="IMP3RIAL EDU"
                 width={32}
                 height={32}
                 className="shrink-0"
               />
-              <span className="font-black text-base text-foreground tracking-tight">EduVantage</span>
+              <span className="font-black text-base text-foreground tracking-tight">IMP3RIAL EDU</span>
             </div>
             <p className="text-xs text-muted-foreground leading-relaxed max-w-[260px]">
               Multi-tenant school operating system centralizing academics, proctored CBT exams, tuition recovery, and parent communication.

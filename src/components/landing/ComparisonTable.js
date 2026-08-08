@@ -52,10 +52,10 @@ export default function ComparisonTable() {
             <span>Head-to-Head Comparison</span>
           </span>
           <h2 className="text-section-title mb-sm text-foreground">
-            Why Schools Switch to EduVantage
+            Why Schools Switch to IMP3RIAL EDU
           </h2>
           <p className="text-section-subtitle max-w-subtitle mx-auto font-normal text-muted-foreground">
-            See how EduVantage compares directly against fragmented legacy software stacks.
+            See how IMP3RIAL EDU compares directly against fragmented legacy software stacks.
           </p>
         </div>
 
@@ -66,7 +66,7 @@ export default function ComparisonTable() {
                 <th style={{ width: '40%' }}>Core Capabilities</th>
                 <th className="comparison-highlight-col" style={{ width: '30%' }}>
                   <div className="flex items-center gap-xs text-primary font-bold">
-                    <Zap size={16} /> EduVantage Suite
+                    <Zap size={16} /> IMP3RIAL EDU Suite
                   </div>
                 </th>
                 <th style={{ width: '30%' }}>Legacy Multi-Vendor Apps</th>

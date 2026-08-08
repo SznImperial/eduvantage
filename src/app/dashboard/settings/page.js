@@ -191,7 +191,7 @@ export default function SettingsPage() {
             </h3>
             
             <p style={{ fontSize: '0.9rem', marginBottom: '1rem' }}>
-              You are about to permanently delete your entire school from EduVantage. All data will be wiped immediately and cannot be recovered.
+              You are about to permanently delete your entire school from IMP3RIAL EDU. All data will be wiped immediately and cannot be recovered.
             </p>
             
             <div className="alert" style={{ marginBottom: '1.5rem', fontSize: '0.85rem', backgroundColor: 'rgba(234, 179, 8, 0.1)', color: 'rgb(202, 138, 4)', border: '1px solid rgba(234, 179, 8, 0.2)', padding: '1rem', borderRadius: '8px' }}>

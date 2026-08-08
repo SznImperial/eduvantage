@@ -82,7 +82,7 @@ export default function LandingHero() {
               {heroPreview === 'dashboard' && (
                 <img
                   src="/imp3rialedu_dashboard_mockup.png"
-                  alt="EduVantage school administrative dashboard"
+                  alt="IMP3RIAL EDU school administrative dashboard"
                   className="hero-mockup-img w-full h-auto object-cover"
                 />
               )}

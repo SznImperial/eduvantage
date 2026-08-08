@@ -71,7 +71,7 @@ export default function AdminSettingsPage() {
             </h3>
             
             <p style={{ fontSize: '0.9rem', marginBottom: '1rem' }}>
-              You are about to permanently delete your entire school from EduVantage. All data will be wiped immediately and cannot be recovered.
+              You are about to permanently delete your entire school from IMP3RIAL EDU. All data will be wiped immediately and cannot be recovered.
             </p>
             
             <div className="banner banner-warning" style={{ marginBottom: '1.5rem', fontSize: '0.85rem' }}>

@@ -39,7 +39,7 @@ export default function LandingNavbar() {
       <Link href="/" className="nav-logo flex items-center gap-xs" onClick={closeMenu}>
         <Image
           src="/imperial-edu-logo.svg"
-          alt="EduVantage IMP3RIAL EDU"
+          alt="IMP3RIAL EDU"
           width={36}
           height={36}
           className="shrink-0"

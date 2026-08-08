@@ -13,7 +13,7 @@ export default function PrivacyPolicy() {
         
         <div className="mb-xl border-b border-border pb-lg">
           <h1 className="text-4xl md:text-5xl font-black tracking-tight text-foreground mb-sm">Privacy Policy</h1>
-          <p className="text-muted-foreground text-lg">Detailed insight into how IMP3RIAL EDU (EduVantage) protects, isolates, and processes your institutional data.</p>
+          <p className="text-muted-foreground text-lg">Detailed insight into how IMP3RIAL EDU protects, isolates, and processes your institutional data.</p>
           <p className="text-xs text-muted-foreground mt-sm">Last updated: {new Date().toLocaleDateString()}</p>
         </div>
 

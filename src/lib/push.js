@@ -3,7 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 
 if (process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
   webpush.setVapidDetails(
-    'mailto:admin@eduvantage.com',
+    'mailto:admin@imp3rialedu.com',
     process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
     process.env.VAPID_PRIVATE_KEY
   );
