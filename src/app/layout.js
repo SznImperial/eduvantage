@@ -16,6 +16,9 @@ export const metadata = {
   title: "IMP3RIAL EDU | Next-Gen Multi-Tenant School Operating System",
   description: "IMP3RIAL EDU centralizes administrative workflows, school registrations, academic grading, tuition tracking, and proctored CBT exams under a secure multi-tenant model.",
   metadataBase: new URL("https://edu.imp3rial.dev"),
+  alternates: {
+    canonical: '/',
+  },
   openGraph: {
     title: "IMP3RIAL EDU | School Operating System & CBT Platform",
     description: "Centralized workflows, proctored CBT exams, and academic tracking.",

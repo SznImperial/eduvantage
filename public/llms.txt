@@ -1,0 +1,12 @@
+# IMP3RIAL EDU
+
+IMP3RIAL EDU is a next-generation multi-tenant school operating system. It provides an end-to-end platform for academic grading, real-time attendance tracking, proctored Computer-Based Testing (CBT) exams, tuition tracking, and a dedicated parent portal for monitoring student progress.
+
+Main URL: https://edu.imp3rial.dev
+
+## Key Pages
+- Homepage: /
+- Login: /login
+- Register: /register
+- Privacy Policy: /privacy
+- Terms of Service: /terms
