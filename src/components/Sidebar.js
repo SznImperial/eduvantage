@@ -104,7 +104,7 @@ export default function Sidebar({ role, schoolName, userName, userInitials }) {
             <div className="nav-logo text-truncate" title={schoolName}>
               <Image
                 src="/imperial-edu-logo.svg"
-                alt=""
+                alt="IMP3RIAL EDU"
                 width={32}
                 height={32}
                 className="shrink-0"

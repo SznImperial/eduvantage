@@ -9,7 +9,7 @@ export default function AuthCard({ title, subtitle, children, wide = false }) {
         <Link href="/" className="auth-card-icon" aria-label="IMP3RIAL EDU home">
           <Image
             src="/imperial-edu-logo.svg"
-            alt=""
+            alt="IMP3RIAL EDU"
             width={28}
             height={28}
           />
