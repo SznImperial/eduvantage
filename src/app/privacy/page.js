@@ -1,5 +1,14 @@
 import React from 'react';
 import Link from 'next/link';
+
+export const metadata = {
+  title: 'Privacy Policy | IMP3RIAL EDU',
+  description: 'Privacy Policy for IMP3RIAL EDU multi-tenant school operating system.',
+  alternates: {
+    canonical: '/privacy',
+  },
+};
+
 import { ArrowLeft, ShieldCheck, Database, Bot, Lock } from 'lucide-react';
 
 export default function PrivacyPolicy() {

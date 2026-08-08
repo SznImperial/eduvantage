@@ -1,5 +1,14 @@
 import React from 'react';
 import Link from 'next/link';
+
+export const metadata = {
+  title: 'Terms of Service | IMP3RIAL EDU',
+  description: 'Terms of Service and operational guidelines for IMP3RIAL EDU.',
+  alternates: {
+    canonical: '/terms',
+  },
+};
+
 import { ArrowLeft, CheckCircle2, AlertTriangle, CreditCard } from 'lucide-react';
 
 export default function TermsOfService() {
