@@ -95,30 +95,31 @@ export default function PushNotificationPrompt() {
   if (!showPrompt) return null;
 
   return (
-    <div className="bg-[var(--surface-color)] border border-[var(--border-color)] shadow-md p-4 flex items-center justify-between rounded-lg mb-6">
-      <div className="flex items-center gap-3">
-        <div className="p-2 bg-blue-500/10 rounded-full text-blue-500">
+    <div className="bg-card border border-border shadow-md p-md flex items-center justify-between rounded-lg mb-lg">
+      <div className="flex items-center gap-md">
+        <div className="p-sm bg-primary/10 rounded-full text-primary">
           <Bell className="w-5 h-5" />
         </div>
         <div>
-          <p className="font-medium text-[var(--text-color)] text-sm">Enable instant notifications</p>
-          <p className="text-xs text-[var(--text-muted)] mt-0.5">
+          <p className="font-bold text-foreground text-sm">Enable instant notifications</p>
+          <p className="text-xs text-muted-foreground mt-0.5">
             Get alerts for published results, broadcasts, and new assignments even when the app is closed.
           </p>
         </div>
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-sm">
         <button
           onClick={handleSubscribe}
           disabled={isSubscribing}
-          className="px-4 py-1.5 bg-[var(--primary-color)] text-white text-sm font-medium rounded-md hover:bg-blue-600 transition disabled:opacity-50"
+          className="btn btn-primary btn-sm"
         >
           {isSubscribing ? 'Enabling...' : 'Enable'}
         </button>
         <button
           onClick={handleDismiss}
-          className="p-1.5 text-[var(--text-muted)] hover:bg-[var(--surface-hover)] rounded-md transition"
+          className="btn btn-ghost btn-sm"
           aria-label="Dismiss"
+          style={{ padding: '0.4rem' }}
         >
           <X className="w-4 h-4" />
         </button>

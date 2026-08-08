@@ -36,7 +36,7 @@ export default function LandingHero() {
               </a>
             </div>
 
-            <div className="hero-stats mt-lg grid grid-cols-3 gap-md w-full">
+            <div className="hero-stats mt-lg grid grid-cols-1 sm:grid-cols-3 gap-md w-full">
               <div className="glass-panel glass-panel-interactive p-sm rounded-lg">
                 <span className="hero-stat-value text-primary font-black text-lg sm:text-xl block">60% Savings</span>
                 <span className="hero-stat-label text-xs font-medium text-muted-foreground">Consolidated Stack</span>

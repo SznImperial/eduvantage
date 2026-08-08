@@ -2,7 +2,7 @@ import React from 'react';
 
 export default function FeatureCard({ title, description, icon: Icon, colorClass, animationClass, tag, bullets }) {
   return (
-    <div className={`card card-hover flex flex-col items-start gap-md animate-fade-in ${animationClass || ''}`}>
+    <div className={`glass-panel glass-panel-interactive p-md rounded-xl flex flex-col items-start gap-md animate-fade-in ${animationClass || ''}`}>
       <div className="flex items-center gap-md w-full">
         <div className={`stat-icon ${colorClass}`}>
           <Icon size={18} strokeWidth={1.75} />

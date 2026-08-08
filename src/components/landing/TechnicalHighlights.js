@@ -80,7 +80,7 @@ export default function TechnicalHighlights() {
   ];
 
   return (
-    <section id="features" className="py-5xl px-lg border-b border-border bg-card">
+    <section id="features" className="py-5xl px-lg border-b border-border bg-transparent">
       <div className="container">
         <div className="text-center mb-3xl">
           <span className="executive-badge mb-sm">

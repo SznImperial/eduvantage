@@ -20,24 +20,24 @@
   --spacing-5xl: 6rem;
   --spacing-6xl: 8rem;
 
-  /* Executive Principal Palette — Warm, high-trust, institutional */
-  --background: 45 20% 96%; /* #F7F6F1 Warm off-white */
-  --foreground: 210 16% 10%; /* #15191D Ink Primary */
-  --card: 0 0% 100%; /* #FFFFFF Surface */
-  --card-foreground: 210 16% 10%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 210 16% 10%;
+  /* Executive Principal Palette — Premium Dark Glassmorphism */
+  --background: 222 47% 7%; /* Deep navy/charcoal */
+  --foreground: 0 0% 100%; /* Pure white text */
+  --card: 222 47% 11%;
+  --card-foreground: 0 0% 100%;
+  --popover: 222 47% 11%;
+  --popover-foreground: 0 0% 100%;
 
-  --primary: 204 42% 21%; /* #1F3B4D Executive Trust Accent */
+  --primary: 217 91% 60%; /* Electric blue/indigo */
   --primary-foreground: 0 0% 100%;
 
-  --secondary: 192 16% 92%; /* #E8EDEE Accent soft */
-  --secondary-foreground: 204 42% 21%;
+  --secondary: 222 47% 16%;
+  --secondary-foreground: 0 0% 100%;
 
-  --muted: 192 16% 92%; /* #E8EDEE */
-  --muted-foreground: 214 8% 36%; /* #565C64 Ink soft */
+  --muted: 222 47% 16%;
+  --muted-foreground: 215 20.2% 65.1%; /* Soft gray for secondary text */
 
-  --accent: 36 65% 48%; /* #C98A2C Gold sparse highlight */
+  --accent: 258 90% 66%; /* Vibrant violet */
   --accent-foreground: 0 0% 100%;
 
   --destructive: 0 72% 51%;
@@ -49,9 +49,9 @@
   --warning: 36 65% 48%;
   --warning-foreground: 0 0% 100%;
 
-  --border: 43 18% 87%; /* #E4E1D8 Line */
-  --input: 43 18% 87%;
-  --ring: 204 42% 21%;
+  --border: 222 47% 18%; /* Dark Line */
+  --input: 222 47% 18%;
+  --ring: 217 91% 60%;
 
   --radius: 10px;
   --radius-sm: 8px;
@@ -94,10 +94,10 @@
   --shadow-glow: none;
 
   --sidebar-width: 260px;
-  --sidebar-bg: 0 0% 100%;
+  --sidebar-bg: 222 47% 11%;
   --header-height: 56px;
-  --primary-gradient: linear-gradient(160deg, #1F3B4D 0%, #152632 100%);
-  --avatar-gradient: linear-gradient(135deg, #E8EDEE, #d5dfe2);
+  --primary-gradient: linear-gradient(135deg, hsl(217 91% 60%), hsl(258 90% 66%));
+  --avatar-gradient: linear-gradient(135deg, #1F3B4D, #152632);
 }
 
 
@@ -329,12 +329,14 @@ img {
 }
 
 .card {
-  background-color: hsl(var(--card));
+  background: rgba(30, 41, 59, 0.4);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   color: hsl(var(--card-foreground));
-  border: 1px solid hsl(var(--border));
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: var(--radius);
   padding: 1.25rem;
-  box-shadow: var(--shadow-xs);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
@@ -361,8 +363,8 @@ img {
 .input {
   width: 100%;
   border-radius: var(--radius-sm);
-  border: 1px solid hsl(var(--input));
-  background-color: hsl(var(--card));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: rgba(0, 0, 0, 0.2);
   padding: 0.55rem 0.75rem;
   color: hsl(var(--foreground));
   font-size: 16px;
@@ -387,15 +389,15 @@ img {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-x: contain;
-  border: 1px solid hsl(var(--border));
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: var(--radius);
-  background-color: hsl(var(--card));
+  background-color: transparent;
   /* Subtle hint that the table scrolls on small screens */
   background-image:
-    linear-gradient(to right, hsl(var(--card)), hsl(var(--card))),
-    linear-gradient(to right, hsl(var(--card)), hsl(var(--card))),
-    linear-gradient(to right, hsl(222 28% 12% / 0.06), transparent),
-    linear-gradient(to left, hsl(222 28% 12% / 0.06), transparent);
+    linear-gradient(to right, rgba(0,0,0,0.2), rgba(0,0,0,0.2)),
+    linear-gradient(to right, rgba(0,0,0,0.2), rgba(0,0,0,0.2)),
+    linear-gradient(to right, rgba(0,0,0,0.5), transparent),
+    linear-gradient(to left, rgba(0,0,0,0.5), transparent);
   background-position: left center, right center, left center, right center;
   background-repeat: no-repeat;
   background-size: 24px 100%, 24px 100%, 12px 100%, 12px 100%;
@@ -411,19 +413,19 @@ img {
 }
 
 .table th {
-  background-color: hsl(var(--muted) / 0.5);
+  background-color: rgba(255, 255, 255, 0.05);
   color: hsl(var(--muted-foreground));
   font-weight: 550;
   font-size: 0.75rem;
   padding: 0.7rem 1rem;
-  border-bottom: 1px solid hsl(var(--border));
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   text-transform: uppercase;
   letter-spacing: 0.03em;
 }
 
 .table td {
   padding: 0.75rem 1rem;
-  border-bottom: 1px solid hsl(var(--border) / 0.6);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   color: hsl(var(--foreground));
 }
 
@@ -432,7 +434,7 @@ img {
 }
 
 .table tbody tr:hover td {
-  background-color: hsl(var(--muted) / 0.35);
+  background-color: rgba(255, 255, 255, 0.03);
 }
 
 /* ---- Badges ---- */
@@ -1236,8 +1238,10 @@ img {
 
 .sidebar {
   width: var(--sidebar-width);
-  background: hsl(var(--sidebar-bg));
-  border-right: 1px solid hsl(var(--border));
+  background: rgba(30, 41, 59, 0.2);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
   display: flex;
   flex-direction: column;
   position: sticky;
@@ -3057,20 +3061,18 @@ img {
 }
 
 body:has(.landing-dark) {
-  background-color: hsl(222, 47%, 7%) !important;
-  color: hsl(0, 0%, 100%) !important;
+  /* No-op now since global theme is dark */
 }
 
 .landing-dark {
-  background-color: hsl(var(--background)) !important;
-  color: hsl(var(--foreground)) !important;
+  /* No-op now since global theme is dark */
 }
 
 .landing-dark .text-muted-foreground {
   color: hsl(var(--muted-foreground)) !important;
 }
 
-.glass-panel {
+.landing-dark .glass-panel {
   background: rgba(30, 41, 59, 0.4) !important;
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);

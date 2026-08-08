@@ -70,7 +70,7 @@ export default function RoiCalculator() {
   };
 
   return (
-    <section id="calculator" className="py-5xl px-lg border-y border-border bg-muted/40">
+    <section id="calculator" className="py-5xl px-lg border-y border-border bg-transparent">
       <div className="container relative z-10 max-w-hero">
         <div className="text-center mb-3xl">
           <span className="executive-badge mb-sm">
@@ -87,7 +87,7 @@ export default function RoiCalculator() {
 
         <div className="grid-split-6-6 items-start gap-2xl">
           {/* Controls Column */}
-          <div className="executive-card p-xl bg-card w-full space-y-xl">
+          <div className="glass-panel p-xl rounded-xl w-full space-y-xl">
             {/* 1. Plan Selector */}
             <div>
               <div className="flex justify-between items-center mb-md">
@@ -189,13 +189,13 @@ export default function RoiCalculator() {
           </div>
 
           {/* 2026 Executive Result Display Card */}
-          <div className="executive-card p-2xl text-white bg-gradient-to-b from-[#1F3B4D] to-[#152632] relative overflow-hidden shadow-2xl border-none w-full space-y-lg rounded-xl">
-            <div className="flex justify-between items-center border-b border-white/15 pb-md">
+          <div className="glass-panel p-xl rounded-xl w-full border-primary/20 sticky top-24">
+            <div className="flex justify-between items-center border-b border-border pb-md">
               <div>
-                <span className="text-xs uppercase tracking-widest font-extrabold text-slate-300 block">
+                <span className="text-xs uppercase tracking-widest font-extrabold text-muted-foreground block">
                   Per-Student Term Allocation
                 </span>
-                <span className="text-xs font-bold text-amber-300">
+                <span className="text-xs font-bold text-primary">
                   {selectedPlan.name} (Max {selectedPlan.maxStudents})
                 </span>
               </div>

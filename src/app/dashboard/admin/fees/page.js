@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { createClient } from '@/lib/supabaseClient';
 import { 
   CreditCard, 
@@ -401,7 +402,7 @@ export default function AdminFeesPage() {
       )}
 
       {/* Invoice Details & Payment Recording Modal */}
-      {showModal && selectedStudent && (
+      {showModal && selectedStudent && createPortal(
         <div className="modal-backdrop">
           <form className="card" onSubmit={handleSavePayment} style={{ maxWidth: '480px', width: '100%', padding: '2rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)', paddingBottom: '1rem', marginBottom: '1.5rem' }}>
@@ -459,11 +460,12 @@ export default function AdminFeesPage() {
               <Save size={16} /> Record Transaction
             </button>
           </form>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Class Bill Allocation Modal */}
-      {showAllocModal && (
+      {showAllocModal && typeof document !== 'undefined' && createPortal(
         <div className="modal-backdrop">
           <form className="card" onSubmit={handleAllocateFees} style={{ maxWidth: '480px', width: '100%', padding: '2rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)', paddingBottom: '1rem', marginBottom: '1.5rem' }}>
@@ -525,7 +527,8 @@ export default function AdminFeesPage() {
               {allocating ? 'Processing bills...' : 'Issue Bills Class-wide'}
             </button>
           </form>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

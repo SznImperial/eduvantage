@@ -60,7 +60,7 @@ export default function LandingFaq() {
   };
 
   return (
-    <section id="faq" className="py-5xl px-lg border-b border-border bg-card">
+    <section id="faq" className="py-5xl px-lg border-b border-border bg-transparent">
       <div className="container">
         <div className="text-center mb-3xl">
           <span className="executive-badge mb-sm">
@@ -164,7 +164,7 @@ export default function LandingFaq() {
           </div>
 
           {/* Executive Direct Consultation Box */}
-          <div className="executive-card p-xl bg-card border border-border space-y-md w-full">
+          <div className="glass-panel p-xl rounded-xl border border-white/10 space-y-md w-full">
             <div className="flex items-center gap-sm">
               <div className="p-xs rounded bg-secondary text-primary">
                 <MessageSquare size={20} />

@@ -5,7 +5,7 @@ import { Globe, ShieldCheck } from 'lucide-react';
 
 export default function LandingFooter() {
   return (
-    <footer className="footer-wrapper border-t border-border bg-card">
+    <footer className="footer-wrapper border-t border-border bg-transparent">
       <div className="container">
         <div className="footer-grid">
           <div className="footer-col footer-col-brand">

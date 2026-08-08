@@ -49,7 +49,7 @@ export default function LandingNavbar() {
 
       <button
         type="button"
-        className="mobile-nav-toggle"
+        className="mobile-nav-toggle glass-button"
         onClick={() => setIsMenuOpen((open) => !open)}
         aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
         aria-expanded={isMenuOpen}
@@ -64,7 +64,7 @@ export default function LandingNavbar() {
         aria-hidden={!isMenuOpen}
       />
 
-      <nav id="landing-nav" className={`nav-links ${isMenuOpen ? 'mobile-open' : ''}`}>
+      <nav id="landing-nav" className={`nav-links ${isMenuOpen ? 'mobile-open glass-panel' : ''}`}>
         <a href="#calculator" className="nav-link font-semibold text-primary" onClick={closeMenu}>
           ROI Savings
         </a>
