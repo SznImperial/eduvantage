@@ -14,5 +14,6 @@ export const metadata = {
 };
 
 export default function RegisterPage() {
+  // Redeploy trigger
   return <RegisterForm />;
 }
