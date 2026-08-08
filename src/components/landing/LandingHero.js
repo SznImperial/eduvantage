@@ -18,7 +18,7 @@ export default function LandingHero() {
             </div>
 
             <h1 className="text-hero leading-tight font-black text-foreground">
-              Consolidate School Administration, Grading &amp; CBT Exams Into <span className="gradient-text">One Secure Platform</span>
+              One Platform. Every Classroom. <span className="gradient-text">Absolute Control.</span>
             </h1>
 
             <p className="text-hero-subtitle max-w-hero-text text-base sm:text-lg leading-relaxed font-normal text-muted-foreground">
@@ -37,15 +37,15 @@ export default function LandingHero() {
             </div>
 
             <div className="hero-stats mt-lg grid grid-cols-3 gap-md w-full">
-              <div className="executive-card p-sm bg-card">
+              <div className="glass-panel glass-panel-interactive p-sm rounded-lg">
                 <span className="hero-stat-value text-primary font-black text-lg sm:text-xl block">60% Savings</span>
                 <span className="hero-stat-label text-xs font-medium text-muted-foreground">Consolidated Stack</span>
               </div>
-              <div className="executive-card p-sm bg-card">
-                <span className="hero-stat-value font-black text-lg sm:text-xl block text-amber-600">Proctored CBT</span>
+              <div className="glass-panel glass-panel-interactive p-sm rounded-lg">
+                <span className="hero-stat-value font-black text-lg sm:text-xl block text-amber-500">Proctored CBT</span>
                 <span className="hero-stat-label text-xs font-medium text-muted-foreground">Anti-Cheat Engine</span>
               </div>
-              <div className="executive-card p-sm bg-card">
+              <div className="glass-panel glass-panel-interactive p-sm rounded-lg">
                 <span className="hero-stat-value text-foreground font-black text-lg sm:text-xl block">Multi-Tenant</span>
                 <span className="hero-stat-label text-xs font-medium text-muted-foreground">Row-Level Isolation</span>
               </div>
@@ -78,7 +78,7 @@ export default function LandingHero() {
               </button>
             </div>
 
-            <div className="executive-card overflow-hidden border-2 border-border">
+            <div className="glass-panel overflow-hidden border border-white/10 rounded-xl relative z-10 shadow-2xl">
               {heroPreview === 'dashboard' && (
                 <img
                   src="/imp3rialedu_dashboard_mockup.png"

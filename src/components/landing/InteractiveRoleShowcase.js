@@ -38,7 +38,7 @@ export default function InteractiveRoleShowcase() {
   };
 
   return (
-    <section id="portals" className="py-5xl px-lg bg-muted/40 border-b border-border">
+    <section id="portals" className="py-5xl px-lg bg-transparent border-b border-border">
       <div className="container max-w-hero">
         <div className="text-center mb-3xl">
           <span className="executive-badge mb-sm">
@@ -86,7 +86,7 @@ export default function InteractiveRoleShowcase() {
         </div>
 
         {/* Interactive View Display */}
-        <div className="executive-card p-lg sm:p-2xl bg-card">
+        <div className="glass-panel p-lg sm:p-2xl rounded-xl border border-white/10 shadow-xl">
           {activeRole === 'cbt_proctor' && (
             <div>
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-md mb-lg border-b border-border pb-md">
@@ -218,7 +218,7 @@ export default function InteractiveRoleShowcase() {
               </div>
 
               <div className="grid-3col">
-                <div className="executive-card p-md bg-card">
+                <div className="glass-panel p-md rounded-lg">
                   <div className="flex justify-between items-center mb-xs">
                     <span className="text-xs font-semibold text-muted-foreground">Tuition Revenue</span>
                     <CreditCard size={16} className="text-emerald-600" />
@@ -227,7 +227,7 @@ export default function InteractiveRoleShowcase() {
                   <span className="text-xs font-medium text-emerald-600">94.2% collected term 2</span>
                 </div>
 
-                <div className="executive-card p-md bg-card">
+                <div className="glass-panel p-md rounded-lg">
                   <div className="flex justify-between items-center mb-xs">
                     <span className="text-xs font-semibold text-muted-foreground">Active Students</span>
                     <Users size={16} className="text-primary" />
@@ -236,7 +236,7 @@ export default function InteractiveRoleShowcase() {
                   <span className="text-xs font-medium text-muted-foreground">Across 14 classrooms</span>
                 </div>
 
-                <div className="executive-card p-md bg-card">
+                <div className="glass-panel p-md rounded-lg">
                   <div className="flex justify-between items-center mb-xs">
                     <span className="text-xs font-semibold text-muted-foreground">Proctored Exams</span>
                     <Award size={16} className="text-amber-600" />
@@ -303,12 +303,12 @@ export default function InteractiveRoleShowcase() {
               </div>
 
               <div className="grid-2col">
-                <div className="executive-card p-md bg-card">
+                <div className="glass-panel p-md rounded-lg">
                   <span className="text-xs font-semibold block mb-xs text-muted-foreground">Attendance Record</span>
                   <div className="text-lg font-bold text-emerald-600">98% Present This Term</div>
                   <p className="text-xs mt-xs text-muted-foreground">Zero unexcused absences recorded by classroom teacher.</p>
                 </div>
-                <div className="executive-card p-md bg-card">
+                <div className="glass-panel p-md rounded-lg">
                   <span className="text-xs font-semibold block mb-xs text-muted-foreground">Tuition Status</span>
                   <div className="text-lg font-bold text-primary">Paid In Full (Term 2)</div>
                   <p className="text-xs mt-xs text-muted-foreground">Receipt #INV-2026-894 generated automatically.</p>

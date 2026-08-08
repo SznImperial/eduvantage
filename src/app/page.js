@@ -12,7 +12,7 @@ import LandingFooter from '@/components/landing/LandingFooter';
 
 export default function LandingPage() {
   return (
-    <div className="page-wrapper">
+    <div className="page-wrapper landing-dark">
       <LandingNavbar />
       <main className="main-content">
         <LandingHero />

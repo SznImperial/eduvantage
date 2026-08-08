@@ -46,17 +46,17 @@ export default function LandingFooter() {
 
           <div className="footer-col">
             <span className="footer-title text-foreground font-bold">Governance &amp; Trust</span>
-            <a href="#" className="footer-link">Row-Level Security Architecture</a>
-            <a href="#" className="footer-link">Data Privacy Guarantee</a>
-            <a href="#" className="footer-link">99.99% Uptime SLA</a>
+            <Link href="/privacy#architecture" className="footer-link">Row-Level Security Architecture</Link>
+            <Link href="/privacy" className="footer-link">Data Privacy Guarantee</Link>
+            <Link href="/terms#availability" className="footer-link">99.99% Uptime SLA</Link>
           </div>
         </div>
 
         <div className="footer-bottom border-t border-border pt-md">
-          <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} EduVantage (IMP3RIAL EDU). All rights reserved.</p>
+          <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} Imp3rial.dev Systems. All rights reserved.</p>
           <div className="footer-bottom-links">
-            <a href="#" className="text-muted-foreground text-xs font-medium">Privacy Policy</a>
-            <a href="#" className="text-muted-foreground text-xs font-medium">Terms of Service</a>
+            <Link href="/privacy" className="text-muted-foreground hover:text-foreground transition-colors text-xs font-medium">Privacy Policy</Link>
+            <Link href="/terms" className="text-muted-foreground hover:text-foreground transition-colors text-xs font-medium">Terms of Service</Link>
           </div>
         </div>
       </div>

@@ -3018,5 +3018,93 @@ img {
   margin-top: 0.75rem;
 }
 
+/* ============================================================
+   Landing Page Premium Dark Theme & Glassmorphism
+   ============================================================ */
 
+.landing-dark {
+  /* Override core tokens for the dark landing page */
+  --background: 222 47% 7%; /* Deep navy/charcoal */
+  --foreground: 0 0% 100%; /* Pure white text */
+  
+  --card: 222 47% 11%;
+  --card-foreground: 0 0% 100%;
+  
+  --popover: 222 47% 11%;
+  --popover-foreground: 0 0% 100%;
+  
+  --primary: 217 91% 60%; /* Electric blue/indigo */
+  --primary-foreground: 0 0% 100%;
+  
+  --secondary: 222 47% 16%;
+  --secondary-foreground: 0 0% 100%;
+  
+  --muted: 222 47% 16%;
+  --muted-foreground: 215 20.2% 65.1%; /* Soft gray for secondary text */
+  
+  --accent: 258 90% 66%; /* Vibrant violet */
+  --accent-foreground: 0 0% 100%;
+  
+  --border: 222 47% 18%;
+  --input: 222 47% 18%;
+  --ring: 217 91% 60%;
+  
+  /* Gradients */
+  --primary-gradient: linear-gradient(135deg, hsl(217 91% 60%), hsl(258 90% 66%));
+  
+  /* Shadows */
+  --shadow-glow: 0 0 40px -10px rgba(99, 102, 241, 0.4);
+}
+
+body:has(.landing-dark) {
+  background-color: hsl(222, 47%, 7%) !important;
+  color: hsl(0, 0%, 100%) !important;
+}
+
+.landing-dark {
+  background-color: hsl(var(--background)) !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+.landing-dark .text-muted-foreground {
+  color: hsl(var(--muted-foreground)) !important;
+}
+
+.glass-panel {
+  background: rgba(30, 41, 59, 0.4) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3) !important;
+}
+
+.glass-panel-interactive {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s ease !important;
+}
+
+.glass-panel-interactive:hover {
+  transform: translateY(-4px) !important;
+  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.5), var(--shadow-glow) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+.glass-button {
+  background: rgba(255, 255, 255, 0.05) !important;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: #fff !important;
+}
+
+.glass-button:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.gradient-text {
+  background: var(--primary-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+}
 

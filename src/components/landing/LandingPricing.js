@@ -77,7 +77,7 @@ export default function LandingPricing() {
   ];
 
   return (
-    <section id="pricing" className="py-5xl px-lg bg-card border-b border-border">
+    <section id="pricing" className="py-5xl px-lg bg-transparent border-b border-border">
       <div className="container">
         <div className="text-center mb-3xl">
           <span className="executive-badge mb-sm">
@@ -118,7 +118,7 @@ export default function LandingPricing() {
           {plans.map((plan) => (
             <div
               key={plan.id}
-              className={`pricing-card executive-card bg-card ${plan.popular ? 'pricing-card-popular border-2 border-primary' : ''}`}
+              className={`pricing-card glass-panel glass-panel-interactive ${plan.popular ? 'pricing-card-popular border-primary' : ''}`}
             >
               {plan.popular && (
                 <span className="pricing-popular-badge font-bold">
@@ -145,7 +145,7 @@ export default function LandingPricing() {
                 <p className="pricing-plan-desc text-muted-foreground text-xs">{plan.description}</p>
               </div>
 
-              <div className="pricing-plan-limits font-semibold text-xs text-primary bg-secondary px-xs py-1 rounded mb-md text-center">
+              <div className="pricing-plan-limits font-semibold text-xs text-primary bg-primary/10 border border-primary/20 px-xs py-1 rounded mb-md text-center">
                 {plan.limitText}
               </div>
 
@@ -160,7 +160,7 @@ export default function LandingPricing() {
 
               <Link
                 href="/register"
-                className={`btn ${plan.popular ? 'btn-primary' : 'btn-outline'} w-full font-bold justify-center py-md`}
+                className={`btn ${plan.popular ? 'btn-primary' : 'glass-button'} w-full font-bold justify-center py-md`}
               >
                 {plan.ctaText}
               </Link>
